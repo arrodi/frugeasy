@@ -235,11 +235,6 @@ export default function App() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="dark" />
 
-      <View style={styles.headerCard}>
-        <Text style={styles.title}>✨ Frugeasy</Text>
-        <Text style={styles.subtitle}>Swipe left/right to switch tabs</Text>
-      </View>
-
       <ScrollView
         ref={pagerRef}
         horizontal
@@ -328,28 +323,15 @@ export default function App() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#f7faf9' },
-  headerCard: {
-    marginHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    backgroundColor: '#eaf2ef',
-    borderWidth: 1,
-    borderColor: '#d1e2dc',
-    borderRadius: 18,
-  },
-  title: { fontSize: 26, fontWeight: '800', color: '#1f3b35' },
-  subtitle: { marginTop: 2, fontSize: 13, color: '#49635d' },
   page: { flex: 1 },
   tabDots: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
     paddingVertical: 8,
   },
-  tabDotWrap: { alignItems: 'center', gap: 4 },
+  tabDotWrap: { flex: 1, alignItems: 'center', gap: 4 },
   dot: {
     width: 8,
     height: 8,
