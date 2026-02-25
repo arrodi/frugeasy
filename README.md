@@ -1,9 +1,10 @@
 # Frugeasy
 
-Simple personal finance app for **iOS + Android** with two core screens:
+Simple personal finance app for **iOS + Android** with swipe-based tabs:
 
-1. **Add Transaction** — input amount, choose `income` or `expense`, choose category, swipe up to save
-2. **Monthly Summary** — view month totals + optional deep **Analyze** mode on demand
+1. **Add** — input amount, choose `income` or `expense`, choose category, swipe up to save
+2. **Monthly** — view month totals + optional deep **Analyze** mode on demand
+3. **Transactions** — filter/search, delete items, and export CSV
 
 ## Stack
 
