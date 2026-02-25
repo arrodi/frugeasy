@@ -1,5 +1,14 @@
-import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import {
+  Alert,
+  Animated,
+  PanResponder,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
 import { TransactionCategory, TransactionType } from '../domain/types';
 
@@ -25,19 +34,55 @@ export function AddTransactionScreen({
   onSave,
 }: Props) {
   const [categoryOpen, setCategoryOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const swipeY = useRef(new Animated.Value(0)).current;
 
-  const onPressSave = async () => {
+  const onSwipeSave = async () => {
     const amount = Number(amountInput.replace(',', '.'));
     if (!Number.isFinite(amount) || amount <= 0) {
       Alert.alert('Invalid amount', 'Please enter a valid amount greater than 0.');
       return;
     }
-    await onSave();
+    if (isSaving) return;
+
+    try {
+      setIsSaving(true);
+      await onSave();
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, gestureState) =>
+          Math.abs(gestureState.dy) > 5 || Math.abs(gestureState.dx) > 5,
+        onPanResponderMove: (_, gestureState) => {
+          if (gestureState.dy < 0) {
+            swipeY.setValue(Math.max(gestureState.dy, -90));
+          } else {
+            swipeY.setValue(0);
+          }
+        },
+        onPanResponderRelease: async (_, gestureState) => {
+          const shouldSave = gestureState.dy < -70;
+          Animated.spring(swipeY, {
+            toValue: 0,
+            useNativeDriver: true,
+            bounciness: 6,
+          }).start();
+          if (shouldSave) {
+            await onSwipeSave();
+          }
+        },
+      }),
+    [isSaving, amountInput, onSave, swipeY]
+  );
 
   return (
     <View style={styles.screenContainer}>
-      <View style={styles.block}>
+      <View style={styles.formArea}>
         <Text style={styles.sectionTitle}>✨ Add a transaction</Text>
 
         <TextInput
@@ -99,18 +144,30 @@ export function AddTransactionScreen({
             </View>
           ) : null}
         </View>
+      </View>
 
-        <Pressable style={styles.saveButton} onPress={onPressSave}>
-          <Text style={styles.saveButtonText}>Save transaction</Text>
-        </Pressable>
+      <View style={styles.swipeZoneWrap}>
+        <Animated.View
+          {...panResponder.panHandlers}
+          style={[styles.swipeZone, { transform: [{ translateY: swipeY }] }]}
+        >
+          <Text style={styles.swipeText}>{isSaving ? 'Saving…' : 'Swipe up to save'}</Text>
+          <Text style={styles.swipeHint}>↑ drag up</Text>
+        </Animated.View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screenContainer: { flex: 1, paddingHorizontal: 16, paddingTop: 4 },
-  block: {
+  screenContainer: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 12,
+    justifyContent: 'space-between',
+  },
+  formArea: {
     backgroundColor: '#eef5f2',
     borderWidth: 1,
     borderColor: '#d2e2dc',
@@ -175,12 +232,17 @@ const styles = StyleSheet.create({
   },
   dropdownOptionText: { color: '#35544c', fontWeight: '600' },
   dropdownOptionTextActive: { color: '#1f3b35' },
-  saveButton: {
-    marginTop: 2,
-    backgroundColor: '#355f53',
-    borderRadius: 14,
-    paddingVertical: 12,
-    alignItems: 'center',
+  swipeZoneWrap: {
+    paddingBottom: 4,
   },
-  saveButtonText: { color: 'white', fontWeight: '800' },
+  swipeZone: {
+    backgroundColor: '#355f53',
+    borderRadius: 18,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#2b4b42',
+  },
+  swipeText: { color: 'white', fontWeight: '800', fontSize: 16 },
+  swipeHint: { color: '#cfe2db', marginTop: 3, fontSize: 12, fontWeight: '600' },
 });
