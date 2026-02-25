@@ -25,3 +25,20 @@ export type MonthlyTotals = {
   expense: number;
   net: number;
 };
+
+export type Budget = {
+  id: string;
+  category: TransactionCategory;
+  amount: number;
+  monthKey: string; // YYYY-MM
+};
+
+export type RecurringRule = {
+  id: string;
+  type: TransactionType;
+  category: TransactionCategory;
+  amount: number;
+  dayOfMonth: number;
+  label: string;
+  active: boolean;
+};

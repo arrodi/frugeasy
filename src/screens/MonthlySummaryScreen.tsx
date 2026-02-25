@@ -5,6 +5,7 @@ import { Transaction } from '../domain/types';
 import { formatCurrency } from '../ui/format';
 
 type Props = {
+  budgetProgressRows: { category: string; budget: number; spent: number; usagePct: number }[];
   year: number;
   monthIndex: number;
   totals: {
@@ -50,6 +51,7 @@ function MiniBars({ points }: { points: DailyPoint[] }) {
 }
 
 export function MonthlySummaryScreen({
+  budgetProgressRows,
   year,
   monthIndex,
   totals,
@@ -124,6 +126,23 @@ export function MonthlySummaryScreen({
               <Text style={[styles.td, row.deltaPct > 0 ? styles.deltaUp : styles.deltaDown]}>
                 {row.deltaPct.toFixed(0)}%
               </Text>
+            </View>
+          ))}
+
+          <Text style={styles.subTitle}>Budget usage table</Text>
+          <View style={styles.tableHeader}>
+            <Text style={[styles.th, { flex: 1.4 }]}>Category</Text>
+            <Text style={styles.th}>Spent</Text>
+            <Text style={styles.th}>Budget</Text>
+            <Text style={styles.th}>Use</Text>
+          </View>
+          {budgetProgressRows.length === 0 ? <Text style={styles.note}>No budgets set yet (add in Transactions tab).</Text> : null}
+          {budgetProgressRows.map((row) => (
+            <View key={`b-${row.category}`} style={styles.tableRow}>
+              <Text style={[styles.td, { flex: 1.4 }]}>{row.category}</Text>
+              <Text style={styles.td}>{formatCurrency(row.spent)}</Text>
+              <Text style={styles.td}>{formatCurrency(row.budget)}</Text>
+              <Text style={[styles.td, row.usagePct > 100 ? styles.deltaUp : styles.deltaDown]}>{row.usagePct.toFixed(0)}%</Text>
             </View>
           ))}
 

@@ -29,12 +29,19 @@ import {
   weeklyBurn,
 } from './src/domain/analysis';
 import { calculateMonthlyTotals, filterTransactionsByMonth } from './src/domain/summary';
-import { Transaction, TransactionCategory, TransactionType } from './src/domain/types';
+import { Budget, RecurringRule, Transaction, TransactionCategory, TransactionType } from './src/domain/types';
 import {
+  applyRecurringRulesForMonth,
   deleteTransaction,
   initTransactionsRepo,
+  insertRecurringRule,
   insertTransaction,
+  listBudgets,
+  listRecurringRules,
   listTransactions,
+  toggleRecurringRule,
+  updateTransaction,
+  upsertBudget,
 } from './src/storage/transactionsRepo';
 
 const INCOME_CATEGORIES: TransactionCategory[] = [
@@ -62,6 +69,10 @@ function monthWindow(now: Date, offsetMonths: number) {
   return { year: d.getUTCFullYear(), month: d.getUTCMonth() };
 }
 
+function monthKey(year: number, monthIndex: number): string {
+  return `${year}-${String(monthIndex + 1).padStart(2, '0')}`;
+}
+
 function toCsv(transactions: Transaction[]): string {
   const header = ['id', 'amount', 'type', 'category', 'date', 'createdAt'];
   const rows = transactions.map((t) => [t.id, String(t.amount), t.type, t.category, t.date, t.createdAt]);
@@ -85,13 +96,18 @@ export default function App() {
   const [categoryFilter, setCategoryFilter] = useState<'all' | TransactionCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [lastSavedId, setLastSavedId] = useState<string | null>(null);
+  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [recurringRules, setRecurringRules] = useState<RecurringRule[]>([]);
 
   useEffect(() => {
     (async () => {
       try {
         await initTransactionsRepo();
-        const existing = await listTransactions();
+        const now = new Date();
+        await applyRecurringRulesForMonth(now.getUTCFullYear(), now.getUTCMonth());
+        const [existing, rules] = await Promise.all([listTransactions(), listRecurringRules()]);
         setTransactions(existing);
+        setRecurringRules(rules);
       } catch {
         Alert.alert('Oops', 'Could not initialize local database.');
       }
@@ -101,6 +117,13 @@ export default function App() {
   const now = new Date();
   const selectedWindow = monthWindow(now, monthOffset);
   const previousWindow = monthWindow(now, monthOffset - 1);
+
+  useEffect(() => {
+    (async () => {
+      const rows = await listBudgets(monthKey(selectedWindow.year, selectedWindow.month));
+      setBudgets(rows);
+    })();
+  }, [selectedWindow.year, selectedWindow.month]);
 
   const baseMonthlyTransactions = useMemo(
     () => filterTransactionsByMonth(transactions, selectedWindow.year, selectedWindow.month),
@@ -160,6 +183,20 @@ export default function App() {
     [baseMonthlyTransactions, previousMonthlyTransactions]
   );
 
+  const budgetProgressRows = useMemo(() => {
+    const spentMap = new Map<TransactionCategory, number>();
+    for (const t of baseMonthlyTransactions) {
+      if (t.type !== 'expense') continue;
+      spentMap.set(t.category, (spentMap.get(t.category) ?? 0) + t.amount);
+    }
+    return budgets.map((b) => ({
+      category: b.category,
+      budget: b.amount,
+      spent: spentMap.get(b.category) ?? 0,
+      usagePct: b.amount > 0 ? ((spentMap.get(b.category) ?? 0) / b.amount) * 100 : 0,
+    }));
+  }, [budgets, baseMonthlyTransactions]);
+
   const onChangeType = (nextType: TransactionType) => {
     setSelectedType(nextType);
     setSelectedCategory(categoriesFor(nextType)[0]);
@@ -205,6 +242,63 @@ export default function App() {
       setTransactions((prev) => prev.filter((t) => t.id !== id));
     } catch {
       Alert.alert('Oops', 'Could not delete transaction.');
+    }
+  };
+
+  const handleUpdateTransaction = async (input: {
+    id: string;
+    amount: number;
+    type: TransactionType;
+    category: TransactionCategory;
+    date: string;
+  }) => {
+    try {
+      await updateTransaction(input);
+      setTransactions((prev) =>
+        prev.map((t) => (t.id === input.id ? { ...t, amount: input.amount, type: input.type, category: input.category, date: input.date } : t))
+      );
+    } catch {
+      Alert.alert('Oops', 'Could not update transaction.');
+    }
+  };
+
+  const handleSaveBudget = async (category: TransactionCategory, amount: number) => {
+    try {
+      const mk = monthKey(selectedWindow.year, selectedWindow.month);
+      await upsertBudget({ category, amount, monthKey: mk });
+      const rows = await listBudgets(mk);
+      setBudgets(rows);
+    } catch {
+      Alert.alert('Oops', 'Could not save budget.');
+    }
+  };
+
+  const handleAddRecurringRule = async (input: {
+    type: TransactionType;
+    category: TransactionCategory;
+    amount: number;
+    dayOfMonth: number;
+    label: string;
+  }) => {
+    try {
+      await insertRecurringRule(input);
+      const rules = await listRecurringRules();
+      setRecurringRules(rules);
+      await applyRecurringRulesForMonth(selectedWindow.year, selectedWindow.month);
+      const txs = await listTransactions();
+      setTransactions(txs);
+    } catch {
+      Alert.alert('Oops', 'Could not add recurring rule.');
+    }
+  };
+
+  const handleToggleRecurringRule = async (id: string, active: boolean) => {
+    try {
+      await toggleRecurringRule(id, active);
+      const rules = await listRecurringRules();
+      setRecurringRules(rules);
+    } catch {
+      Alert.alert('Oops', 'Could not update recurring rule.');
     }
   };
 
@@ -257,6 +351,7 @@ export default function App() {
 
         <View style={[styles.page, { width }]}> 
           <MonthlySummaryScreen
+            budgetProgressRows={budgetProgressRows}
             year={selectedWindow.year}
             monthIndex={selectedWindow.month}
             totals={totals}
@@ -290,6 +385,12 @@ export default function App() {
             onSearchQueryChange={setSearchQuery}
             onDeleteTransaction={handleDeleteTransaction}
             onExportCsv={handleExportCsv}
+            onUpdateTransaction={handleUpdateTransaction}
+            budgets={budgets}
+            onSaveBudget={handleSaveBudget}
+            recurringRules={recurringRules}
+            onAddRecurringRule={handleAddRecurringRule}
+            onToggleRecurringRule={handleToggleRecurringRule}
           />
         </View>
       </ScrollView>
