@@ -42,6 +42,16 @@ type Transaction = {
 };
 ```
 
+## Android release config (Play Store prep)
+
+- Android package id: `com.arrodi.frugeasy`
+- Android versionCode: `1` (increment on every Play release)
+
+## Store prep docs
+
+- `STORE_PREP.md` — listing text + asset checklist + policy checklist
+- `PRIVACY_POLICY.md` — privacy policy text (publish this at a public URL for Play)
+
 ## Notes
 
 - v1 is local-only (no auth, no cloud sync)
