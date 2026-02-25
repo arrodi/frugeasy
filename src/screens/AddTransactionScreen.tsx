@@ -3,7 +3,10 @@ import {
   Alert,
   Animated,
   Easing,
+  InputAccessoryView,
+  Keyboard,
   PanResponder,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -38,8 +41,10 @@ export function AddTransactionScreen({
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveDone, setSaveDone] = useState(false);
+  const amountInputRef = useRef<TextInput>(null);
   const swipeY = useRef(new Animated.Value(0)).current;
   const swipeScale = useRef(new Animated.Value(1)).current;
+  const amountAccessoryId = 'amountKeyboardAccessory';
 
   const onSwipeSave = async () => {
     const amount = Number(amountInput.replace(',', '.'));
@@ -114,13 +119,23 @@ export function AddTransactionScreen({
         <Text style={styles.sectionTitle}>✨ Add a transaction</Text>
 
         <TextInput
+          ref={amountInputRef}
           value={amountInput}
           onChangeText={onChangeAmount}
           keyboardType="decimal-pad"
+          returnKeyType="done"
+          blurOnSubmit
+          onSubmitEditing={() => Keyboard.dismiss()}
+          inputAccessoryViewID={Platform.OS === 'ios' ? amountAccessoryId : undefined}
           placeholder="Amount"
           placeholderTextColor="#4b635c"
           style={styles.input}
         />
+        {Platform.OS === 'android' ? (
+          <Pressable style={styles.doneTypingButton} onPress={() => Keyboard.dismiss()}>
+            <Text style={styles.doneTypingText}>Done</Text>
+          </Pressable>
+        ) : null}
 
         <View style={styles.typeRow}>
           <Pressable
@@ -173,6 +188,22 @@ export function AddTransactionScreen({
           ) : null}
         </View>
       </View>
+
+      {Platform.OS === 'ios' ? (
+        <InputAccessoryView nativeID={amountAccessoryId}>
+          <View style={styles.accessoryBar}>
+            <Pressable
+              onPress={() => {
+                amountInputRef.current?.blur();
+                Keyboard.dismiss();
+              }}
+              style={styles.doneTypingButton}
+            >
+              <Text style={styles.doneTypingText}>Done</Text>
+            </Pressable>
+          </View>
+        </InputAccessoryView>
+      ) : null}
 
       <View style={styles.swipeZoneWrap}>
         <Animated.View
@@ -268,6 +299,27 @@ const styles = StyleSheet.create({
   },
   dropdownOptionText: { color: '#35544c', fontWeight: '600' },
   dropdownOptionTextActive: { color: '#1f3b35' },
+  accessoryBar: {
+    backgroundColor: '#eaf2ef',
+    borderTopWidth: 1,
+    borderTopColor: '#c9dbd5',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    alignItems: 'flex-end',
+  },
+  doneTypingButton: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#dbe8e3',
+    borderWidth: 1,
+    borderColor: '#bcd0c8',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  doneTypingText: {
+    color: '#26463d',
+    fontWeight: '700',
+  },
   swipeZoneWrap: {
     paddingBottom: 4,
   },
