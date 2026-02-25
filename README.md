@@ -2,8 +2,8 @@
 
 Simple personal finance app for **iOS + Android** with two core screens:
 
-1. **Add Transaction** — input amount and choose `income` or `expense`
-2. **Monthly Summary** — view current month totals (income, expenditure, net)
+1. **Add Transaction** — input amount, choose `income` or `expense`, choose category, swipe up to save
+2. **Monthly Summary** — view month totals + optional deep **Analyze** mode on demand
 
 ## Stack
 
@@ -58,3 +58,4 @@ type Transaction = {
 - v1 is local-only (no auth, no cloud sync)
 - currency display defaults to USD formatting for now
 - data is stored in local SQLite DB: `frugeasy.db`
+- Analyze mode includes category breakdowns, month-over-month comparison, burn-rate projection, largest/unusual transactions, filters/search, and CSV export

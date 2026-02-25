@@ -67,3 +67,8 @@ export async function listTransactions(): Promise<Transaction[]> {
   );
   return rows;
 }
+
+export async function deleteTransaction(id: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(`DELETE FROM ${TABLE} WHERE id = ?;`, [id]);
+}
