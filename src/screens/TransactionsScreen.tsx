@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { Budget, RecurringRule, Transaction, TransactionCategory, TransactionType } from '../domain/types';
+import { Budget, CurrencyCode, RecurringRule, Transaction, TransactionCategory, TransactionType } from '../domain/types';
 import { formatCurrency } from '../ui/format';
 
 type Props = {
+  currency: CurrencyCode;
+  onCurrencyChange: (currency: CurrencyCode) => Promise<void>;
   transactions: Transaction[];
   typeFilter: 'all' | TransactionType;
   onTypeFilterChange: (value: 'all' | TransactionType) => void;
@@ -36,6 +38,8 @@ type Props = {
 };
 
 export function TransactionsScreen({
+  currency,
+  onCurrencyChange,
   transactions,
   typeFilter,
   onTypeFilterChange,
@@ -83,6 +87,17 @@ export function TransactionsScreen({
       </View>
 
       <View style={styles.panel}>
+        <Text style={styles.panelTitle}>Currency</Text>
+        <View style={styles.filterRow}>
+          {(['USD', 'EUR', 'GBP', 'JPY', 'RUB', 'UAH'] as CurrencyCode[]).map((c) => (
+            <Pressable key={c} style={[styles.filterChip, currency === c && styles.filterChipActive]} onPress={() => onCurrencyChange(c)}>
+              <Text style={[styles.filterChipText, currency === c && styles.filterChipTextActive]}>{c}</Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+
+      <View style={styles.panel}>
         <Text style={styles.panelTitle}>Budgets (this month)</Text>
         <View style={styles.inlineRow}>
           <TextInput value={budgetCategory} onChangeText={(v) => setBudgetCategory(v as TransactionCategory)} style={styles.smallInput} placeholder="Category" />
@@ -101,7 +116,7 @@ export function TransactionsScreen({
         </View>
         <View style={styles.filterRow}>
           {categoryOptions.map((cat) => (
-            <Text key={cat} style={styles.miniPill}>{cat}: {formatCurrency(budgetMap.get(cat) ?? 0)}</Text>
+            <Text key={cat} style={styles.miniPill}>{cat}: {formatCurrency(budgetMap.get(cat) ?? 0, currency)}</Text>
           ))}
         </View>
       </View>
@@ -140,7 +155,7 @@ export function TransactionsScreen({
         </View>
         {recurringRules.map((r) => (
           <View key={r.id} style={styles.ruleRow}>
-            <Text style={styles.ruleText}>{r.label} • day {r.dayOfMonth} • {formatCurrency(r.amount)} • {r.category}</Text>
+            <Text style={styles.ruleText}>{r.label} • day {r.dayOfMonth} • {formatCurrency(r.amount, currency)} • {r.category}</Text>
             <Pressable style={styles.deleteBtn} onPress={() => onToggleRecurringRule(r.id, !r.active)}>
               <Text style={styles.deleteBtnText}>{r.active ? 'On' : 'Off'}</Text>
             </Pressable>
@@ -184,7 +199,7 @@ export function TransactionsScreen({
                   <Text style={styles.category}>{item.category}</Text>
                 </View>
                 <View style={styles.rightRow}>
-                  <Text style={styles.amount}>{formatCurrency(item.amount)}</Text>
+                  <Text style={styles.amount}>{formatCurrency(item.amount, currency)}</Text>
                   <View style={styles.inlineRow}>
                     <Pressable style={styles.deleteBtn} onPress={() => {
                       setEditId(item.id); setEditAmount(String(item.amount)); setEditType(item.type); setEditCategory(item.category);

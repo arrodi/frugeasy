@@ -42,3 +42,5 @@ export type RecurringRule = {
   label: string;
   active: boolean;
 };
+
+export type CurrencyCode = 'USD' | 'EUR' | 'GBP' | 'JPY' | 'RUB' | 'UAH';

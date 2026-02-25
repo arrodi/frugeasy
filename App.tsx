@@ -29,7 +29,7 @@ import {
   weeklyBurn,
 } from './src/domain/analysis';
 import { calculateMonthlyTotals, filterTransactionsByMonth } from './src/domain/summary';
-import { Budget, RecurringRule, Transaction, TransactionCategory, TransactionType } from './src/domain/types';
+import { Budget, CurrencyCode, RecurringRule, Transaction, TransactionCategory, TransactionType } from './src/domain/types';
 import {
   applyRecurringRulesForMonth,
   deleteTransaction,
@@ -39,6 +39,8 @@ import {
   listBudgets,
   listRecurringRules,
   listTransactions,
+  setSetting,
+  getSetting,
   toggleRecurringRule,
   updateTransaction,
   upsertBudget,
@@ -98,6 +100,7 @@ export default function App() {
   const [lastSavedId, setLastSavedId] = useState<string | null>(null);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [recurringRules, setRecurringRules] = useState<RecurringRule[]>([]);
+  const [currency, setCurrency] = useState<CurrencyCode>('USD');
 
   useEffect(() => {
     (async () => {
@@ -105,9 +108,16 @@ export default function App() {
         await initTransactionsRepo();
         const now = new Date();
         await applyRecurringRulesForMonth(now.getUTCFullYear(), now.getUTCMonth());
-        const [existing, rules] = await Promise.all([listTransactions(), listRecurringRules()]);
+        const [existing, rules, savedCurrency] = await Promise.all([
+          listTransactions(),
+          listRecurringRules(),
+          getSetting('currency'),
+        ]);
         setTransactions(existing);
         setRecurringRules(rules);
+        if (savedCurrency && ['USD', 'EUR', 'GBP', 'JPY', 'RUB', 'UAH'].includes(savedCurrency)) {
+          setCurrency(savedCurrency as CurrencyCode);
+        }
       } catch {
         Alert.alert('Oops', 'Could not initialize local database.');
       }
@@ -302,6 +312,15 @@ export default function App() {
     }
   };
 
+  const handleCurrencyChange = async (next: CurrencyCode) => {
+    setCurrency(next);
+    try {
+      await setSetting('currency', next);
+    } catch {
+      Alert.alert('Oops', 'Could not save currency preference.');
+    }
+  };
+
   const handleExportCsv = async () => {
     try {
       const csv = toCsv(filteredTransactions);
@@ -351,6 +370,7 @@ export default function App() {
 
         <View style={[styles.page, { width }]}> 
           <MonthlySummaryScreen
+            currency={currency}
             budgetProgressRows={budgetProgressRows}
             year={selectedWindow.year}
             monthIndex={selectedWindow.month}
@@ -375,6 +395,8 @@ export default function App() {
 
         <View style={[styles.page, { width }]}> 
           <TransactionsScreen
+            currency={currency}
+            onCurrencyChange={handleCurrencyChange}
             transactions={filteredTransactions}
             typeFilter={typeFilter}
             onTypeFilterChange={setTypeFilter}

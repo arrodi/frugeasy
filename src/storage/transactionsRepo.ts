@@ -12,6 +12,7 @@ const DB_NAME = 'frugeasy.db';
 const TX_TABLE = 'transactions';
 const BUDGET_TABLE = 'budgets';
 const RECURRING_TABLE = 'recurring_rules';
+const SETTINGS_TABLE = 'app_settings';
 
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
@@ -47,6 +48,11 @@ export async function initTransactionsRepo(): Promise<void> {
       dayOfMonth INTEGER NOT NULL,
       label TEXT NOT NULL,
       active INTEGER NOT NULL DEFAULT 1
+    );
+
+    CREATE TABLE IF NOT EXISTS ${SETTINGS_TABLE} (
+      key TEXT PRIMARY KEY NOT NULL,
+      value TEXT NOT NULL
     );
   `);
 
@@ -157,6 +163,23 @@ export async function listRecurringRules(): Promise<RecurringRule[]> {
 export async function toggleRecurringRule(id: string, active: boolean): Promise<void> {
   const db = await getDb();
   await db.runAsync(`UPDATE ${RECURRING_TABLE} SET active = ? WHERE id = ?;`, [active ? 1 : 0, id]);
+}
+
+export async function getSetting(key: string): Promise<string | null> {
+  const db = await getDb();
+  const row = await db.getFirstAsync<{ value: string }>(
+    `SELECT value FROM ${SETTINGS_TABLE} WHERE key = ? LIMIT 1;`,
+    [key]
+  );
+  return row?.value ?? null;
+}
+
+export async function setSetting(key: string, value: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    `INSERT INTO ${SETTINGS_TABLE} (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value;`,
+    [key, value]
+  );
 }
 
 export async function applyRecurringRulesForMonth(year: number, monthIndex: number): Promise<void> {

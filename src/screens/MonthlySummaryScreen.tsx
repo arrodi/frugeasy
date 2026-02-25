@@ -5,6 +5,7 @@ import { Transaction } from '../domain/types';
 import { formatCurrency } from '../ui/format';
 
 type Props = {
+  currency: string;
   budgetProgressRows: { category: string; budget: number; spent: number; usagePct: number }[];
   year: number;
   monthIndex: number;
@@ -51,6 +52,7 @@ function MiniBars({ points }: { points: DailyPoint[] }) {
 }
 
 export function MonthlySummaryScreen({
+  currency,
   budgetProgressRows,
   year,
   monthIndex,
@@ -89,9 +91,9 @@ export function MonthlySummaryScreen({
         </Pressable>
       </View>
 
-      <View style={styles.card}><Text style={styles.cardLabel}>Income</Text><Text style={[styles.cardValue, styles.income]}>{formatCurrency(totals.income)}</Text></View>
-      <View style={styles.card}><Text style={styles.cardLabel}>Expenditure</Text><Text style={[styles.cardValue, styles.expense]}>{formatCurrency(totals.expense)}</Text></View>
-      <View style={styles.card}><Text style={styles.cardLabel}>Net</Text><Text style={[styles.cardValue, styles.net]}>{formatCurrency(totals.net)}</Text></View>
+      <View style={styles.card}><Text style={styles.cardLabel}>Income</Text><Text style={[styles.cardValue, styles.income]}>{formatCurrency(totals.income, currency)}</Text></View>
+      <View style={styles.card}><Text style={styles.cardLabel}>Expenditure</Text><Text style={[styles.cardValue, styles.expense]}>{formatCurrency(totals.expense, currency)}</Text></View>
+      <View style={styles.card}><Text style={styles.cardLabel}>Net</Text><Text style={[styles.cardValue, styles.net]}>{formatCurrency(totals.net, currency)}</Text></View>
 
       <Pressable style={styles.actionBtn} onPress={onToggleAnalysisMode}>
         <Text style={styles.actionBtnText}>{analysisMode ? 'Hide analysis' : 'Analyze'}</Text>
@@ -100,9 +102,9 @@ export function MonthlySummaryScreen({
       {analysisMode ? (
         <View style={styles.analysisWrap}>
           <Text style={styles.analysisTitle}>Dashboard</Text>
-          <Text style={styles.note}>Previous month expense: {formatCurrency(previousTotals.expense)}</Text>
-          <Text style={styles.note}>Weekly burn rate: {formatCurrency(weeklyBurnRate)}</Text>
-          <Text style={styles.note}>Projected month-end expense: {formatCurrency(projectedExpense)}</Text>
+          <Text style={styles.note}>Previous month expense: {formatCurrency(previousTotals.expense, currency)}</Text>
+          <Text style={styles.note}>Weekly burn rate: {formatCurrency(weeklyBurnRate, currency)}</Text>
+          <Text style={styles.note}>Projected month-end expense: {formatCurrency(projectedExpense, currency)}</Text>
 
           <Text style={styles.subTitle}>Time series (last 14 days)</Text>
           <MiniBars points={dailyPoints} />
@@ -121,8 +123,8 @@ export function MonthlySummaryScreen({
           {categoryCompareRows.slice(0, 8).map((row) => (
             <View key={row.category} style={styles.tableRow}>
               <Text style={[styles.td, { flex: 1.4 }]}>{row.category}</Text>
-              <Text style={styles.td}>{formatCurrency(row.current)}</Text>
-              <Text style={styles.td}>{formatCurrency(row.previous)}</Text>
+              <Text style={styles.td}>{formatCurrency(row.current, currency)}</Text>
+              <Text style={styles.td}>{formatCurrency(row.previous, currency)}</Text>
               <Text style={[styles.td, row.deltaPct > 0 ? styles.deltaUp : styles.deltaDown]}>
                 {row.deltaPct.toFixed(0)}%
               </Text>
@@ -140,30 +142,30 @@ export function MonthlySummaryScreen({
           {budgetProgressRows.map((row) => (
             <View key={`b-${row.category}`} style={styles.tableRow}>
               <Text style={[styles.td, { flex: 1.4 }]}>{row.category}</Text>
-              <Text style={styles.td}>{formatCurrency(row.spent)}</Text>
-              <Text style={styles.td}>{formatCurrency(row.budget)}</Text>
+              <Text style={styles.td}>{formatCurrency(row.spent, currency)}</Text>
+              <Text style={styles.td}>{formatCurrency(row.budget, currency)}</Text>
               <Text style={[styles.td, row.usagePct > 100 ? styles.deltaUp : styles.deltaDown]}>{row.usagePct.toFixed(0)}%</Text>
             </View>
           ))}
 
           <Text style={styles.subTitle}>Top expense categories</Text>
           {expenseCategoryTotals.slice(0, 5).map((item) => (
-            <Text key={`ex-${item.category}`} style={styles.note}>{item.category}: {formatCurrency(item.total)}</Text>
+            <Text key={`ex-${item.category}`} style={styles.note}>{item.category}: {formatCurrency(item.total, currency)}</Text>
           ))}
 
           <Text style={styles.subTitle}>Top income categories</Text>
           {incomeCategoryTotals.slice(0, 5).map((item) => (
-            <Text key={`in-${item.category}`} style={styles.note}>{item.category}: {formatCurrency(item.total)}</Text>
+            <Text key={`in-${item.category}`} style={styles.note}>{item.category}: {formatCurrency(item.total, currency)}</Text>
           ))}
 
           <Text style={styles.subTitle}>Largest transactions</Text>
           {largestTransactions.map((item) => (
-            <Text key={`lg-${item.id}`} style={styles.note}>{item.category} • {formatCurrency(item.amount)}</Text>
+            <Text key={`lg-${item.id}`} style={styles.note}>{item.category} • {formatCurrency(item.amount, currency)}</Text>
           ))}
 
           {unusualTransactions.length > 0 ? <Text style={styles.subTitle}>Unusual transactions</Text> : null}
           {unusualTransactions.map((item) => (
-            <Text key={`un-${item.id}`} style={styles.note}>{item.category} • {formatCurrency(item.amount)}</Text>
+            <Text key={`un-${item.id}`} style={styles.note}>{item.category} • {formatCurrency(item.amount, currency)}</Text>
           ))}
         </View>
       ) : null}
