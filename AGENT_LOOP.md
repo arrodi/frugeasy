@@ -6,6 +6,9 @@ This file defines how the assistant continuously contributes code to this repo.
 
 Current default: **Manual trigger** (Artem asks, agent executes).
 
+Commit policy override (set by Artem):
+- For completed changes, agent should **commit and push automatically** without asking for confirmation.
+
 Optional upgrade: scheduled cron execution.
 
 ## One Run = One Small Increment
