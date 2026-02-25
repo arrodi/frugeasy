@@ -90,7 +90,7 @@ export function AddTransactionScreen({
     () =>
       PanResponder.create({
         onMoveShouldSetPanResponder: (_, gestureState) =>
-          Math.abs(gestureState.dy) > 5 || Math.abs(gestureState.dx) > 5,
+          Math.abs(gestureState.dy) > 8 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx),
         onPanResponderMove: (_, gestureState) => {
           if (gestureState.dy < 0) {
             swipeY.setValue(Math.max(gestureState.dy, -90));
@@ -114,7 +114,7 @@ export function AddTransactionScreen({
   );
 
   return (
-    <View style={styles.screenContainer}>
+    <View style={styles.screenContainer} {...panResponder.panHandlers}>
       <View style={styles.formArea}>
         <Text style={styles.sectionTitle}>✨ Add a transaction</Text>
 
@@ -207,7 +207,6 @@ export function AddTransactionScreen({
 
       <View style={styles.swipeZoneWrap}>
         <Animated.View
-          {...panResponder.panHandlers}
           style={[
             styles.swipeZone,
             {
@@ -217,7 +216,7 @@ export function AddTransactionScreen({
           ]}
         >
           <Text style={styles.swipeText}>
-            {isSaving ? 'Saving…' : saveDone ? 'Saved ✓' : 'Swipe up to save'}
+            {isSaving ? 'Saving…' : saveDone ? 'Saved ✓' : 'Swipe up anywhere to save'}
           </Text>
           <Text style={styles.swipeHint}>{saveDone ? 'Nice ✨' : '↑ drag up'}</Text>
         </Animated.View>
