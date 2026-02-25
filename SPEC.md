@@ -35,7 +35,7 @@ Build a simple mobile app (iOS + Android) for tracking income and expenses with 
 
 - Frontend: React Native + Expo (TypeScript)
 - Backend: None (local-first)
-- Database: Local storage (SQLite via Expo SQLite or AsyncStorage)
+- Database: Local SQLite (`expo-sqlite`)
 - Auth: None for v1
 - Hosting/Infra: Expo EAS build/distribution for iOS + Android
 - CI/CD: GitHub Actions (lint + tests)
@@ -79,11 +79,13 @@ The agent must ask before:
 
 ## 10) Open Questions
 
-- Use SQLite or AsyncStorage for v1 persistence? (recommend SQLite)
 - Currency format and locale defaults?
 - Should monthly summary include previous months navigation in v1?
+- Should we allow editing/deleting transactions in v1?
 
 ## 11) Decisions Log
 
 - 2026-02-24: Initial project scaffolding docs created.
 - 2026-02-24: Confirmed v1 scope = two-screen mobile app (entry + monthly summary) for iOS/Android.
+- 2026-02-25: Chose SQLite (`expo-sqlite`) for local persistence.
+- 2026-02-25: Refactored into modular architecture (screens/domain/storage) and added summary unit tests + CI.

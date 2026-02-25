@@ -19,19 +19,12 @@ Use statuses:
 ## Queue
 
 ### P1
-- [TODO] Add unit tests for summary math
+- [TODO] Add basic lint setup
   - Owner: agent
-  - Why: avoid incorrect totals
+  - Why: maintain code consistency
   - Acceptance:
-    - Tests cover monthly filtering and totals
-    - Tests pass in CI/local
-
-- [TODO] CI checks (lint + tests)
-  - Owner: agent
-  - Why: maintain quality
-  - Acceptance:
-    - GitHub Action runs on push/PR
-    - Fails on lint/test errors
+    - Lint command exists
+    - CI runs lint
 
 ### P2
 - [TODO] Improve UX polish for v1
@@ -58,7 +51,10 @@ Use statuses:
 - [DONE] 2026-02-25 — Scaffolded React Native Expo TypeScript app and documented local run instructions
 - [DONE] 2026-02-25 — Built Screen 1: add income/expense transaction input and save flow
 - [DONE] 2026-02-25 — Built Screen 2: current month summary with income/expenditure/net + transaction list
-- [DONE] 2026-02-25 — Added local persistence with AsyncStorage (data survives app restarts)
+- [DONE] 2026-02-25 — Migrated local persistence to SQLite (`expo-sqlite`)
+- [DONE] 2026-02-25 — Refactored app into modules (screens/domain/storage)
+- [DONE] 2026-02-25 — Added unit tests for summary math
+- [DONE] 2026-02-25 — Added GitHub Actions CI (typecheck + tests)
 
 ---
 

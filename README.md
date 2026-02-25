@@ -9,7 +9,7 @@ Simple personal finance app for **iOS + Android** with two core screens:
 
 - React Native
 - Expo (TypeScript)
-- AsyncStorage (local persistence)
+- SQLite (`expo-sqlite`) for local persistence
 
 ## Run locally
 
@@ -22,6 +22,13 @@ Then open in Expo Go / simulator:
 
 - `npm run android`
 - `npm run ios` (macOS required for native iOS simulator)
+
+## Quality checks
+
+```bash
+npm run typecheck
+npm test
+```
 
 ## Current data model
 
@@ -39,3 +46,4 @@ type Transaction = {
 
 - v1 is local-only (no auth, no cloud sync)
 - currency display defaults to USD formatting for now
+- data is stored in local SQLite DB: `frugeasy.db`
