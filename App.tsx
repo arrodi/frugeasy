@@ -4,8 +4,8 @@ import { Alert, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-na
 
 import { AddTransactionScreen } from './src/screens/AddTransactionScreen';
 import { MonthlySummaryScreen } from './src/screens/MonthlySummaryScreen';
-import { Transaction, TransactionType } from './src/domain/types';
 import { calculateMonthlyTotals, filterTransactionsByMonth } from './src/domain/summary';
+import { Transaction, TransactionType } from './src/domain/types';
 import {
   initTransactionsRepo,
   insertTransaction,
@@ -27,7 +27,7 @@ export default function App() {
         const existing = await listTransactions();
         setTransactions(existing);
       } catch {
-        Alert.alert('Error', 'Could not initialize local database.');
+        Alert.alert('Oops', 'Could not initialize local database.');
       }
     })();
   }, []);
@@ -53,9 +53,9 @@ export default function App() {
       });
       setTransactions((prev) => [tx, ...prev]);
       setAmountInput('');
-      Alert.alert('Saved', `${selectedType} recorded successfully.`);
+      Alert.alert('Saved ✨', `${selectedType} recorded successfully.`);
     } catch {
-      Alert.alert('Error', 'Could not save transaction.');
+      Alert.alert('Oops', 'Could not save transaction.');
     }
   };
 
@@ -63,8 +63,10 @@ export default function App() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="dark" />
 
-      <View style={styles.header}>
-        <Text style={styles.title}>Frugeasy</Text>
+      <View style={styles.headerCard}>
+        <Text style={styles.title}>🌸 Frugeasy</Text>
+        <Text style={styles.subtitle}>Money tracking made gentle</Text>
+
         <View style={styles.navRow}>
           <Pressable
             style={[styles.navButton, screen === 'entry' && styles.navButtonActive]}
@@ -108,20 +110,31 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f8fafc' },
-  header: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 },
-  title: { fontSize: 24, fontWeight: '700', color: '#0f172a' },
-  navRow: { flexDirection: 'row', marginTop: 12, gap: 8 },
+  safeArea: { flex: 1, backgroundColor: '#fff7fb' },
+  headerCard: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    backgroundColor: '#ffe4f1',
+    borderWidth: 1,
+    borderColor: '#fbcfe8',
+    borderRadius: 18,
+  },
+  title: { fontSize: 26, fontWeight: '800', color: '#831843' },
+  subtitle: { marginTop: 2, fontSize: 13, color: '#9d174d' },
+  navRow: { flexDirection: 'row', marginTop: 12, gap: 10 },
   navButton: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#cbd5e1',
-    borderRadius: 10,
-    paddingVertical: 10,
+    borderColor: '#f9a8d4',
+    borderRadius: 14,
+    paddingVertical: 11,
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: '#fff0f7',
   },
-  navButtonActive: { backgroundColor: '#0f172a', borderColor: '#0f172a' },
-  navButtonText: { color: '#334155', fontWeight: '600' },
+  navButtonActive: { backgroundColor: '#ec4899', borderColor: '#ec4899' },
+  navButtonText: { color: '#9d174d', fontWeight: '700' },
   navButtonTextActive: { color: 'white' },
 });
