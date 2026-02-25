@@ -5,6 +5,7 @@ const tx = (overrides: Partial<Transaction>): Transaction => ({
   id: overrides.id ?? '1',
   amount: overrides.amount ?? 0,
   type: overrides.type ?? 'expense',
+  category: overrides.category ?? 'Other',
   date: overrides.date ?? '2026-02-01T00:00:00.000Z',
   createdAt: overrides.createdAt ?? '2026-02-01T00:00:00.000Z',
 });

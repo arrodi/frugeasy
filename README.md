@@ -37,6 +37,7 @@ type Transaction = {
   id: string;
   amount: number;
   type: 'income' | 'expense';
+  category: 'Salary' | 'Freelance' | 'Business' | 'Investment' | 'Food' | 'Transport' | 'Housing' | 'Utilities' | 'Other';
   date: string; // ISO
   createdAt: string; // ISO
 };
