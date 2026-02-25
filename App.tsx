@@ -17,6 +17,7 @@ import * as Sharing from 'expo-sharing';
 
 import { AddTransactionScreen } from './src/screens/AddTransactionScreen';
 import { MonthlySummaryScreen } from './src/screens/MonthlySummaryScreen';
+import { BudgetingScreen } from './src/screens/BudgetingScreen';
 import { TransactionsScreen } from './src/screens/TransactionsScreen';
 import {
   categoryComparison,
@@ -394,9 +395,21 @@ export default function App() {
         </View>
 
         <View style={[styles.page, { width }]}> 
-          <TransactionsScreen
+          <BudgetingScreen
             currency={currency}
             onCurrencyChange={handleCurrencyChange}
+            budgets={budgets}
+            categoryOptions={categoryOptions}
+            onSaveBudget={handleSaveBudget}
+            recurringRules={recurringRules}
+            onAddRecurringRule={handleAddRecurringRule}
+            onToggleRecurringRule={handleToggleRecurringRule}
+          />
+        </View>
+
+        <View style={[styles.page, { width }]}> 
+          <TransactionsScreen
+            currency={currency}
             transactions={filteredTransactions}
             typeFilter={typeFilter}
             onTypeFilterChange={setTypeFilter}
@@ -408,17 +421,12 @@ export default function App() {
             onDeleteTransaction={handleDeleteTransaction}
             onExportCsv={handleExportCsv}
             onUpdateTransaction={handleUpdateTransaction}
-            budgets={budgets}
-            onSaveBudget={handleSaveBudget}
-            recurringRules={recurringRules}
-            onAddRecurringRule={handleAddRecurringRule}
-            onToggleRecurringRule={handleToggleRecurringRule}
           />
         </View>
       </ScrollView>
 
       <View style={styles.tabDots}>
-        {['Add', 'Monthly', 'Transactions'].map((label, idx) => (
+        {['Add', 'Monthly', 'Budgeting', 'Transactions'].map((label, idx) => (
           <Pressable
             key={label}
             style={styles.tabDotWrap}
@@ -445,7 +453,7 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f7faf9' },
+  safeArea: { flex: 1, backgroundColor: '#eaffef' },
   page: { flex: 1 },
   tabDots: {
     flexDirection: 'row',
@@ -459,11 +467,11 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#b8cec6',
+    backgroundColor: '#79d992',
   },
-  dotActive: { backgroundColor: '#355f53', width: 18 },
-  dotLabel: { color: '#7a918a', fontSize: 12 },
-  dotLabelActive: { color: '#35544c', fontWeight: '700' },
+  dotActive: { backgroundColor: '#14b85a', width: 22 },
+  dotLabel: { color: '#3e7b52', fontSize: 12 },
+  dotLabelActive: { color: '#14632f', fontWeight: '800' },
   undoWrap: { paddingHorizontal: 16, paddingBottom: 10 },
   undoBtn: {
     backgroundColor: '#e6efeb',

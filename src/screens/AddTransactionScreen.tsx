@@ -1,11 +1,8 @@
-import { useMemo, useRef, useState } from 'react';
+import { useState } from 'react';
 import {
   Alert,
-  Animated,
-  Easing,
   InputAccessoryView,
   Keyboard,
-  PanResponder,
   Platform,
   Pressable,
   StyleSheet,
@@ -13,7 +10,6 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
 
 import { TransactionCategory, TransactionType } from '../domain/types';
 
@@ -40,86 +36,29 @@ export function AddTransactionScreen({
 }: Props) {
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [saveDone, setSaveDone] = useState(false);
-  const amountInputRef = useRef<TextInput>(null);
-  const swipeY = useRef(new Animated.Value(0)).current;
-  const swipeScale = useRef(new Animated.Value(1)).current;
   const amountAccessoryId = 'amountKeyboardAccessory';
 
-  const onSwipeSave = async () => {
+  const onPressSave = async () => {
     const amount = Number(amountInput.replace(',', '.'));
     if (!Number.isFinite(amount) || amount <= 0) {
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       Alert.alert('Invalid amount', 'Please enter a valid amount greater than 0.');
       return;
     }
     if (isSaving) return;
-
     try {
       setIsSaving(true);
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      const ok = await onSave();
-
-      if (ok) {
-        setSaveDone(true);
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        Animated.sequence([
-          Animated.timing(swipeScale, {
-            toValue: 1.04,
-            duration: 130,
-            easing: Easing.out(Easing.quad),
-            useNativeDriver: true,
-          }),
-          Animated.timing(swipeScale, {
-            toValue: 1,
-            duration: 220,
-            easing: Easing.out(Easing.quad),
-            useNativeDriver: true,
-          }),
-        ]).start();
-        setTimeout(() => setSaveDone(false), 900);
-      } else {
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      }
+      await onSave();
     } finally {
       setIsSaving(false);
     }
   };
 
-  const panResponder = useMemo(
-    () =>
-      PanResponder.create({
-        onMoveShouldSetPanResponder: (_, gestureState) =>
-          Math.abs(gestureState.dy) > 8 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx),
-        onPanResponderMove: (_, gestureState) => {
-          if (gestureState.dy < 0) {
-            swipeY.setValue(Math.max(gestureState.dy, -90));
-          } else {
-            swipeY.setValue(0);
-          }
-        },
-        onPanResponderRelease: async (_, gestureState) => {
-          const shouldSave = gestureState.dy < -70;
-          Animated.spring(swipeY, {
-            toValue: 0,
-            useNativeDriver: true,
-            bounciness: 6,
-          }).start();
-          if (shouldSave) {
-            await onSwipeSave();
-          }
-        },
-      }),
-    [isSaving, amountInput, onSave, swipeY]
-  );
-
   return (
-    <View style={styles.screenContainer} {...panResponder.panHandlers}>
+    <View style={styles.screenContainer}>
       <View style={styles.formArea}>
-        <Text style={styles.sectionTitle}>✨ Add a transaction</Text>
+        <Text style={styles.sectionTitle}>Add transaction</Text>
 
         <TextInput
-          ref={amountInputRef}
           value={amountInput}
           onChangeText={onChangeAmount}
           keyboardType="decimal-pad"
@@ -128,14 +67,9 @@ export function AddTransactionScreen({
           onSubmitEditing={() => Keyboard.dismiss()}
           inputAccessoryViewID={Platform.OS === 'ios' ? amountAccessoryId : undefined}
           placeholder="Amount"
-          placeholderTextColor="#4b635c"
+          placeholderTextColor="#3e5f47"
           style={styles.input}
         />
-        {Platform.OS === 'android' ? (
-          <Pressable style={styles.doneTypingButton} onPress={() => Keyboard.dismiss()}>
-            <Text style={styles.doneTypingText}>Done</Text>
-          </Pressable>
-        ) : null}
 
         <View style={styles.typeRow}>
           <Pressable
@@ -146,10 +80,7 @@ export function AddTransactionScreen({
           </Pressable>
           <Pressable
             onPress={() => onChangeType('expense')}
-            style={[
-              styles.typeButton,
-              selectedType === 'expense' && styles.typeButtonExpenseActive,
-            ]}
+            style={[styles.typeButton, selectedType === 'expense' && styles.typeButtonExpenseActive]}
           >
             <Text style={styles.typeButtonText}>Expense</Text>
           </Pressable>
@@ -187,67 +118,42 @@ export function AddTransactionScreen({
             </View>
           ) : null}
         </View>
+
+        <Pressable style={styles.saveBtn} onPress={onPressSave}>
+          <Text style={styles.saveBtnText}>{isSaving ? 'Saving…' : 'Save transaction'}</Text>
+        </Pressable>
       </View>
 
       {Platform.OS === 'ios' ? (
         <InputAccessoryView nativeID={amountAccessoryId}>
           <View style={styles.accessoryBar}>
-            <Pressable
-              onPress={() => {
-                amountInputRef.current?.blur();
-                Keyboard.dismiss();
-              }}
-              style={styles.doneTypingButton}
-            >
+            <Pressable onPress={() => Keyboard.dismiss()} style={styles.doneTypingButton}>
               <Text style={styles.doneTypingText}>Done</Text>
             </Pressable>
           </View>
         </InputAccessoryView>
       ) : null}
-
-      <View style={styles.swipeZoneWrap}>
-        <Animated.View
-          style={[
-            styles.swipeZone,
-            {
-              transform: [{ translateY: swipeY }, { scale: swipeScale }],
-            },
-            saveDone && styles.swipeZoneSuccess,
-          ]}
-        >
-          <Text style={styles.swipeText}>
-            {isSaving ? 'Saving…' : saveDone ? 'Saved ✓' : 'Swipe up anywhere to save'}
-          </Text>
-          <Text style={styles.swipeHint}>{saveDone ? 'Nice ✨' : '↑ drag up'}</Text>
-        </Animated.View>
-      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screenContainer: {
-    flex: 1,
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 12,
-    justifyContent: 'space-between',
-  },
+  screenContainer: { flex: 1, paddingHorizontal: 14, paddingTop: 12, paddingBottom: 12 },
   formArea: {
     flex: 1,
-    backgroundColor: '#eef5f2',
+    backgroundColor: '#ecfff1',
     borderWidth: 1,
-    borderColor: '#d2e2dc',
+    borderColor: '#9ee5ab',
     borderRadius: 22,
     padding: 18,
     gap: 16,
   },
-  sectionTitle: { fontSize: 28, fontWeight: '800', color: '#1f3b35' },
+  sectionTitle: { fontSize: 30, fontWeight: '900', color: '#14632f' },
   input: {
     backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#bfd2cb',
-    color: '#1f3b35',
+    borderWidth: 2,
+    borderColor: '#6fdd87',
+    color: '#14632f',
     borderRadius: 18,
     paddingHorizontal: 16,
     paddingVertical: 18,
@@ -260,32 +166,32 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 20,
     alignItems: 'center',
-    backgroundColor: '#f6faf8',
+    backgroundColor: '#dffbe7',
     borderWidth: 1,
-    borderColor: '#d2e2dc',
+    borderColor: '#8cdca0',
   },
-  typeButtonIncomeActive: { backgroundColor: '#48b183', borderColor: '#48b183' },
-  typeButtonExpenseActive: { backgroundColor: '#6c7f9f', borderColor: '#6c7f9f' },
+  typeButtonIncomeActive: { backgroundColor: '#1fbf67', borderColor: '#1fbf67' },
+  typeButtonExpenseActive: { backgroundColor: '#59a86e', borderColor: '#59a86e' },
   typeButtonText: { color: 'white', fontWeight: '800', fontSize: 22 },
-  label: { color: '#35544c', fontWeight: '700', fontSize: 20, marginTop: 6 },
+  label: { color: '#1c6b34', fontWeight: '800', fontSize: 20, marginTop: 6 },
   dropdownTrigger: {
     minHeight: 64,
     paddingHorizontal: 16,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#bfd2cb',
+    borderWidth: 2,
+    borderColor: '#8fdca2',
     backgroundColor: 'white',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  dropdownTriggerText: { color: '#1f3b35', fontWeight: '700', fontSize: 22 },
-  dropdownChevron: { color: '#4b635c', fontSize: 20 },
+  dropdownTriggerText: { color: '#14632f', fontWeight: '700', fontSize: 22 },
+  dropdownChevron: { color: '#2b7a42', fontSize: 20 },
   dropdownMenu: {
     marginTop: 6,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#c9dbd5',
+    borderColor: '#b0e8be',
     overflow: 'hidden',
     backgroundColor: 'white',
   },
@@ -293,50 +199,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#e3ece8',
+    borderBottomColor: '#e3f6e8',
   },
-  dropdownOptionActive: {
-    backgroundColor: '#edf5f1',
+  dropdownOptionActive: { backgroundColor: '#e4fce9' },
+  dropdownOptionText: { color: '#1e6e37', fontWeight: '700', fontSize: 20 },
+  dropdownOptionTextActive: { color: '#14632f' },
+  saveBtn: {
+    marginTop: 'auto',
+    backgroundColor: '#14b85a',
+    borderWidth: 1,
+    borderColor: '#10994b',
+    borderRadius: 18,
+    paddingVertical: 18,
+    alignItems: 'center',
   },
-  dropdownOptionText: { color: '#35544c', fontWeight: '700', fontSize: 20 },
-  dropdownOptionTextActive: { color: '#1f3b35' },
+  saveBtnText: { color: 'white', fontWeight: '900', fontSize: 24 },
   accessoryBar: {
-    backgroundColor: '#eaf2ef',
+    backgroundColor: '#e5faeb',
     borderTopWidth: 1,
-    borderTopColor: '#c9dbd5',
+    borderTopColor: '#b9ebc7',
     paddingHorizontal: 12,
     paddingVertical: 8,
     alignItems: 'flex-end',
   },
   doneTypingButton: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#dbe8e3',
+    backgroundColor: '#d2f5dc',
     borderWidth: 1,
-    borderColor: '#bcd0c8',
+    borderColor: '#98dda9',
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
-  doneTypingText: {
-    color: '#26463d',
-    fontWeight: '700',
-  },
-  swipeZoneWrap: {
-    paddingTop: 10,
-    paddingBottom: 4,
-  },
-  swipeZone: {
-    backgroundColor: '#355f53',
-    borderRadius: 22,
-    paddingVertical: 20,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#2b4b42',
-  },
-  swipeZoneSuccess: {
-    backgroundColor: '#2f7d5f',
-    borderColor: '#286a50',
-  },
-  swipeText: { color: 'white', fontWeight: '900', fontSize: 26 },
-  swipeHint: { color: '#cfe2db', marginTop: 4, fontSize: 15, fontWeight: '700' },
+  doneTypingText: { color: '#14632f', fontWeight: '700' },
 });
