@@ -66,7 +66,7 @@ export default function App() {
     setSelectedCategory(categoriesFor(nextType)[0]);
   };
 
-  const handleSave = async () => {
+  const handleSave = async (): Promise<boolean> => {
     const amount = Number(amountInput.replace(',', '.'));
     const nowIso = new Date().toISOString();
 
@@ -81,8 +81,10 @@ export default function App() {
       setTransactions((prev) => [tx, ...prev]);
       setAmountInput('');
       Alert.alert('Saved ✨', `${selectedType} recorded successfully.`);
+      return true;
     } catch {
       Alert.alert('Oops', 'Could not save transaction.');
+      return false;
     }
   };
 

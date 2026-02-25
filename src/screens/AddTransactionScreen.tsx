@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
+  Easing,
   PanResponder,
   Pressable,
   StyleSheet,
@@ -9,6 +10,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 
 import { TransactionCategory, TransactionType } from '../domain/types';
 
@@ -20,7 +22,7 @@ type Props = {
   onChangeAmount: (value: string) => void;
   onChangeType: (value: TransactionType) => void;
   onChangeCategory: (value: TransactionCategory) => void;
-  onSave: () => Promise<void>;
+  onSave: () => Promise<boolean>;
 };
 
 export function AddTransactionScreen({
@@ -35,11 +37,14 @@ export function AddTransactionScreen({
 }: Props) {
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveDone, setSaveDone] = useState(false);
   const swipeY = useRef(new Animated.Value(0)).current;
+  const swipeScale = useRef(new Animated.Value(1)).current;
 
   const onSwipeSave = async () => {
     const amount = Number(amountInput.replace(',', '.'));
     if (!Number.isFinite(amount) || amount <= 0) {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       Alert.alert('Invalid amount', 'Please enter a valid amount greater than 0.');
       return;
     }
@@ -47,7 +52,30 @@ export function AddTransactionScreen({
 
     try {
       setIsSaving(true);
-      await onSave();
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      const ok = await onSave();
+
+      if (ok) {
+        setSaveDone(true);
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        Animated.sequence([
+          Animated.timing(swipeScale, {
+            toValue: 1.04,
+            duration: 130,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.timing(swipeScale, {
+            toValue: 1,
+            duration: 220,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+        ]).start();
+        setTimeout(() => setSaveDone(false), 900);
+      } else {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      }
     } finally {
       setIsSaving(false);
     }
@@ -149,10 +177,18 @@ export function AddTransactionScreen({
       <View style={styles.swipeZoneWrap}>
         <Animated.View
           {...panResponder.panHandlers}
-          style={[styles.swipeZone, { transform: [{ translateY: swipeY }] }]}
+          style={[
+            styles.swipeZone,
+            {
+              transform: [{ translateY: swipeY }, { scale: swipeScale }],
+            },
+            saveDone && styles.swipeZoneSuccess,
+          ]}
         >
-          <Text style={styles.swipeText}>{isSaving ? 'Saving…' : 'Swipe up to save'}</Text>
-          <Text style={styles.swipeHint}>↑ drag up</Text>
+          <Text style={styles.swipeText}>
+            {isSaving ? 'Saving…' : saveDone ? 'Saved ✓' : 'Swipe up to save'}
+          </Text>
+          <Text style={styles.swipeHint}>{saveDone ? 'Nice ✨' : '↑ drag up'}</Text>
         </Animated.View>
       </View>
     </View>
@@ -242,6 +278,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#2b4b42',
+  },
+  swipeZoneSuccess: {
+    backgroundColor: '#2f7d5f',
+    borderColor: '#286a50',
   },
   swipeText: { color: 'white', fontWeight: '800', fontSize: 16 },
   swipeHint: { color: '#cfe2db', marginTop: 3, fontSize: 12, fontWeight: '600' },
