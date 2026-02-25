@@ -19,7 +19,9 @@ import { AddTransactionScreen } from './src/screens/AddTransactionScreen';
 import { MonthlySummaryScreen } from './src/screens/MonthlySummaryScreen';
 import { TransactionsScreen } from './src/screens/TransactionsScreen';
 import {
+  categoryComparison,
   categoryTotals,
+  dailySeries,
   largestTransactions,
   projectedMonthEnd,
   smartNudges,
@@ -149,6 +151,14 @@ export default function App() {
     () => smartNudges(baseMonthlyTransactions, previousMonthlyTransactions),
     [baseMonthlyTransactions, previousMonthlyTransactions]
   );
+  const dailyPoints = useMemo(
+    () => dailySeries(baseMonthlyTransactions, selectedWindow.year, selectedWindow.month),
+    [baseMonthlyTransactions, selectedWindow.year, selectedWindow.month]
+  );
+  const categoryCompareRows = useMemo(
+    () => categoryComparison(baseMonthlyTransactions, previousMonthlyTransactions),
+    [baseMonthlyTransactions, previousMonthlyTransactions]
+  );
 
   const onChangeType = (nextType: TransactionType) => {
     setSelectedType(nextType);
@@ -263,6 +273,8 @@ export default function App() {
             canGoNextMonth={monthOffset < 0}
             expenseCategoryTotals={expenseCategoryBreakdown}
             incomeCategoryTotals={incomeCategoryBreakdown}
+            categoryCompareRows={categoryCompareRows}
+            dailyPoints={dailyPoints}
             weeklyBurnRate={weeklyBurnRate}
             projectedExpense={projectedExpense}
             largestTransactions={biggest}

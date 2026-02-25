@@ -1,4 +1,12 @@
-import { categoryTotals, deltaPct, projectedMonthEnd, smartNudges, weeklyBurn } from './analysis';
+import {
+  categoryComparison,
+  categoryTotals,
+  dailySeries,
+  deltaPct,
+  projectedMonthEnd,
+  smartNudges,
+  weeklyBurn,
+} from './analysis';
 import { Transaction } from './types';
 
 const tx = (overrides: Partial<Transaction>): Transaction => ({
@@ -32,6 +40,22 @@ describe('analysis helpers', () => {
   it('returns sensible delta percentages', () => {
     expect(deltaPct(200, 100)).toBe(100);
     expect(deltaPct(0, 0)).toBe(0);
+  });
+
+  it('creates daily series and category comparison', () => {
+    const current = [
+      tx({ date: '2026-02-01T00:00:00.000Z', type: 'expense', category: 'Food', amount: 20 }),
+      tx({ date: '2026-02-01T00:00:00.000Z', type: 'income', category: 'Salary', amount: 100 }),
+      tx({ date: '2026-02-03T00:00:00.000Z', type: 'expense', category: 'Transport', amount: 10 }),
+    ];
+    const previous = [tx({ date: '2026-01-02T00:00:00.000Z', type: 'expense', category: 'Food', amount: 10 })];
+
+    const series = dailySeries(current, 2026, 1);
+    expect(series[0].expense).toBe(20);
+    expect(series[0].income).toBe(100);
+
+    const comparison = categoryComparison(current, previous);
+    expect(comparison.length).toBeGreaterThan(0);
   });
 
   it('creates nudges', () => {

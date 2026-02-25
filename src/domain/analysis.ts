@@ -6,6 +6,19 @@ export type CategoryTotal = {
   total: number;
 };
 
+export type DailyPoint = {
+  day: number;
+  income: number;
+  expense: number;
+};
+
+export type CategoryComparison = {
+  category: TransactionCategory;
+  current: number;
+  previous: number;
+  deltaPct: number;
+};
+
 export function getMonthLabel(year: number, monthIndex: number): string {
   return new Date(Date.UTC(year, monthIndex, 1)).toLocaleString(undefined, {
     month: 'long',
@@ -50,6 +63,43 @@ export function unusualTransactions(transactions: Transaction[]): Transaction[] 
   const median = amounts[Math.floor(amounts.length / 2)] ?? 0;
   if (median <= 0) return [];
   return transactions.filter((t) => t.amount >= median * 2).sort((a, b) => b.amount - a.amount);
+}
+
+export function dailySeries(transactions: Transaction[], year: number, monthIndex: number): DailyPoint[] {
+  const daysInMonth = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
+  const points: DailyPoint[] = Array.from({ length: daysInMonth }, (_, i) => ({
+    day: i + 1,
+    income: 0,
+    expense: 0,
+  }));
+
+  for (const t of transactions) {
+    const d = new Date(t.date);
+    if (d.getUTCFullYear() !== year || d.getUTCMonth() !== monthIndex) continue;
+    const idx = d.getUTCDate() - 1;
+    if (idx < 0 || idx >= points.length) continue;
+    if (t.type === 'income') points[idx].income += t.amount;
+    else points[idx].expense += t.amount;
+  }
+
+  return points;
+}
+
+export function categoryComparison(current: Transaction[], previous: Transaction[]): CategoryComparison[] {
+  const cur = new Map<TransactionCategory, number>();
+  const prev = new Map<TransactionCategory, number>();
+
+  for (const t of current) cur.set(t.category, (cur.get(t.category) ?? 0) + t.amount);
+  for (const t of previous) prev.set(t.category, (prev.get(t.category) ?? 0) + t.amount);
+
+  const keys = new Set<TransactionCategory>([...cur.keys(), ...prev.keys()]);
+  return [...keys]
+    .map((category) => {
+      const c = cur.get(category) ?? 0;
+      const p = prev.get(category) ?? 0;
+      return { category, current: c, previous: p, deltaPct: deltaPct(c, p) };
+    })
+    .sort((a, b) => b.current - a.current);
 }
 
 export function smartNudges(current: Transaction[], previous: Transaction[]): string[] {

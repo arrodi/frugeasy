@@ -59,4 +59,5 @@ type Transaction = {
 - v1 is local-only (no auth, no cloud sync)
 - currency display defaults to USD formatting for now
 - data is stored in local SQLite DB: `frugeasy.db`
-- Analyze mode includes category breakdowns, month-over-month comparison, burn-rate projection, largest/unusual transactions, filters/search, and CSV export
+- Analyze mode includes dashboard-style time-series mini charts, category comparison table, month-over-month comparison, burn-rate projection, and largest/unusual transactions
+- Transactions tab includes filters/search, delete, and CSV export

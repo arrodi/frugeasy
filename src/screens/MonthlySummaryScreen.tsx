@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { CategoryTotal, getMonthLabel } from '../domain/analysis';
+import { CategoryComparison, CategoryTotal, DailyPoint, getMonthLabel } from '../domain/analysis';
 import { Transaction } from '../domain/types';
 import { formatCurrency } from '../ui/format';
 
@@ -24,12 +24,30 @@ type Props = {
   canGoNextMonth: boolean;
   expenseCategoryTotals: CategoryTotal[];
   incomeCategoryTotals: CategoryTotal[];
+  categoryCompareRows: CategoryComparison[];
+  dailyPoints: DailyPoint[];
   weeklyBurnRate: number;
   projectedExpense: number;
   largestTransactions: Transaction[];
   unusualTransactions: Transaction[];
   nudges: string[];
 };
+
+function MiniBars({ points }: { points: DailyPoint[] }) {
+  const recent = points.slice(-14);
+  const max = Math.max(1, ...recent.map((p) => Math.max(p.income, p.expense)));
+  return (
+    <View style={styles.chartWrap}>
+      {recent.map((p) => (
+        <View key={p.day} style={styles.dayCol}>
+          <View style={[styles.barIncome, { height: Math.max(2, (p.income / max) * 42) }]} />
+          <View style={[styles.barExpense, { height: Math.max(2, (p.expense / max) * 42) }]} />
+          <Text style={styles.dayLabel}>{p.day}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
 
 export function MonthlySummaryScreen({
   year,
@@ -43,6 +61,8 @@ export function MonthlySummaryScreen({
   canGoNextMonth,
   expenseCategoryTotals,
   incomeCategoryTotals,
+  categoryCompareRows,
+  dailyPoints,
   weeklyBurnRate,
   projectedExpense,
   largestTransactions,
@@ -77,13 +97,34 @@ export function MonthlySummaryScreen({
 
       {analysisMode ? (
         <View style={styles.analysisWrap}>
-          <Text style={styles.analysisTitle}>Insights</Text>
+          <Text style={styles.analysisTitle}>Dashboard</Text>
           <Text style={styles.note}>Previous month expense: {formatCurrency(previousTotals.expense)}</Text>
           <Text style={styles.note}>Weekly burn rate: {formatCurrency(weeklyBurnRate)}</Text>
           <Text style={styles.note}>Projected month-end expense: {formatCurrency(projectedExpense)}</Text>
 
+          <Text style={styles.subTitle}>Time series (last 14 days)</Text>
+          <MiniBars points={dailyPoints} />
+
           {nudges.map((nudge) => (
             <Text key={nudge} style={styles.nudge}>• {nudge}</Text>
+          ))}
+
+          <Text style={styles.subTitle}>Category comparison table</Text>
+          <View style={styles.tableHeader}>
+            <Text style={[styles.th, { flex: 1.4 }]}>Category</Text>
+            <Text style={styles.th}>Current</Text>
+            <Text style={styles.th}>Prev</Text>
+            <Text style={styles.th}>Δ%</Text>
+          </View>
+          {categoryCompareRows.slice(0, 8).map((row) => (
+            <View key={row.category} style={styles.tableRow}>
+              <Text style={[styles.td, { flex: 1.4 }]}>{row.category}</Text>
+              <Text style={styles.td}>{formatCurrency(row.current)}</Text>
+              <Text style={styles.td}>{formatCurrency(row.previous)}</Text>
+              <Text style={[styles.td, row.deltaPct > 0 ? styles.deltaUp : styles.deltaDown]}>
+                {row.deltaPct.toFixed(0)}%
+              </Text>
+            </View>
           ))}
 
           <Text style={styles.subTitle}>Top expense categories</Text>
@@ -159,4 +200,20 @@ const styles = StyleSheet.create({
   subTitle: { marginTop: 8, fontWeight: '700', color: '#35544c' },
   note: { color: '#49635d' },
   nudge: { color: '#2f5d50', fontWeight: '600' },
+  chartWrap: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 4,
+    paddingVertical: 6,
+  },
+  dayCol: { alignItems: 'center', width: 14 },
+  barIncome: { width: 5, backgroundColor: '#1f8b63', borderRadius: 2 },
+  barExpense: { width: 5, backgroundColor: '#536c90', borderRadius: 2, marginTop: 2 },
+  dayLabel: { fontSize: 8, color: '#6b7f78', marginTop: 2 },
+  tableHeader: { flexDirection: 'row', paddingTop: 6, paddingBottom: 4, borderBottomWidth: 1, borderBottomColor: '#d8e5df' },
+  tableRow: { flexDirection: 'row', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: '#e8f0ec' },
+  th: { flex: 1, color: '#35544c', fontWeight: '700', fontSize: 12 },
+  td: { flex: 1, color: '#49635d', fontSize: 12 },
+  deltaUp: { color: '#9b3a3a', fontWeight: '700' },
+  deltaDown: { color: '#2f7a53', fontWeight: '700' },
 });
