@@ -36,6 +36,7 @@ import {
   toggleRecurringRule,
   updateTransaction,
   upsertBudget,
+  deleteBudget,
 } from './src/storage/transactionsRepo';
 
 const INCOME_CATEGORIES: TransactionCategory[] = [
@@ -230,6 +231,17 @@ export default function App() {
     }
   };
 
+  const handleDeleteBudget = async (id: string) => {
+    try {
+      await deleteBudget(id);
+      const mk = monthKey(selectedWindow.year, selectedWindow.month);
+      const rows = await listBudgets(mk);
+      setBudgets(rows);
+    } catch {
+      Alert.alert('Oops', 'Could not delete budget.');
+    }
+  };
+
   const handleAddRecurringRule = async (input: {
     type: TransactionType;
     category: TransactionCategory;
@@ -337,6 +349,7 @@ export default function App() {
             budgetProgressRows={budgetProgressRows}
             categoryOptions={expenseCategoryOptions}
             onSaveBudget={handleSaveBudget}
+            onDeleteBudget={handleDeleteBudget}
             recurringRules={recurringRules}
             onAddRecurringRule={handleAddRecurringRule}
             onToggleRecurringRule={handleToggleRecurringRule}
@@ -372,7 +385,7 @@ export default function App() {
       </ScrollView>
 
       <View style={styles.tabDots}>
-        {['Add', 'Budgeting', 'Transactions', 'Settings'].map((label, idx) => (
+        {['Transact', 'Budget', 'Review', 'Settings'].map((label, idx) => (
           <Pressable
             key={label}
             style={styles.tabDotWrap}

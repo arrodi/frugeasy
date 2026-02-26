@@ -143,6 +143,11 @@ export async function listBudgets(monthKey: string): Promise<Budget[]> {
   );
 }
 
+export async function deleteBudget(id: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(`DELETE FROM ${BUDGET_TABLE} WHERE id = ?;`, [id]);
+}
+
 export async function insertRecurringRule(input: {
   type: TransactionType;
   category: TransactionCategory;

@@ -11,12 +11,13 @@ type Props = {
   budgetProgressRows: { category: string; budget: number; spent: number; usagePct: number }[];
   categoryOptions: TransactionCategory[];
   onSaveBudget: (category: TransactionCategory, amount: number) => Promise<void>;
+  onDeleteBudget: (id: string) => Promise<void>;
   recurringRules: RecurringRule[];
   onAddRecurringRule: (input: { type: TransactionType; category: TransactionCategory; amount: number; dayOfMonth: number; label: string; }) => Promise<void>;
   onToggleRecurringRule: (id: string, active: boolean) => Promise<void>;
 };
 
-export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetProgressRows, categoryOptions, onSaveBudget, recurringRules, onAddRecurringRule, onToggleRecurringRule }: Props) {
+export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetProgressRows, categoryOptions, onSaveBudget, onDeleteBudget, recurringRules, onAddRecurringRule, onToggleRecurringRule }: Props) {
   const [tab, setTab] = useState<'add' | 'budgets' | 'recurring'>('add');
   const [budgetCategory, setBudgetCategory] = useState<TransactionCategory>('Food');
   const [budgetAmount, setBudgetAmount] = useState('');
@@ -32,7 +33,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
       <Text style={[styles.title, darkMode && styles.textDark]}>Budgeting</Text>
 
       <View style={[styles.switchWrap, darkMode && styles.panelDark]}>
-        <Pressable style={[styles.switchOption, tab === 'add' && styles.switchOptionActive]} onPress={() => setTab('add')}><Text style={[styles.switchText, tab === 'add' && styles.switchTextActive]}>Add</Text></Pressable>
+        <Pressable style={[styles.switchOption, tab === 'add' && styles.switchOptionActive]} onPress={() => setTab('add')}><Text style={[styles.switchText, tab === 'add' && styles.switchTextActive]}>Edit</Text></Pressable>
         <Pressable style={[styles.switchOption, tab === 'budgets' && styles.switchOptionActive]} onPress={() => setTab('budgets')}><Text style={[styles.switchText, tab === 'budgets' && styles.switchTextActive]}>Budgets</Text></Pressable>
         <Pressable style={[styles.switchOption, tab === 'recurring' && styles.switchOptionActive]} onPress={() => setTab('recurring')}><Text style={[styles.switchText, tab === 'recurring' && styles.switchTextActive]}>Recurring</Text></Pressable>
       </View>
@@ -62,6 +63,23 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
           }}>
             <Text style={styles.bigSaveText}>Add Budget</Text>
           </Pressable>
+
+          {budgets.map((b) => (
+            <View key={`edit-${b.id}`} style={[styles.budgetItem, darkMode && styles.budgetItemDark]}>
+              <View style={styles.budgetHeader}>
+                <Text style={[styles.budgetCat, darkMode && styles.textDark]}>{b.category}</Text>
+                <Text style={[styles.budgetAmt, darkMode && styles.textDark]}>{formatCurrency(b.amount, currency)}</Text>
+              </View>
+              <View style={styles.row}>
+                <Pressable style={styles.saveBtn} onPress={() => {
+                  setBudgetCategory(b.category as TransactionCategory);
+                  setBudgetAmount(String(b.amount));
+                  setBudgetCategoryOpen(false);
+                }}><Text style={styles.saveBtnText}>Edit</Text></Pressable>
+                <Pressable style={styles.deleteBtn} onPress={() => onDeleteBudget(b.id)}><Text style={styles.deleteBtnText}>Delete</Text></Pressable>
+              </View>
+            </View>
+          ))}
         </View>
       ) : null}
 
@@ -73,7 +91,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
           <View style={[styles.card, styles.cardHorizontal, darkMode && styles.cardDark]}><Text style={[styles.cardLabel, darkMode && styles.textDark]}>Net</Text><Text style={[styles.cardValue, styles.net]}>{formatCurrency(totals.net, currency)}</Text></View>
         </View>
 
-        <View style={[styles.panel, darkMode && styles.panelDark]}>
+        <View>
           {budgetProgressRows.length === 0 ? <Text style={[styles.ruleText, darkMode && styles.textDark]}>No budgets set yet.</Text> : null}
           {budgetProgressRows.map((row) => (
             <View key={`b-${row.category}`} style={[styles.budgetItem, darkMode && styles.budgetItemDark]}>
@@ -135,6 +153,8 @@ const styles = StyleSheet.create({
   progressInsideOnFill:{color:'#ffffff'},
   progressInsideOffFill:{color:'#14532d'},
   saveBtn:{backgroundColor:'#14b85a',borderRadius:8,paddingHorizontal:10,paddingVertical:8},saveBtnText:{color:'white',fontWeight:'700',fontSize:12},
+  deleteBtn:{backgroundColor:'#fee2e2',borderRadius:8,paddingHorizontal:10,paddingVertical:8,borderWidth:1,borderColor:'#fecaca'},
+  deleteBtnText:{color:'#991b1b',fontWeight:'700',fontSize:12},
   row:{flexDirection:'row',gap:8,alignItems:'center'}, flex1:{flex:1},
   pill:{paddingHorizontal:10,paddingVertical:7,borderRadius:999,borderWidth:1,borderColor:'#a9e6b7',backgroundColor:'#f0fff4'}, pillActive:{backgroundColor:'#14b85a',borderColor:'#14b85a'}, pillText:{color:'#1e6e37',fontWeight:'600'}, pillTextActive:{color:'white'},
   ruleRow:{flexDirection:'row',justifyContent:'space-between',alignItems:'center'}, ruleText:{color:'#35544c',flex:1,marginRight:8}
