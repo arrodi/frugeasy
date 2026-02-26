@@ -192,16 +192,19 @@ export function TransactionsScreen(props: Props) {
                 ) : (
                   <View style={styles.budgetExpandedWrap}>
                     <View style={styles.inlineRow}>
-                      <Text style={[styles.name, darkMode && styles.textDark, styles.flex1]}>{b.category}</Text>
+                      <Text style={[styles.name, darkMode && styles.textDark, styles.nameCol]}>{b.category}</Text>
                       <TextInput
                         value={expandedBudgetAmount}
                         onChangeText={setExpandedBudgetAmount}
-                        style={[styles.smallInput, darkMode && styles.inputDark, styles.flex1]}
+                        style={[styles.smallInput, darkMode && styles.inputDark, styles.inputCol]}
                         keyboardType="decimal-pad"
                         placeholder="New amount"
                       />
                     </View>
                     <View style={styles.equalButtonRow}>
+                      <Pressable style={[styles.deleteBtn, styles.equalButton]} onPress={() => onDeleteBudget(b.id)}>
+                        <Text style={styles.deleteBtnText}>Delete</Text>
+                      </Pressable>
                       <Pressable
                         style={[styles.actionBtn, styles.equalButton]}
                         onPress={async () => {
@@ -212,9 +215,6 @@ export function TransactionsScreen(props: Props) {
                         }}
                       >
                         <Text style={styles.actionBtnText}>Update</Text>
-                      </Pressable>
-                      <Pressable style={[styles.deleteBtn, styles.equalButton]} onPress={() => onDeleteBudget(b.id)}>
-                        <Text style={styles.deleteBtnText}>Delete</Text>
                       </Pressable>
                     </View>
                   </View>
@@ -249,6 +249,8 @@ const styles = StyleSheet.create({
   inputDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b', color: '#d6f5df' },
   row: { flexDirection: 'row', gap: 8, alignItems: 'flex-start' },
   flex1: { flex: 1 },
+  nameCol: { flex: 0.8 },
+  inputCol: { flex: 1.2 },
   dropdown: { minHeight: 42, borderWidth: 1, borderColor: '#b7ebc3', borderRadius: 10, paddingHorizontal: 10, backgroundColor: 'white', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   dropdownText: { color: '#1e6e37', fontWeight: '600', fontSize: 12 },
   dropdownMenu: { marginTop: 4, borderWidth: 1, borderColor: '#b7ebc3', borderRadius: 10, padding: 8, gap: 6, backgroundColor: '#ecfff1' },
