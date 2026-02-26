@@ -14,11 +14,14 @@ type Props = {
   onChangeType: (value: TransactionType) => void;
   onChangeCategory: (value: TransactionCategory) => void;
   onSave: () => Promise<boolean>;
+  onCreateRecurring: (input: { frequency: 'weekly' | 'monthly'; label: string }) => Promise<void>;
 };
 
-export function AddTransactionScreen({ darkMode, nameInput, amountInput, selectedType, selectedCategory, categoryOptions, onChangeName, onChangeAmount, onChangeType, onChangeCategory, onSave }: Props) {
+export function AddTransactionScreen({ darkMode, nameInput, amountInput, selectedType, selectedCategory, categoryOptions, onChangeName, onChangeAmount, onChangeType, onChangeCategory, onSave, onCreateRecurring }: Props) {
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [advanced, setAdvanced] = useState(false);
+  const [freq, setFreq] = useState<'none' | 'weekly' | 'monthly'>('none');
   const amountAccessoryId = 'amountKeyboardAccessory';
 
   const onPressSave = async () => {
@@ -28,16 +31,18 @@ export function AddTransactionScreen({ darkMode, nameInput, amountInput, selecte
       return;
     }
     setIsSaving(true);
-    try { await onSave(); } finally { setIsSaving(false); }
+    try {
+      const ok = await onSave();
+      if (ok && advanced && freq !== 'none') {
+        await onCreateRecurring({ frequency: freq, label: nameInput.trim() || `${selectedCategory} recurring` });
+      }
+    } finally { setIsSaving(false); }
   };
 
   return (
     <View style={styles.screenContainer}>
-      <View style={styles.heroWrap}>
-        <Text style={[styles.sectionTitle, darkMode && styles.textDark]}>Transact!</Text>
-      </View>
+      <View style={styles.heroWrap}><Text style={[styles.sectionTitle, darkMode && styles.textDark]}>Transact!</Text></View>
       <View style={[styles.formArea, darkMode && styles.formAreaDark]}>
-
         <TextInput value={amountInput} onChangeText={onChangeAmount} keyboardType="decimal-pad" returnKeyType="done" blurOnSubmit onSubmitEditing={() => Keyboard.dismiss()} inputAccessoryViewID={Platform.OS === 'ios' ? amountAccessoryId : undefined} placeholder="Amount" placeholderTextColor={darkMode ? '#86a893' : '#3e5f47'} style={[styles.input, darkMode && styles.inputDark]} />
 
         <View style={[styles.switchWrap, darkMode && styles.switchWrapDark]}>
@@ -62,8 +67,20 @@ export function AddTransactionScreen({ darkMode, nameInput, amountInput, selecte
           ) : null}
         </View>
 
-        <Text style={[styles.label, darkMode && styles.textDark]}>Name (optional)</Text>
-        <TextInput value={nameInput} onChangeText={onChangeName} placeholder="e.g. Lunch, Salary" placeholderTextColor={darkMode ? '#86a893' : '#3e5f47'} style={[styles.input, darkMode && styles.inputDark]} />
+        <Pressable style={[styles.advancedBtn, darkMode && styles.inputDark]} onPress={() => setAdvanced((v) => !v)}>
+          <Text style={[styles.advancedText, darkMode && styles.textDark]}>{advanced ? 'Hide Advanced Options' : 'Advanced Options'}</Text>
+        </Pressable>
+
+        {advanced ? (
+          <>
+            <Text style={[styles.label, darkMode && styles.textDark]}>Name (optional)</Text>
+            <TextInput value={nameInput} onChangeText={onChangeName} placeholder="e.g. Lunch, Salary" placeholderTextColor={darkMode ? '#86a893' : '#3e5f47'} style={[styles.input, darkMode && styles.inputDark]} />
+            <Text style={[styles.label, darkMode && styles.textDark]}>Recurrence</Text>
+            <View style={styles.rowGap}>
+              {(['none','weekly','monthly'] as const).map((f)=><Pressable key={f} style={[styles.pill, freq===f&&styles.pillActive]} onPress={()=>setFreq(f)}><Text style={[styles.pillText, freq===f&&styles.pillTextActive]}>{f}</Text></Pressable>)}
+            </View>
+          </>
+        ) : null}
 
         <Pressable style={styles.saveBtn} onPress={onPressSave}><Text style={styles.saveBtnText}>{isSaving ? 'Saving…' : 'Save transaction'}</Text></Pressable>
       </View>
@@ -77,13 +94,7 @@ export function AddTransactionScreen({ darkMode, nameInput, amountInput, selecte
 
 const styles = StyleSheet.create({
   screenContainer: { flex: 1, paddingHorizontal: 14, justifyContent: 'center', alignItems: 'center' },
-  heroWrap: {
-    width: '100%',
-    maxWidth: 520,
-    height: 90,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  heroWrap: { width: '100%', maxWidth: 520, height: 90, alignItems: 'center', justifyContent: 'center' },
   formArea: { width: '100%', maxWidth: 520, backgroundColor: '#f3fff6', borderWidth: 1, borderColor: '#b8efc4', borderRadius: 18, padding: 16, gap: 14 },
   formAreaDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
   sectionTitle: { fontSize: 44, fontWeight: '900', color: '#166534', letterSpacing: 0.4 },
@@ -104,6 +115,9 @@ const styles = StyleSheet.create({
   dropdownOption: { paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#e3f6e8' },
   dropdownOptionActive: { backgroundColor: '#e4fce9' },
   dropdownOptionText: { color: '#1e6e37', fontWeight: '600', fontSize: 16 },
+  advancedBtn:{borderWidth:1,borderColor:'#9dddad',borderRadius:10,paddingVertical:10,alignItems:'center',backgroundColor:'#ecfff1'}, advancedText:{color:'#166534',fontWeight:'700'},
+  rowGap:{flexDirection:'row',gap:8,flexWrap:'wrap'},
+  pill:{paddingHorizontal:10,paddingVertical:7,borderRadius:999,borderWidth:1,borderColor:'#a9e6b7',backgroundColor:'#f0fff4'}, pillActive:{backgroundColor:'#14b85a',borderColor:'#14b85a'}, pillText:{color:'#1e6e37',fontWeight:'600'}, pillTextActive:{color:'white'},
   saveBtn: { marginTop: 'auto', backgroundColor: '#16a34a', borderWidth: 1, borderColor: '#15803d', borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
   saveBtnText: { color: 'white', fontWeight: '800', fontSize: 18 },
   accessoryBar: { backgroundColor: '#e5faeb', borderTopWidth: 1, borderTopColor: '#b9ebc7', paddingHorizontal: 12, paddingVertical: 8, alignItems: 'flex-end' },

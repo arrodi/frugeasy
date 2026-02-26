@@ -247,6 +247,7 @@ export default function App() {
     category: TransactionCategory;
     amount: number;
     dayOfMonth: number;
+    frequency: 'weekly' | 'monthly';
     label: string;
   }) => {
     try {
@@ -337,6 +338,17 @@ export default function App() {
             onChangeType={onChangeType}
             onChangeCategory={setSelectedCategory}
             onSave={handleSave}
+            onCreateRecurring={async ({ frequency, label }) => {
+              const now = new Date();
+              await handleAddRecurringRule({
+                type: selectedType,
+                category: selectedCategory,
+                amount: Number(amountInput.replace(',', '.')),
+                dayOfMonth: frequency === 'weekly' ? now.getUTCDay() : now.getUTCDate(),
+                frequency,
+                label,
+              });
+            }}
           />
         </View>
 
@@ -350,9 +362,6 @@ export default function App() {
             categoryOptions={expenseCategoryOptions}
             onSaveBudget={handleSaveBudget}
             onDeleteBudget={handleDeleteBudget}
-            recurringRules={recurringRules}
-            onAddRecurringRule={handleAddRecurringRule}
-            onToggleRecurringRule={handleToggleRecurringRule}
           />
         </View>
 

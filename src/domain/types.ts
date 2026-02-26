@@ -40,6 +40,7 @@ export type RecurringRule = {
   category: TransactionCategory;
   amount: number;
   dayOfMonth: number;
+  frequency: 'monthly' | 'weekly';
   label: string;
   active: boolean;
 };

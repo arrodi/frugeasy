@@ -47,6 +47,7 @@ export async function initTransactionsRepo(): Promise<void> {
       category TEXT NOT NULL,
       amount REAL NOT NULL,
       dayOfMonth INTEGER NOT NULL,
+      frequency TEXT NOT NULL DEFAULT 'monthly',
       label TEXT NOT NULL,
       active INTEGER NOT NULL DEFAULT 1
     );
@@ -64,6 +65,11 @@ export async function initTransactionsRepo(): Promise<void> {
   }
   try {
     await db.execAsync(`ALTER TABLE ${TX_TABLE} ADD COLUMN name TEXT NOT NULL DEFAULT 'Untitled';`);
+  } catch {
+    // column exists
+  }
+  try {
+    await db.execAsync(`ALTER TABLE ${RECURRING_TABLE} ADD COLUMN frequency TEXT NOT NULL DEFAULT 'monthly';`);
   } catch {
     // column exists
   }
@@ -153,13 +159,14 @@ export async function insertRecurringRule(input: {
   category: TransactionCategory;
   amount: number;
   dayOfMonth: number;
+  frequency: 'monthly' | 'weekly';
   label: string;
 }): Promise<void> {
   const db = await getDb();
   const id = `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
   await db.runAsync(
-    `INSERT INTO ${RECURRING_TABLE} (id, type, category, amount, dayOfMonth, label, active) VALUES (?, ?, ?, ?, ?, ?, 1);`,
-    [id, input.type, input.category, input.amount, input.dayOfMonth, input.label]
+    `INSERT INTO ${RECURRING_TABLE} (id, type, category, amount, dayOfMonth, frequency, label, active) VALUES (?, ?, ?, ?, ?, ?, ?, 1);`,
+    [id, input.type, input.category, input.amount, input.dayOfMonth, input.frequency, input.label]
   );
 }
 
@@ -168,7 +175,7 @@ type RecurringRuleRow = Omit<RecurringRule, 'active'> & { active: number };
 export async function listRecurringRules(): Promise<RecurringRule[]> {
   const db = await getDb();
   const rows = await db.getAllAsync<RecurringRuleRow>(
-    `SELECT id, type, category, amount, dayOfMonth, label, active FROM ${RECURRING_TABLE} ORDER BY dayOfMonth ASC;`
+    `SELECT id, type, category, amount, dayOfMonth, COALESCE(frequency,'monthly') as frequency, label, active FROM ${RECURRING_TABLE} ORDER BY dayOfMonth ASC;`
   );
   return rows.map((r) => ({ ...r, active: Boolean(r.active) }));
 }
@@ -198,23 +205,36 @@ export async function setSetting(key: string, value: string): Promise<void> {
 export async function applyRecurringRulesForMonth(year: number, monthIndex: number): Promise<void> {
   const db = await getDb();
   const rules = await db.getAllAsync<RecurringRuleRow>(
-    `SELECT id, type, category, amount, dayOfMonth, label, active FROM ${RECURRING_TABLE} WHERE active = 1;`
+    `SELECT id, type, category, amount, dayOfMonth, COALESCE(frequency,'monthly') as frequency, label, active FROM ${RECURRING_TABLE} WHERE active = 1;`
   );
 
   for (const rule of rules) {
-    const day = Math.max(1, Math.min(28, rule.dayOfMonth));
-    const date = new Date(Date.UTC(year, monthIndex, day, 12, 0, 0));
-    const dateIso = date.toISOString();
-    const exists = await db.getFirstAsync<{ id: string }>(
-      `SELECT id FROM ${TX_TABLE} WHERE type = ? AND category = ? AND amount = ? AND date = ? LIMIT 1;`,
-      [rule.type, rule.category, rule.amount, dateIso]
-    );
-    if (exists?.id) continue;
+    const dates: Date[] = [];
+    if (rule.frequency === 'weekly') {
+      const weekday = Math.max(0, Math.min(6, rule.dayOfMonth));
+      const daysInMonth = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dt = new Date(Date.UTC(year, monthIndex, d, 12, 0, 0));
+        if (dt.getUTCDay() === weekday) dates.push(dt);
+      }
+    } else {
+      const day = Math.max(1, Math.min(28, rule.dayOfMonth));
+      dates.push(new Date(Date.UTC(year, monthIndex, day, 12, 0, 0)));
+    }
 
-    const id = `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
-    await db.runAsync(
-      `INSERT INTO ${TX_TABLE} (id, amount, type, category, date, createdAt) VALUES (?, ?, ?, ?, ?, ?);`,
-      [id, rule.amount, rule.type, rule.category, dateIso, new Date().toISOString()]
-    );
+    for (const date of dates) {
+      const dateIso = date.toISOString();
+      const exists = await db.getFirstAsync<{ id: string }>(
+        `SELECT id FROM ${TX_TABLE} WHERE type = ? AND category = ? AND amount = ? AND date = ? LIMIT 1;`,
+        [rule.type, rule.category, rule.amount, dateIso]
+      );
+      if (exists?.id) continue;
+
+      const id = `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
+      await db.runAsync(
+        `INSERT INTO ${TX_TABLE} (id, amount, type, category, name, date, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?);`,
+        [id, rule.amount, rule.type, rule.category, rule.label || 'Recurring', dateIso, new Date().toISOString()]
+      );
+    }
   }
 }

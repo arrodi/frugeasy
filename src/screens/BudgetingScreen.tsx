@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { Budget, CurrencyCode, RecurringRule, TransactionCategory, TransactionType } from '../domain/types';
+import { Budget, CurrencyCode, TransactionCategory } from '../domain/types';
 import { formatCurrency } from '../ui/format';
 
 type Props = {
@@ -12,9 +12,6 @@ type Props = {
   categoryOptions: TransactionCategory[];
   onSaveBudget: (category: TransactionCategory, amount: number) => Promise<void>;
   onDeleteBudget: (id: string) => Promise<void>;
-  recurringRules: RecurringRule[];
-  onAddRecurringRule: (input: { type: TransactionType; category: TransactionCategory; amount: number; dayOfMonth: number; label: string }) => Promise<void>;
-  onToggleRecurringRule: (id: string, active: boolean) => Promise<void>;
 };
 
 export function BudgetingScreen({
@@ -26,11 +23,8 @@ export function BudgetingScreen({
   categoryOptions,
   onSaveBudget,
   onDeleteBudget,
-  recurringRules,
-  onAddRecurringRule,
-  onToggleRecurringRule,
 }: Props) {
-  const [tab, setTab] = useState<'budgets' | 'recurring'>('budgets');
+  const [tab, setTab] = useState<'budgets'>('budgets');
   const [expandedBudgetId, setExpandedBudgetId] = useState<string | null>(null);
   const [expandedBudgetAmount, setExpandedBudgetAmount] = useState('');
   const [showAddBudget, setShowAddBudget] = useState(false);
@@ -38,11 +32,6 @@ export function BudgetingScreen({
   const [budgetAmount, setBudgetAmount] = useState('');
   const [budgetCategoryOpen, setBudgetCategoryOpen] = useState(false);
 
-  const [ruleLabel, setRuleLabel] = useState('');
-  const [ruleAmount, setRuleAmount] = useState('');
-  const [ruleType, setRuleType] = useState<TransactionType>('expense');
-  const [ruleCategory, setRuleCategory] = useState<TransactionCategory>('Food');
-  const [ruleDay, setRuleDay] = useState('1');
 
   return (
     <ScrollView style={[styles.screenContainer, darkMode && styles.screenDark]} contentContainerStyle={styles.contentContainer}>
@@ -51,9 +40,6 @@ export function BudgetingScreen({
       <View style={[styles.switchWrap, darkMode && styles.panelDark]}>
         <Pressable style={[styles.switchOption, tab === 'budgets' && styles.switchOptionActive]} onPress={() => setTab('budgets')}>
           <Text style={[styles.switchText, tab === 'budgets' && styles.switchTextActive]}>Budgets</Text>
-        </Pressable>
-        <Pressable style={[styles.switchOption, tab === 'recurring' && styles.switchOptionActive]} onPress={() => setTab('recurring')}>
-          <Text style={[styles.switchText, tab === 'recurring' && styles.switchTextActive]}>Recurring</Text>
         </Pressable>
       </View>
 
@@ -199,48 +185,6 @@ export function BudgetingScreen({
             </View>
           ) : null}
         </>
-      ) : null}
-
-      {tab === 'recurring' ? (
-        <View style={[styles.panel, darkMode && styles.panelDark]}>
-          <Text style={[styles.panelTitle, darkMode && styles.textDark]}>Recurring</Text>
-          <TextInput value={ruleLabel} onChangeText={setRuleLabel} style={[styles.input, darkMode && styles.inputDark]} placeholder="Label" />
-          <View style={styles.row}>
-            <TextInput value={ruleAmount} onChangeText={setRuleAmount} style={[styles.input, styles.flex1, darkMode && styles.inputDark]} placeholder="Amount" keyboardType="decimal-pad" />
-            <TextInput value={ruleDay} onChangeText={setRuleDay} style={[styles.input, styles.flex1, darkMode && styles.inputDark]} placeholder="Day" keyboardType="number-pad" />
-          </View>
-          <View style={styles.row}>
-            <Pressable style={[styles.pill, ruleType === 'income' && styles.pillActive]} onPress={() => setRuleType('income')}>
-              <Text style={[styles.pillText, ruleType === 'income' && styles.pillTextActive]}>income</Text>
-            </Pressable>
-            <Pressable style={[styles.pill, ruleType === 'expense' && styles.pillActive]} onPress={() => setRuleType('expense')}>
-              <Text style={[styles.pillText, ruleType === 'expense' && styles.pillTextActive]}>expense</Text>
-            </Pressable>
-            <TextInput value={ruleCategory} onChangeText={(v) => setRuleCategory(v as TransactionCategory)} style={[styles.input, styles.flex1, darkMode && styles.inputDark]} placeholder="Category" />
-          </View>
-          <Pressable
-            style={styles.bigSaveBtn}
-            onPress={async () => {
-              const amount = Number(ruleAmount.replace(',', '.'));
-              const day = Number(ruleDay);
-              if (!ruleLabel.trim() || !Number.isFinite(amount) || amount <= 0 || !Number.isFinite(day)) return;
-              await onAddRecurringRule({ label: ruleLabel.trim(), amount, dayOfMonth: Math.max(1, Math.min(28, Math.round(day))), type: ruleType, category: ruleCategory });
-              setRuleLabel('');
-              setRuleAmount('');
-              setRuleDay('1');
-            }}
-          >
-            <Text style={styles.bigSaveText}>Add Recurring</Text>
-          </Pressable>
-          {recurringRules.map((r) => (
-            <View key={r.id} style={styles.ruleRow}>
-              <Text style={[styles.ruleText, darkMode && styles.textDark]}>{r.label} • day {r.dayOfMonth} • {formatCurrency(r.amount, currency)} • {r.category}</Text>
-              <Pressable style={styles.saveBtn} onPress={() => onToggleRecurringRule(r.id, !r.active)}>
-                <Text style={styles.saveBtnText}>{r.active ? 'On' : 'Off'}</Text>
-              </Pressable>
-            </View>
-          ))}
-        </View>
       ) : null}
     </ScrollView>
   );
