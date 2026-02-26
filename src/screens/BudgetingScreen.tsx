@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { LayoutAnimation, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg';
 import { Budget, CurrencyCode, Transaction, TransactionCategory } from '../domain/types';
 import { formatCurrency } from '../ui/format';
@@ -120,9 +121,10 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
           );
         })()}
 
-        <ScrollView style={styles.entriesScroll} contentContainerStyle={styles.entriesScrollContent} showsVerticalScrollIndicator={false}>
-          {displayedBudgetRows.length === 0 ? <Text style={[styles.ruleText, darkMode && styles.textDark]}>No budgets set yet.</Text> : null}
-          {displayedBudgetRows.map((row) => {
+        <View style={styles.entriesScrollWrap}>
+          <ScrollView style={styles.entriesScroll} contentContainerStyle={styles.entriesScrollContent} showsVerticalScrollIndicator={false}>
+            {displayedBudgetRows.length === 0 ? <Text style={[styles.ruleText, darkMode && styles.textDark]}>No budgets set yet.</Text> : null}
+            {displayedBudgetRows.map((row) => {
             const expanded = row.category === expandedBudgetKey;
             const recent = transactions
               .filter((t) => t.type === 'expense' && t.category === row.category)
@@ -174,7 +176,18 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
               </Pressable>
             );
           })}
-        </ScrollView>
+          </ScrollView>
+          <LinearGradient
+            pointerEvents="none"
+            colors={[darkMode ? '#0f1a14' : '#ffffff', 'transparent']}
+            style={[styles.edgeFade, styles.edgeFadeTop]}
+          />
+          <LinearGradient
+            pointerEvents="none"
+            colors={['transparent', darkMode ? '#0f1a14' : '#ffffff']}
+            style={[styles.edgeFade, styles.edgeFadeBottom]}
+          />
+        </View>
 
         {showAddBudget ? (
           <View style={[styles.panel, darkMode && styles.panelDark]}>
@@ -218,8 +231,12 @@ const styles = StyleSheet.create({
   screenContainer: { flex: 1 },
   screenDark: { backgroundColor: '#0f1a14' },
   contentContainer: { flex: 1, paddingHorizontal: 16, gap: 10, paddingTop: 8, paddingBottom: 120 },
+  entriesScrollWrap: { flex: 1, position: 'relative' },
   entriesScroll: { flex: 1 },
   entriesScrollContent: { paddingBottom: 8 },
+  edgeFade: { position: 'absolute', left: 0, right: 0, height: 18 },
+  edgeFadeTop: { top: 0 },
+  edgeFadeBottom: { bottom: 0 },
   title: { fontSize: 17, fontWeight: '700', color: '#156530' },
   panelTitle: { fontSize: 14, fontWeight: '700', color: '#14532d', marginBottom: 6 },
   textDark: { color: '#d6f5df' },
