@@ -44,9 +44,9 @@ export function MonthlySummaryScreen({
         <Pressable style={[styles.monthNavBtn, !canGoNextMonth && styles.monthNavBtnDisabled]} onPress={onNextMonth} disabled={!canGoNextMonth}><Text style={styles.monthNavBtnText}>→</Text></Pressable>
       </View>
 
-      <View style={styles.card}><Text style={styles.cardLabel}>Income</Text><Text style={[styles.cardValue, styles.income]}>{formatCurrency(totals.income, currency)}</Text></View>
-      <View style={styles.card}><Text style={styles.cardLabel}>Expenditure</Text><Text style={[styles.cardValue, styles.expense]}>{formatCurrency(totals.expense, currency)}</Text></View>
-      <View style={styles.card}><Text style={styles.cardLabel}>Net</Text><Text style={[styles.cardValue, styles.net]}>{formatCurrency(totals.net, currency)}</Text></View>
+      <View style={[styles.card, darkMode && styles.cardDark]}><Text style={[styles.cardLabel, darkMode && styles.textDark]} >Income</Text><Text style={[styles.cardValue, styles.income]}>{formatCurrency(totals.income, currency)}</Text></View>
+      <View style={[styles.card, darkMode && styles.cardDark]}><Text style={[styles.cardLabel, darkMode && styles.textDark]}>Expenditure</Text><Text style={[styles.cardValue, styles.expense]}>{formatCurrency(totals.expense, currency)}</Text></View>
+      <View style={[styles.card, darkMode && styles.cardDark]}><Text style={[styles.cardLabel, darkMode && styles.textDark]}>Net</Text><Text style={[styles.cardValue, styles.net]}>{formatCurrency(totals.net, currency)}</Text></View>
 
       <Pressable style={styles.actionBtn} onPress={onToggleAnalysisMode}>
         <Text style={styles.actionBtnText}>{analysisMode ? 'Hide analysis' : 'Analyze'}</Text>
@@ -55,23 +55,23 @@ export function MonthlySummaryScreen({
       {analysisMode ? (
         <View style={[styles.analysisWrap, darkMode && styles.cardDark]}>
           <Text style={[styles.analysisTitle, darkMode && styles.textDark]}>Expenditure vs Budget by Category</Text>
-          <View style={styles.tableHeader}>
-            <Text style={[styles.th, { flex: 1.4 }]}>Category</Text>
-            <Text style={styles.th}>Spent</Text>
-            <Text style={styles.th}>Budget</Text>
-            <Text style={styles.th}>Use</Text>
+          <View style={[styles.tableHeader, darkMode && styles.tableHeaderDark]}>
+            <Text style={[styles.th, darkMode && styles.textDark, { flex: 1.4 }]}>Category</Text>
+            <Text style={[styles.th, darkMode && styles.textDark]}>Spent</Text>
+            <Text style={[styles.th, darkMode && styles.textDark]}>Budget</Text>
+            <Text style={[styles.th, darkMode && styles.textDark]}>Use</Text>
           </View>
-          {budgetProgressRows.length === 0 ? <Text style={styles.note}>No budgets set yet.</Text> : null}
+          {budgetProgressRows.length === 0 ? <Text style={[styles.note, darkMode && styles.textDark]}>No budgets set yet.</Text> : null}
           {budgetProgressRows.map((row) => (
-            <View key={`b-${row.category}`} style={styles.tableRowBlock}>
+            <View key={`b-${row.category}`} style={[styles.tableRowBlock, darkMode && styles.tableRowBlockDark]}>
               <View style={styles.tableRow}>
-                <Text style={[styles.td, { flex: 1.4 }]}>{row.category}</Text>
-                <Text style={styles.td}>{formatCurrency(row.spent, currency)}</Text>
-                <Text style={styles.td}>{formatCurrency(row.budget, currency)}</Text>
+                <Text style={[styles.td, darkMode && styles.textDark, { flex: 1.4 }]}>{row.category}</Text>
+                <Text style={[styles.td, darkMode && styles.textDark]}>{formatCurrency(row.spent, currency)}</Text>
+                <Text style={[styles.td, darkMode && styles.textDark]}>{formatCurrency(row.budget, currency)}</Text>
                 <Text style={[styles.td, row.usagePct > 100 ? styles.deltaUp : styles.deltaDown]}>{row.usagePct.toFixed(0)}%</Text>
               </View>
-              <View style={styles.progressTrack}>
-                <View style={[styles.progressFill, { width: `${Math.min(100, Math.max(0, row.usagePct))}%` }, row.usagePct > 100 && styles.progressOver]} />
+              <View style={[styles.progressTrack, darkMode && styles.progressTrackDark]}>
+                <View style={[styles.progressFill, darkMode && styles.progressFillDark, { width: `${Math.min(100, Math.max(0, row.usagePct))}%` }, row.usagePct > 100 && styles.progressOver]} />
               </View>
             </View>
           ))}
@@ -104,10 +104,14 @@ const styles = StyleSheet.create({
   analysisTitle: { fontSize: 15, fontWeight: '800', color: '#1f3b35' },
   note: { color: '#49635d' },
   tableHeader: { flexDirection: 'row', paddingTop: 6, paddingBottom: 4, borderBottomWidth: 1, borderBottomColor: '#d8e5df' },
+  tableHeaderDark: { borderBottomColor: '#2e4d3b' },
   tableRowBlock: { paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: '#e8f0ec' },
+  tableRowBlockDark: { borderBottomColor: '#294235' },
   tableRow: { flexDirection: 'row', paddingVertical: 2 },
   progressTrack: { height: 8, backgroundColor: '#dcefe3', borderRadius: 999, overflow: 'hidden', marginTop: 4 },
+  progressTrackDark: { backgroundColor: '#243b30' },
   progressFill: { height: '100%', backgroundColor: '#16a34a' },
+  progressFillDark: { backgroundColor: '#22c55e' },
   progressOver: { backgroundColor: '#dc2626' },
   th: { flex: 1, color: '#35544c', fontWeight: '700', fontSize: 12 },
   td: { flex: 1, color: '#49635d', fontSize: 12 },

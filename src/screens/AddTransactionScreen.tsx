@@ -33,8 +33,10 @@ export function AddTransactionScreen({ darkMode, nameInput, amountInput, selecte
 
   return (
     <View style={styles.screenContainer}>
-      <View style={[styles.formArea, darkMode && styles.formAreaDark]}>
+      <View style={styles.heroWrap}>
         <Text style={[styles.sectionTitle, darkMode && styles.textDark]}>Transact!</Text>
+      </View>
+      <View style={[styles.formArea, darkMode && styles.formAreaDark]}>
 
         <TextInput value={amountInput} onChangeText={onChangeAmount} keyboardType="decimal-pad" returnKeyType="done" blurOnSubmit onSubmitEditing={() => Keyboard.dismiss()} inputAccessoryViewID={Platform.OS === 'ios' ? amountAccessoryId : undefined} placeholder="Amount" placeholderTextColor={darkMode ? '#86a893' : '#3e5f47'} style={[styles.input, darkMode && styles.inputDark]} />
 
@@ -75,6 +77,13 @@ export function AddTransactionScreen({ darkMode, nameInput, amountInput, selecte
 
 const styles = StyleSheet.create({
   screenContainer: { flex: 1, paddingHorizontal: 14, justifyContent: 'center', alignItems: 'center' },
+  heroWrap: {
+    width: '100%',
+    maxWidth: 520,
+    height: 90,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   formArea: { width: '100%', maxWidth: 520, backgroundColor: '#f3fff6', borderWidth: 1, borderColor: '#b8efc4', borderRadius: 18, padding: 16, gap: 14 },
   formAreaDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
   sectionTitle: { fontSize: 24, fontWeight: '800', color: '#166534' },
