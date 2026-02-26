@@ -162,8 +162,9 @@ export function TransactionsScreen(props: Props) {
 
             return (
               <View style={styles.chartWrap}>
-                <Svg width={size+140} height={size+40}>
-                  <G x={70} y={20}>
+                <Text style={[styles.totalBudgetText, darkMode && styles.textDark]}>Total Budget: {formatCurrency(total, currency)}</Text>
+                <Svg width={size+220} height={size+80}>
+                  <G x={110} y={30}>
                     <G rotation={-90} origin={`${center}, ${center}`}>
                       {total>0 ? budgets.map((b,i)=>{
                         const frac=b.amount/total;
@@ -182,7 +183,8 @@ export function TransactionsScreen(props: Props) {
                       const y2 = center + Math.sin(angle) * (r + 28);
                       const right = Math.cos(angle) >= 0;
                       const x3 = x2 + (right ? 24 : -24);
-                      const label = `${b.category} ${(frac*100).toFixed(0)}%`;
+                      const shortCategory = b.category.length > 10 ? `${b.category.slice(0, 10)}…` : b.category;
+                      const label = `${shortCategory} ${(frac*100).toFixed(0)}%`;
                       return (
                         <G key={`callout-${b.id}`}>
                           <Line x1={x1} y1={y1} x2={x2} y2={y2} stroke={colors[i%colors.length]} strokeWidth={1.5} />
@@ -201,7 +203,6 @@ export function TransactionsScreen(props: Props) {
                     })}
                   </G>
                 </Svg>
-                <Text style={[styles.totalBudgetText, darkMode && styles.textDark]}>Total Budget: {formatCurrency(total, currency)}</Text>
               </View>
             );
           })()}
