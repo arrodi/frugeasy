@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { LayoutAnimation, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Budget, CurrencyCode, Transaction, TransactionCategory } from '../domain/types';
 import { formatCurrency } from '../ui/format';
 
@@ -57,6 +57,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
                 style={[styles.budgetItem, darkMode && styles.budgetItemDark]}
                 onPress={() => {
                   if (!budget) return;
+                  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                   setExpandedBudgetId(expanded ? null : budget.id);
                 }}
               >
@@ -84,11 +85,10 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
 
                 {expanded ? (
                   <View style={styles.historyWrap}>
-                    <Text style={[styles.historyTitle, darkMode && styles.textDark]}>Last 5 transactions</Text>
                     {recent.length === 0 ? <Text style={[styles.historyItem, darkMode && styles.textDark]}>No transactions yet.</Text> : null}
                     {recent.map((t) => (
                       <View key={t.id} style={styles.historyRow}>
-                        <Text style={[styles.historyItem, darkMode && styles.textDark]}>{t.name || 'Untitled'}</Text>
+                        <Text style={[styles.historyItem, darkMode && styles.textDark]}>{t.name?.trim() ? t.name : '—'}</Text>
                         <Text style={[styles.historyItem, darkMode && styles.textDark]}>{formatCurrency(t.amount, currency)}</Text>
                       </View>
                     ))}
@@ -166,9 +166,8 @@ const styles = StyleSheet.create({
   progressInsideText: { fontWeight: '800', fontSize: 11 },
   progressInsideOnFill: { color: '#ffffff' },
   progressInsideOffFill: { color: '#14532d' },
-  historyWrap: { marginTop: 10, borderTopWidth: 1, borderTopColor: '#b7ebc3', paddingTop: 8, gap: 4 },
-  historyTitle: { fontWeight: '700', color: '#1e6e37', marginBottom: 2 },
-  historyRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  historyWrap: { marginTop: 10, borderTopWidth: 1, borderTopColor: '#b7ebc3', paddingTop: 10, gap: 10 },
+    historyRow: { flexDirection: 'row', justifyContent: 'space-between' },
   historyItem: { color: '#35544c', fontSize: 12 },
   ruleText: { color: '#35544c' },
 

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import Svg, { Circle, G } from 'react-native-svg';
 import { Budget, CurrencyCode, Transaction, TransactionCategory, TransactionType } from '../domain/types';
 import { formatCurrency } from '../ui/format';
 
@@ -73,12 +74,12 @@ export function TransactionsScreen(props: Props) {
         </Pressable>
       </View>
 
-      <View style={styles.reviewSwitchWrap}>
-        <Pressable style={[styles.reviewSwitchOption, reviewTab === 'transactions' && styles.reviewSwitchOptionActive]} onPress={() => setReviewTab('transactions')}>
-          <Text style={[styles.reviewSwitchText, reviewTab === 'transactions' && styles.reviewSwitchTextActive]}>Transactions</Text>
+      <View style={[styles.reviewSwitchWrap, darkMode && styles.reviewSwitchWrapDark]}>
+        <Pressable style={[styles.reviewSwitchOption, darkMode && styles.reviewSwitchOptionDark, reviewTab === 'transactions' && styles.reviewSwitchOptionActive]} onPress={() => setReviewTab('transactions')}>
+          <Text style={[styles.reviewSwitchText, darkMode && styles.textDark, reviewTab === 'transactions' && styles.reviewSwitchTextActive]}>Transactions</Text>
         </Pressable>
-        <Pressable style={[styles.reviewSwitchOption, reviewTab === 'budgets' && styles.reviewSwitchOptionActive]} onPress={() => setReviewTab('budgets')}>
-          <Text style={[styles.reviewSwitchText, reviewTab === 'budgets' && styles.reviewSwitchTextActive]}>Budgets</Text>
+        <Pressable style={[styles.reviewSwitchOption, darkMode && styles.reviewSwitchOptionDark, reviewTab === 'budgets' && styles.reviewSwitchOptionActive]} onPress={() => setReviewTab('budgets')}>
+          <Text style={[styles.reviewSwitchText, darkMode && styles.textDark, reviewTab === 'budgets' && styles.reviewSwitchTextActive]}>Budgets</Text>
         </Pressable>
       </View>
 
@@ -120,7 +121,7 @@ export function TransactionsScreen(props: Props) {
                 {!editing ? (
                   <>
                     <View>
-                      <Text style={[styles.name, darkMode && styles.textDark]}>{item.name}</Text>
+                      <Text style={[styles.name, darkMode && styles.textDark]}>{item.name?.trim() ? item.name : "—"}</Text>
                       <Text style={styles.meta}>{item.category} • {new Date(item.date).toLocaleString()}</Text>
                     </View>
                     <View style={styles.rightRow}>
@@ -144,6 +145,28 @@ export function TransactionsScreen(props: Props) {
         </>
       ) : (
         <View style={[styles.panel, darkMode && styles.panelDark]}>
+          {(() => {
+            const total = budgets.reduce((s,b)=>s+b.amount,0);
+            const size=160; const r=58; const c=2*Math.PI*r;
+            let acc=0;
+            const colors=['#16a34a','#22c55e','#4ade80','#86efac','#15803d','#65a30d','#84cc16','#10b981','#059669'];
+            return (
+              <View style={styles.chartWrap}>
+                <Svg width={size} height={size}>
+                  <G rotation={-90} origin={`${size/2}, ${size/2}`}>
+                    {total>0 ? budgets.map((b,i)=>{
+                      const frac=b.amount/total;
+                      const seg=c*frac;
+                      const dash=`${seg} ${c-seg}`;
+                      const off=-acc*c; acc+=frac;
+                      return <Circle key={b.id} cx={size/2} cy={size/2} r={r} fill="none" stroke={colors[i%colors.length]} strokeWidth={20} strokeDasharray={dash} strokeDashoffset={off} strokeLinecap="butt"/>;
+                    }) : <Circle cx={size/2} cy={size/2} r={r} fill="none" stroke={darkMode ? '#2e4d3b' : '#d1fae5'} strokeWidth={20}/>}
+                  </G>
+                </Svg>
+                <Text style={[styles.totalBudgetText, darkMode && styles.textDark]}>Total Budget: {formatCurrency(total, currency)}</Text>
+              </View>
+            );
+          })()}
           {budgets.map((b) => {
             const expanded = expandedBudgetId === b.id;
             return (
@@ -187,7 +210,9 @@ const styles = StyleSheet.create({
   exportBtn: { backgroundColor: '#14b85a', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8 },
   exportBtnText: { color: 'white', fontWeight: '700', fontSize: 12 },
   reviewSwitchWrap: { flexDirection: 'row', backgroundColor: '#e8f8ee', borderRadius: 12, padding: 4, borderWidth: 1, borderColor: '#b6e9c3', gap: 4 },
+  reviewSwitchWrapDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
   reviewSwitchOption: { flex: 1, borderRadius: 9, paddingVertical: 10, alignItems: 'center' },
+  reviewSwitchOptionDark: { backgroundColor: '#1a2d22' },
   reviewSwitchOptionActive: { backgroundColor: '#14b85a' },
   reviewSwitchText: { color: '#1e6e37', fontWeight: '700' },
   reviewSwitchTextActive: { color: 'white' },
@@ -218,4 +243,6 @@ const styles = StyleSheet.create({
   deleteBtn: { backgroundColor: '#fee2e2', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 1, borderColor: '#fecaca' },
   deleteBtnText: { color: '#991b1b', fontWeight: '700', fontSize: 12 },
   panel: { backgroundColor: '#ecfff1', borderWidth: 1, borderColor: '#9ee5ab', borderRadius: 12, padding: 10, gap: 8 },
+  chartWrap: { alignItems: 'center', justifyContent: 'center', paddingVertical: 8 },
+  totalBudgetText: { color: '#14532d', fontWeight: '800', marginTop: 6 },
 });
