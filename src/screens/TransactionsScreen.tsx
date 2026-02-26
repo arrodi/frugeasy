@@ -144,7 +144,13 @@ export function TransactionsScreen(props: Props) {
           })}
         </>
       ) : (
-        <View style={[styles.panel, darkMode && styles.panelDark]}>
+        <Pressable
+          style={[styles.panel, darkMode && styles.panelDark]}
+          onPress={() => {
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+            setExpandedBudgetId(null);
+          }}
+        >
           {(() => {
             const total = budgets.reduce((s,b)=>s+b.amount,0);
             const size=160; const r=58; const c=2*Math.PI*r;
@@ -152,89 +158,71 @@ export function TransactionsScreen(props: Props) {
             const colors=['#ff6b6b','#f59e0b','#facc15','#22c55e','#14b8a6','#0ea5e9','#6366f1','#a855f7','#ec4899','#f97316','#84cc16','#06b6d4'];
             const center=size/2;
             let cumulative=0;
-            const slices = total > 0 ? budgets.map((b,i)=>{
-              const frac=b.amount/total;
-              const start=cumulative;
-              const mid=start + frac/2;
-              cumulative += frac;
-              return { b, i, frac, mid };
-            }) : [];
-
+            const slices = total > 0 ? budgets.map((b,i)=>{ const frac=b.amount/total; const start=cumulative; const mid=start+frac/2; cumulative+=frac; return { b, i, frac, mid }; }) : [];
             return (
               <View style={styles.chartWrap}>
                 <Text style={[styles.totalBudgetText, darkMode && styles.textDark]}>Total Budget: {formatCurrency(total, currency)}</Text>
-                <Svg width={size+220} height={size+80}>
-                  <G x={110} y={30}>
-                    <G rotation={-90} origin={`${center}, ${center}`}>
-                      {total>0 ? budgets.map((b,i)=>{
-                        const frac=b.amount/total;
-                        const seg=c*frac;
-                        const dash=`${seg} ${c-seg}`;
-                        const off=-acc*c; acc+=frac;
-                        return <Circle key={b.id} cx={center} cy={center} r={r} fill="none" stroke={colors[i%colors.length]} strokeWidth={20} strokeDasharray={dash} strokeDashoffset={off} strokeLinecap="butt"/>;
-                      }) : <Circle cx={center} cy={center} r={r} fill="none" stroke={darkMode ? '#2e4d3b' : '#d1fae5'} strokeWidth={20}/>}
-                    </G>
-
-                    {slices.map(({ b, i, frac, mid }) => {
-                      const angle = mid * Math.PI * 2 - Math.PI/2;
-                      const x1 = center + Math.cos(angle) * (r + 10);
-                      const y1 = center + Math.sin(angle) * (r + 10);
-                      const x2 = center + Math.cos(angle) * (r + 28);
-                      const y2 = center + Math.sin(angle) * (r + 28);
-                      const right = Math.cos(angle) >= 0;
-                      const x3 = x2 + (right ? 24 : -24);
-                      const shortCategory = b.category.length > 10 ? `${b.category.slice(0, 10)}…` : b.category;
-                      const label = `${shortCategory} ${(frac*100).toFixed(0)}%`;
-                      return (
-                        <G key={`callout-${b.id}`}>
-                          <Line x1={x1} y1={y1} x2={x2} y2={y2} stroke={colors[i%colors.length]} strokeWidth={1.5} />
-                          <Line x1={x2} y1={y2} x2={x3} y2={y2} stroke={colors[i%colors.length]} strokeWidth={1.5} />
-                          <SvgText
-                            x={x3 + (right ? 4 : -4)}
-                            y={y2 + 4}
-                            fontSize={10}
-                            fill={darkMode ? '#d6f5df' : '#14532d'}
-                            textAnchor={right ? 'start' : 'end'}
-                          >
-                            {label}
-                          </SvgText>
-                        </G>
-                      );
-                    })}
-                  </G>
-                </Svg>
+                <Svg width={size+220} height={size+80}><G x={110} y={30}><G rotation={-90} origin={`${center}, ${center}`}>
+                  {total>0 ? budgets.map((b,i)=>{ const frac=b.amount/total; const seg=c*frac; const dash=`${seg} ${c-seg}`; const off=-acc*c; acc+=frac; return <Circle key={b.id} cx={center} cy={center} r={r} fill="none" stroke={colors[i%colors.length]} strokeWidth={20} strokeDasharray={dash} strokeDashoffset={off} strokeLinecap="butt"/>; }) : <Circle cx={center} cy={center} r={r} fill="none" stroke={darkMode ? '#2e4d3b' : '#d1fae5'} strokeWidth={20}/>}
+                </G>
+                {slices.map(({ b, i, frac, mid }) => { const angle = mid * Math.PI * 2 - Math.PI/2; const x1 = center + Math.cos(angle) * (r + 10); const y1 = center + Math.sin(angle) * (r + 10); const x2 = center + Math.cos(angle) * (r + 28); const y2 = center + Math.sin(angle) * (r + 28); const right = Math.cos(angle) >= 0; const x3 = x2 + (right ? 24 : -24); const shortCategory = b.category.length > 10 ? `${b.category.slice(0, 10)}…` : b.category; const label = `${shortCategory} ${(frac*100).toFixed(0)}%`; return (<G key={`callout-${b.id}`}><Line x1={x1} y1={y1} x2={x2} y2={y2} stroke={colors[i%colors.length]} strokeWidth={1.5} /><Line x1={x2} y1={y2} x2={x3} y2={y2} stroke={colors[i%colors.length]} strokeWidth={1.5} /><SvgText x={x3 + (right ? 4 : -4)} y={y2 + 4} fontSize={10} fill={darkMode ? '#d6f5df' : '#14532d'} textAnchor={right ? 'start' : 'end'}>{label}</SvgText></G>); })}
+                </G></Svg>
               </View>
             );
           })()}
+
           {budgets.map((b) => {
             const expanded = expandedBudgetId === b.id;
             return (
-              <Pressable key={b.id} style={[styles.listRow, darkMode && styles.listRowDark]} onPress={() => {
-                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                setExpandedBudgetId(expanded ? null : b.id);
-                setExpandedBudgetAmount(String(b.amount));
-              }}>
+              <Pressable
+                key={b.id}
+                style={[styles.listRow, darkMode && styles.listRowDark]}
+                onPress={(e) => {
+                  e.stopPropagation?.();
+                  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                  setExpandedBudgetId(expanded ? null : b.id);
+                  setExpandedBudgetAmount(String(b.amount));
+                }}
+              >
                 {!expanded ? (
                   <View style={styles.topRow}>
                     <Text style={[styles.name, darkMode && styles.textDark]}>{b.category}</Text>
                     <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(b.amount, currency)}</Text>
                   </View>
                 ) : (
-                  <View style={styles.inlineRow}>
-                    <TextInput value={expandedBudgetAmount} onChangeText={setExpandedBudgetAmount} style={[styles.smallInput, darkMode && styles.inputDark, styles.flex1]} keyboardType="decimal-pad" placeholder="New amount" />
-                    <Pressable style={styles.actionBtn} onPress={async () => {
-                      const amount = Number(expandedBudgetAmount.replace(',', '.'));
-                      if (!Number.isFinite(amount) || amount <= 0) return;
-                      await onSaveBudget(b.category, amount);
-                      setExpandedBudgetId(null);
-                    }}><Text style={styles.actionBtnText}>Edit</Text></Pressable>
-                    <Pressable style={styles.deleteBtn} onPress={() => onDeleteBudget(b.id)}><Text style={styles.deleteBtnText}>Delete</Text></Pressable>
-                  </View>
+                  <>
+                    <View style={styles.inlineRow}>
+                      <TextInput
+                        value={expandedBudgetAmount}
+                        onChangeText={setExpandedBudgetAmount}
+                        style={[styles.smallInput, darkMode && styles.inputDark, styles.flex1]}
+                        keyboardType="decimal-pad"
+                        placeholder="New amount"
+                      />
+                      <Text style={[styles.name, darkMode && styles.textDark]}>{b.category}</Text>
+                    </View>
+                    <View style={styles.inlineRow}>
+                      <Pressable
+                        style={styles.actionBtn}
+                        onPress={async () => {
+                          const amount = Number(expandedBudgetAmount.replace(',', '.'));
+                          if (!Number.isFinite(amount) || amount <= 0) return;
+                          await onSaveBudget(b.category, amount);
+                          setExpandedBudgetId(null);
+                        }}
+                      >
+                        <Text style={styles.actionBtnText}>Update</Text>
+                      </Pressable>
+                      <Pressable style={styles.deleteBtn} onPress={() => onDeleteBudget(b.id)}>
+                        <Text style={styles.deleteBtnText}>Delete</Text>
+                      </Pressable>
+                    </View>
+                  </>
                 )}
               </Pressable>
             );
           })}
-        </View>
+        </Pressable>
       )}
     </ScrollView>
   );
