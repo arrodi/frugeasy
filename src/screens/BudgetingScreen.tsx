@@ -41,6 +41,67 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
           </View>
         </View>
 
+        {(() => {
+          const expenseTx = transactions.filter((t) => t.type === 'expense');
+          const byCat = new Map<string, number>();
+          for (const t of expenseTx) byCat.set(t.category, (byCat.get(t.category) ?? 0) + t.amount);
+          const entries = [...byCat.entries()].sort((a, b) => b[1] - a[1]);
+          const total = entries.reduce((s, [, v]) => s + v, 0);
+          const size = 160;
+          const r = 58;
+          const c = 2 * Math.PI * r;
+          const colors = ['#ff6b6b','#f59e0b','#facc15','#22c55e','#14b8a6','#0ea5e9','#6366f1','#a855f7','#ec4899','#f97316','#84cc16','#06b6d4'];
+          let acc = 0;
+          let cumulative = 0;
+          const slices = total > 0 ? entries.map(([category, amount], i) => {
+            const frac = amount / total;
+            const start = cumulative;
+            const mid = start + frac / 2;
+            cumulative += frac;
+            return { category, amount, i, frac, mid };
+          }) : [];
+
+          return (
+            <View style={styles.expenseChartWrap}>
+              <Text style={[styles.panelTitle, darkMode && styles.textDark]}>Expenditure Breakdown</Text>
+              <Svg width={size + 220} height={size + 80}>
+                <G x={110} y={30}>
+                  <G rotation={-90} origin={`${size/2}, ${size/2}`}>
+                    {total > 0 ? entries.map(([_, amount], i) => {
+                      const frac = amount / total;
+                      const seg = c * frac;
+                      const dash = `${seg} ${c - seg}`;
+                      const off = -acc * c;
+                      acc += frac;
+                      return <Circle key={`ex-${i}`} cx={size/2} cy={size/2} r={r} fill="none" stroke={colors[i % colors.length]} strokeWidth={20} strokeDasharray={dash} strokeDashoffset={off} strokeLinecap="butt" />;
+                    }) : <Circle cx={size/2} cy={size/2} r={r} fill="none" stroke={darkMode ? '#2e4d3b' : '#d1fae5'} strokeWidth={20} />}
+                  </G>
+
+                  {slices.map(({ category, frac, i, mid }) => {
+                    const angle = mid * Math.PI * 2 - Math.PI / 2;
+                    const x1 = size/2 + Math.cos(angle) * (r + 10);
+                    const y1 = size/2 + Math.sin(angle) * (r + 10);
+                    const x2 = size/2 + Math.cos(angle) * (r + 28);
+                    const y2 = size/2 + Math.sin(angle) * (r + 28);
+                    const right = Math.cos(angle) >= 0;
+                    const x3 = x2 + (right ? 24 : -24);
+                    const shortCategory = category.length > 10 ? `${category.slice(0, 10)}…` : category;
+                    const label = `${shortCategory} ${(frac * 100).toFixed(0)}%`;
+                    return (
+                      <G key={`ex-l-${category}-${i}`}>
+                        <Line x1={x1} y1={y1} x2={x2} y2={y2} stroke={colors[i % colors.length]} strokeWidth={1.5} />
+                        <Line x1={x2} y1={y2} x2={x3} y2={y2} stroke={colors[i % colors.length]} strokeWidth={1.5} />
+                        <SvgText x={x3 + (right ? 4 : -4)} y={y2 + 4} fontSize={10} fill={darkMode ? '#d6f5df' : '#14532d'} textAnchor={right ? 'start' : 'end'}>{label}</SvgText>
+                      </G>
+                    );
+                  })}
+                </G>
+              </Svg>
+              <Text style={[styles.totalBudgetText, darkMode && styles.textDark]}>Total Expenditure: {formatCurrency(total, currency)}</Text>
+            </View>
+          );
+        })()}
+
         <View>
           {budgetProgressRows.length === 0 ? <Text style={[styles.ruleText, darkMode && styles.textDark]}>No budgets set yet.</Text> : null}
           {budgetProgressRows.map((row) => {
@@ -172,6 +233,8 @@ const styles = StyleSheet.create({
   ruleText: { color: '#35544c' },
 
   panel: { backgroundColor: '#ecfff1', borderWidth: 1, borderColor: '#9ee5ab', borderRadius: 12, padding: 10, gap: 8, marginTop: 8 },
+  expenseChartWrap: { alignItems: 'center', justifyContent: 'center', paddingVertical: 8 },
+  totalBudgetText: { color: '#14532d', fontWeight: '800', marginTop: 6 },
   panelDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
   input: { backgroundColor: 'white', borderWidth: 1, borderColor: '#b7ebc3', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 10, color: '#156530' },
   inputDark: { backgroundColor: '#0f1a14', borderColor: '#2e4d3b', color: '#d6f5df' },
