@@ -190,8 +190,9 @@ export function TransactionsScreen(props: Props) {
                     <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(b.amount, currency)}</Text>
                   </View>
                 ) : (
-                  <>
+                  <View style={styles.budgetExpandedWrap}>
                     <View style={styles.inlineRow}>
+                      <Text style={[styles.name, darkMode && styles.textDark, styles.flex1]}>{b.category}</Text>
                       <TextInput
                         value={expandedBudgetAmount}
                         onChangeText={setExpandedBudgetAmount}
@@ -199,11 +200,10 @@ export function TransactionsScreen(props: Props) {
                         keyboardType="decimal-pad"
                         placeholder="New amount"
                       />
-                      <Text style={[styles.name, darkMode && styles.textDark]}>{b.category}</Text>
                     </View>
-                    <View style={styles.inlineRow}>
+                    <View style={styles.equalButtonRow}>
                       <Pressable
-                        style={styles.actionBtn}
+                        style={[styles.actionBtn, styles.equalButton]}
                         onPress={async () => {
                           const amount = Number(expandedBudgetAmount.replace(',', '.'));
                           if (!Number.isFinite(amount) || amount <= 0) return;
@@ -213,11 +213,11 @@ export function TransactionsScreen(props: Props) {
                       >
                         <Text style={styles.actionBtnText}>Update</Text>
                       </Pressable>
-                      <Pressable style={styles.deleteBtn} onPress={() => onDeleteBudget(b.id)}>
+                      <Pressable style={[styles.deleteBtn, styles.equalButton]} onPress={() => onDeleteBudget(b.id)}>
                         <Text style={styles.deleteBtnText}>Delete</Text>
                       </Pressable>
                     </View>
-                  </>
+                  </View>
                 )}
               </Pressable>
             );
@@ -272,6 +272,9 @@ const styles = StyleSheet.create({
   deleteBtn: { backgroundColor: '#fee2e2', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 1, borderColor: '#fecaca' },
   deleteBtnText: { color: '#991b1b', fontWeight: '700', fontSize: 12 },
   panel: { backgroundColor: '#ecfff1', borderWidth: 1, borderColor: '#9ee5ab', borderRadius: 12, padding: 10, gap: 8 },
+  budgetExpandedWrap: { gap: 10 },
+  equalButtonRow: { flexDirection: 'row', gap: 8, alignItems: 'stretch' },
+  equalButton: { flex: 1, minHeight: 42, justifyContent: 'center', alignItems: 'center' },
   chartWrap: { alignItems: 'center', justifyContent: 'center', paddingVertical: 8 },
   totalBudgetText: { color: '#14532d', fontWeight: '800', marginTop: 6 },
   legendWrap: { width: '100%', marginTop: 8, gap: 6 },
