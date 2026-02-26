@@ -35,7 +35,10 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
       .filter(([category, spent]) => spent > 0 && !budgetProgressRows.some((row) => row.category === category))
       .map(([category, spent]) => ({ category, budget: 0, spent, usagePct: 0, budgetMissing: true }));
 
-    return [...base, ...withNoBudget].sort((a, b) => b.spent - a.spent);
+    return [...base, ...withNoBudget].sort((a, b) => {
+      if (a.budgetMissing !== b.budgetMissing) return a.budgetMissing ? 1 : -1;
+      return b.spent - a.spent;
+    });
   })();
 
   return (
@@ -140,7 +143,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
                 <View style={styles.budgetHeader}>
                   <Text style={[styles.budgetCat, darkMode && styles.textDark]}>{row.category}</Text>
                   <Text style={[styles.budgetAmt, darkMode && styles.textDark]}>
-                    {formatCurrency(row.spent, currency)} / {formatCurrency(row.budget, currency)}
+                    {row.budgetMissing ? formatCurrency(row.spent, currency) : `${formatCurrency(row.spent, currency)} / ${formatCurrency(row.budget, currency)}`}
                   </Text>
                 </View>
                 <View style={[styles.progressTrack, darkMode && styles.progressTrackDark]}>
