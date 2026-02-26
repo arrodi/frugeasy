@@ -178,9 +178,9 @@ export default function App() {
     setSelectedCategory(categoriesFor(nextType)[0]);
   };
 
-  const handleSave = async (): Promise<boolean> => {
+  const handleSave = async (input?: { dateIso?: string }): Promise<boolean> => {
     const amount = Number(amountInput.replace(',', '.'));
-    const nowIso = new Date().toISOString();
+    const nowIso = input?.dateIso ?? new Date().toISOString();
 
     try {
       const tx = await insertTransaction({

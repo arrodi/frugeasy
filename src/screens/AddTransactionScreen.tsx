@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   InputAccessoryView,
@@ -13,6 +13,7 @@ import {
   UIManager,
   View,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { TransactionCategory, TransactionType } from '../domain/types';
 
 type Props = {
@@ -26,7 +27,7 @@ type Props = {
   onChangeAmount: (value: string) => void;
   onChangeType: (value: TransactionType) => void;
   onChangeCategory: (value: TransactionCategory) => void;
-  onSave: () => Promise<boolean>;
+  onSave: (input?: { dateIso?: string }) => Promise<boolean>;
   onCreateRecurring: (input: { frequency: 'weekly' | 'monthly'; label: string }) => Promise<void>;
 };
 
@@ -51,7 +52,16 @@ export function AddTransactionScreen({
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [recurrenceModalOpen, setRecurrenceModalOpen] = useState(false);
   const [categoryChosen, setCategoryChosen] = useState(false);
+  const [saveDone, setSaveDone] = useState(false);
+  const [useCustomDate, setUseCustomDate] = useState(false);
+  const [customDateInput, setCustomDateInput] = useState('');
+  const amountInputRef = useRef<TextInput>(null);
   const amountAccessoryId = 'amountKeyboardAccessory';
+
+  useEffect(() => {
+    const t = setTimeout(() => amountInputRef.current?.focus(), 200);
+    return () => clearTimeout(t);
+  }, []);
 
   if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -61,12 +71,31 @@ export function AddTransactionScreen({
   const onPressSave = async () => {
     const amount = Number(amountInput.replace(',', '.'));
     if (!Number.isFinite(amount) || amount <= 0) {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       Alert.alert('Invalid amount', 'Please enter a valid amount greater than 0.');
       return;
     }
+
+    let dateIso: string | undefined;
+    if (useCustomDate && customDateInput.trim()) {
+      const parsed = new Date(customDateInput.trim());
+      if (Number.isNaN(parsed.getTime())) {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        Alert.alert('Invalid date', 'Use a valid date/time (e.g. 2026-02-26 14:30).');
+        return;
+      }
+      dateIso = parsed.toISOString();
+    }
+
     setIsSaving(true);
     try {
-      const ok = await onSave();
+      const ok = await onSave({ dateIso });
+      if (ok) {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        setSaveDone(true);
+        setTimeout(() => setSaveDone(false), 900);
+        amountInputRef.current?.focus();
+      }
       if (ok && advanced && freq !== 'none') {
         await onCreateRecurring({ frequency: freq, label: nameInput.trim() || `${selectedCategory} recurring` });
       }
@@ -83,6 +112,8 @@ export function AddTransactionScreen({
 
       <View style={[styles.formArea, darkMode && styles.formAreaDark]}>
         <TextInput
+          ref={amountInputRef}
+          autoFocus
           value={amountInput}
           onChangeText={onChangeAmount}
           keyboardType="decimal-pad"
@@ -120,11 +151,30 @@ export function AddTransactionScreen({
                 {freq === 'none' ? 'Recurrence' : freq === 'monthly' ? 'Monthly' : 'Weekly'}
               </Text>
             </Pressable>
+
+            <Pressable
+              style={[styles.advancedBtn, darkMode && styles.inputDark]}
+              onPress={() => setUseCustomDate((v) => !v)}
+            >
+              <Text style={[styles.advancedText, darkMode && styles.textDark]}>
+                {useCustomDate ? 'Use custom date/time: ON' : 'Use custom date/time'}
+              </Text>
+            </Pressable>
+
+            {useCustomDate ? (
+              <TextInput
+                value={customDateInput}
+                onChangeText={setCustomDateInput}
+                placeholder="YYYY-MM-DD HH:mm"
+                placeholderTextColor={darkMode ? '#86a893' : '#3e5f47'}
+                style={[styles.input, darkMode && styles.inputDark]}
+              />
+            ) : null}
           </>
         ) : null}
 
-        <Pressable style={styles.saveBtn} onPress={onPressSave}>
-          <Text style={styles.saveBtnText}>{isSaving ? 'Saving…' : 'Save transaction'}</Text>
+        <Pressable style={[styles.saveBtn, saveDone && styles.saveBtnDone]} onPress={onPressSave}>
+          <Text style={styles.saveBtnText}>{isSaving ? 'Saving…' : saveDone ? 'Saved ✓' : 'Save transaction'}</Text>
         </Pressable>
 
         <Pressable
@@ -222,9 +272,12 @@ const styles = StyleSheet.create({
   pillActive: { backgroundColor: '#14b85a', borderColor: '#14b85a' },
   pillText: { color: '#1e6e37', fontWeight: '600' },
   pillTextActive: { color: 'white' },
+  advancedBtn: { borderWidth: 1, borderColor: '#9dddad', borderRadius: 10, paddingVertical: 10, alignItems: 'center', backgroundColor: '#ecfff1' },
+  advancedText: { color: '#166534', fontWeight: '700' },
   advancedHintWrap: { alignItems: 'center', justifyContent: 'center', paddingTop: 2, paddingBottom: 2 },
   advancedHint: { color: '#6f8f78', fontSize: 12, fontWeight: '500' },
   saveBtn: { marginTop: 'auto', backgroundColor: '#16a34a', borderWidth: 1, borderColor: '#15803d', borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
+  saveBtnDone: { backgroundColor: '#15803d', borderColor: '#166534' },
   saveBtnText: { color: 'white', fontWeight: '800', fontSize: 18 },
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center', padding: 20 },
   modalCard: { width: '100%', maxWidth: 520, backgroundColor: '#f3fff6', borderRadius: 16, borderWidth: 1, borderColor: '#b8efc4', padding: 14, gap: 12 },
