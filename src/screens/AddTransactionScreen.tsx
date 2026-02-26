@@ -1,11 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
   Alert,
   InputAccessoryView,
   Keyboard,
   LayoutAnimation,
   Modal,
-  PanResponder,
   Platform,
   Pressable,
   StyleSheet,
@@ -57,20 +56,6 @@ export function AddTransactionScreen({
     UIManager.setLayoutAnimationEnabledExperimental(true);
   }
 
-  const panResponder = useMemo(
-    () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => !advanced,
-        onMoveShouldSetPanResponder: (_, g) => !advanced && Math.abs(g.dy) > 8,
-        onPanResponderRelease: (_, g) => {
-          if (g.dy > 35 && !advanced) {
-            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-            setAdvanced(true);
-          }
-        },
-      }),
-    [advanced]
-  );
 
   const onPressSave = async () => {
     const amount = Number(amountInput.replace(',', '.'));
@@ -95,7 +80,7 @@ export function AddTransactionScreen({
         <Text style={[styles.sectionTitle, darkMode && styles.textDark]}>Transact!</Text>
       </View>
 
-      <View style={[styles.formArea, darkMode && styles.formAreaDark]} {...panResponder.panHandlers}>
+      <View style={[styles.formArea, darkMode && styles.formAreaDark]}>
         <TextInput
           value={amountInput}
           onChangeText={onChangeAmount}
@@ -145,9 +130,15 @@ export function AddTransactionScreen({
         </Pressable>
 
         {!advanced ? (
-          <View style={styles.advancedHintWrap}>
-            <Text style={styles.advancedHint}>⌄  advanced options  ⌄</Text>
-          </View>
+          <Pressable
+            style={styles.advancedHintWrap}
+            onPress={() => {
+              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+              setAdvanced(true);
+            }}
+          >
+            <Text style={styles.advancedHint}>advanced options</Text>
+          </Pressable>
         ) : null}
       </View>
 
@@ -217,7 +208,7 @@ const styles = StyleSheet.create({
   pillActive: { backgroundColor: '#14b85a', borderColor: '#14b85a' },
   pillText: { color: '#1e6e37', fontWeight: '600' },
   pillTextActive: { color: 'white' },
-  advancedHintWrap: { alignItems: 'center', justifyContent: 'center', paddingTop: 6 },
+  advancedHintWrap: { alignItems: 'center', justifyContent: 'center', paddingTop: 2, paddingBottom: 2 },
   advancedHint: { color: '#6f8f78', fontSize: 12, fontWeight: '500' },
   saveBtn: { marginTop: 'auto', backgroundColor: '#16a34a', borderWidth: 1, borderColor: '#15803d', borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
   saveBtnText: { color: 'white', fontWeight: '800', fontSize: 18 },
