@@ -86,7 +86,6 @@ export default function App() {
   const [nameInput, setNameInput] = useState('');
   const [selectedType, setSelectedType] = useState<TransactionType>('expense');
   const [selectedCategory, setSelectedCategory] = useState<TransactionCategory>('Food');
-  const [analysisMode, setAnalysisMode] = useState(false);
   const [monthOffset, setMonthOffset] = useState(0);
   const [typeFilter, setTypeFilter] = useState<'all' | TransactionType>('all');
   const [categoryFilter, setCategoryFilter] = useState<'all' | TransactionCategory>('all');
@@ -338,8 +337,6 @@ export default function App() {
             year={selectedWindow.year}
             monthIndex={selectedWindow.month}
             totals={totals}
-            analysisMode={analysisMode}
-            onToggleAnalysisMode={() => setAnalysisMode((prev) => !prev)}
             onPrevMonth={() => setMonthOffset((prev) => prev - 1)}
             onNextMonth={() => setMonthOffset((prev) => Math.min(prev + 1, 0))}
             canGoNextMonth={monthOffset < 0}
@@ -351,6 +348,7 @@ export default function App() {
             darkMode={darkMode}
             currency={currency}
             budgets={budgets}
+            budgetProgressRows={budgetProgressRows}
             categoryOptions={expenseCategoryOptions}
             onSaveBudget={handleSaveBudget}
             recurringRules={recurringRules}

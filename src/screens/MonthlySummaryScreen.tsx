@@ -14,8 +14,6 @@ type Props = {
     expense: number;
     net: number;
   };
-  analysisMode: boolean;
-  onToggleAnalysisMode: () => void;
   onPrevMonth: () => void;
   onNextMonth: () => void;
   canGoNextMonth: boolean;
@@ -28,8 +26,6 @@ export function MonthlySummaryScreen({
   year,
   monthIndex,
   totals,
-  analysisMode,
-  onToggleAnalysisMode,
   onPrevMonth,
   onNextMonth,
   canGoNextMonth,
@@ -48,35 +44,7 @@ export function MonthlySummaryScreen({
       <View style={[styles.card, darkMode && styles.cardDark]}><Text style={[styles.cardLabel, darkMode && styles.textDark]}>Expenditure</Text><Text style={[styles.cardValue, styles.expense]}>{formatCurrency(totals.expense, currency)}</Text></View>
       <View style={[styles.card, darkMode && styles.cardDark]}><Text style={[styles.cardLabel, darkMode && styles.textDark]}>Net</Text><Text style={[styles.cardValue, styles.net]}>{formatCurrency(totals.net, currency)}</Text></View>
 
-      <Pressable style={styles.actionBtn} onPress={onToggleAnalysisMode}>
-        <Text style={styles.actionBtnText}>{analysisMode ? 'Hide analysis' : 'Analyze'}</Text>
-      </Pressable>
 
-      {analysisMode ? (
-        <View style={[styles.analysisWrap, darkMode && styles.cardDark]}>
-          <Text style={[styles.analysisTitle, darkMode && styles.textDark]}>Expenditure vs Budget by Category</Text>
-          <View style={[styles.tableHeader, darkMode && styles.tableHeaderDark]}>
-            <Text style={[styles.th, darkMode && styles.textDark, { flex: 1.4 }]}>Category</Text>
-            <Text style={[styles.th, darkMode && styles.textDark]}>Spent</Text>
-            <Text style={[styles.th, darkMode && styles.textDark]}>Budget</Text>
-            <Text style={[styles.th, darkMode && styles.textDark]}>Use</Text>
-          </View>
-          {budgetProgressRows.length === 0 ? <Text style={[styles.note, darkMode && styles.textDark]}>No budgets set yet.</Text> : null}
-          {budgetProgressRows.map((row) => (
-            <View key={`b-${row.category}`} style={[styles.tableRowBlock, darkMode && styles.tableRowBlockDark]}>
-              <View style={styles.tableRow}>
-                <Text style={[styles.td, darkMode && styles.textDark, { flex: 1.4 }]}>{row.category}</Text>
-                <Text style={[styles.td, darkMode && styles.textDark]}>{formatCurrency(row.spent, currency)}</Text>
-                <Text style={[styles.td, darkMode && styles.textDark]}>{formatCurrency(row.budget, currency)}</Text>
-                <Text style={[styles.td, row.usagePct > 100 ? styles.deltaUp : styles.deltaDown]}>{row.usagePct.toFixed(0)}%</Text>
-              </View>
-              <View style={[styles.progressTrack, darkMode && styles.progressTrackDark]}>
-                <View style={[styles.progressFill, darkMode && styles.progressFillDark, { width: `${Math.min(100, Math.max(0, row.usagePct))}%` }, row.usagePct > 100 && styles.progressOver]} />
-              </View>
-            </View>
-          ))}
-        </View>
-      ) : null}
     </ScrollView>
   );
 }

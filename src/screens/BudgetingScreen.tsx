@@ -7,6 +7,7 @@ type Props = {
   darkMode?: boolean;
   currency: CurrencyCode;
   budgets: Budget[];
+  budgetProgressRows: { category: string; budget: number; spent: number; usagePct: number }[];
   categoryOptions: TransactionCategory[];
   onSaveBudget: (category: TransactionCategory, amount: number) => Promise<void>;
   recurringRules: RecurringRule[];
@@ -14,7 +15,7 @@ type Props = {
   onToggleRecurringRule: (id: string, active: boolean) => Promise<void>;
 };
 
-export function BudgetingScreen({ darkMode, currency, budgets, categoryOptions, onSaveBudget, recurringRules, onAddRecurringRule, onToggleRecurringRule }: Props) {
+export function BudgetingScreen({ darkMode, currency, budgets, budgetProgressRows, categoryOptions, onSaveBudget, recurringRules, onAddRecurringRule, onToggleRecurringRule }: Props) {
   const [tab, setTab] = useState<'add' | 'budgets' | 'recurring'>('add');
   const [budgetCategory, setBudgetCategory] = useState<TransactionCategory>('Food');
   const [budgetAmount, setBudgetAmount] = useState('');
@@ -68,24 +69,18 @@ export function BudgetingScreen({ darkMode, currency, budgets, categoryOptions, 
 
       {tab === 'budgets' ? (
         <View style={[styles.panel, darkMode && styles.panelDark]}>
-          <Text style={[styles.panelTitle, darkMode && styles.textDark]}>All Budgets</Text>
-          {budgets.map((b) => (
-            <View key={b.id} style={[styles.budgetItem, darkMode && styles.budgetItemDark]}>
-              <Pressable onPress={() => { setExpandedBudgetId(expandedBudgetId === b.id ? null : b.id); setExpandedBudgetAmount(String(b.amount)); }} style={styles.budgetHeader}>
-                <Text style={[styles.budgetCat, darkMode && styles.textDark]}>{b.category}</Text>
-                <Text style={[styles.budgetAmt, darkMode && styles.textDark]}>{formatCurrency(b.amount, currency)}</Text>
-              </Pressable>
-              {expandedBudgetId === b.id ? (
-                <View style={styles.budgetEditRow}>
-                  <TextInput value={expandedBudgetAmount} onChangeText={setExpandedBudgetAmount} style={[styles.input, styles.flex1, darkMode && styles.inputDark]} keyboardType="decimal-pad" placeholder="New amount" />
-                  <Pressable style={styles.saveBtn} onPress={async () => {
-                    const amount = Number(expandedBudgetAmount.replace(',', '.'));
-                    if (!Number.isFinite(amount) || amount <= 0) return;
-                    await onSaveBudget(b.category, amount);
-                    setExpandedBudgetId(null);
-                  }}><Text style={styles.saveBtnText}>Update</Text></Pressable>
-                </View>
-              ) : null}
+          <Text style={[styles.panelTitle, darkMode && styles.textDark]}>Expenditure vs Budget by Category</Text>
+          {budgetProgressRows.length === 0 ? <Text style={[styles.ruleText, darkMode && styles.textDark]}>No budgets set yet.</Text> : null}
+          {budgetProgressRows.map((row) => (
+            <View key={`b-${row.category}`} style={[styles.budgetItem, darkMode && styles.budgetItemDark]}>
+              <View style={styles.budgetHeader}>
+                <Text style={[styles.budgetCat, darkMode && styles.textDark]}>{row.category}</Text>
+                <Text style={[styles.budgetAmt, darkMode && styles.textDark]}>{formatCurrency(row.spent, currency)} / {formatCurrency(row.budget, currency)}</Text>
+              </View>
+              <View style={[styles.progressTrack, darkMode && styles.progressTrackDark]}>
+                <View style={[styles.progressFill, darkMode && styles.progressFillDark, { width: `${Math.min(100, Math.max(0, row.usagePct))}%` }, row.usagePct > 100 && styles.progressOver]} />
+              </View>
+              <Text style={[styles.ruleText, darkMode && styles.textDark]}>{row.usagePct.toFixed(0)}% used</Text>
             </View>
           ))}
         </View>
@@ -116,6 +111,7 @@ const styles = StyleSheet.create({
   dropdownTrigger:{minHeight:46,paddingHorizontal:12,borderRadius:10,borderWidth:1,borderColor:'#b7ebc3',backgroundColor:'white',flexDirection:'row',justifyContent:'space-between',alignItems:'center'},dropdownText:{color:'#156530',fontWeight:'600'},dropdownChevron:{color:'#2d7a43'},dropdownMenu:{borderWidth:1,borderColor:'#b7ebc3',borderRadius:10,overflow:'hidden'},dropdownOption:{paddingHorizontal:12,paddingVertical:10,borderBottomWidth:1,borderBottomColor:'#e3f6e8'},
   bigSaveBtn:{backgroundColor:'#14b85a',borderRadius:12,paddingVertical:16,alignItems:'center'}, bigSaveText:{color:'white',fontWeight:'800',fontSize:18},
   budgetItem:{borderWidth:1,borderColor:'#b7ebc3',borderRadius:10,padding:8,backgroundColor:'#f6fff8'}, budgetItemDark:{backgroundColor:'#1a2d22', borderColor:'#2e4d3b'}, budgetHeader:{flexDirection:'row',justifyContent:'space-between',alignItems:'center'}, budgetCat:{fontWeight:'700',color:'#1e6e37'}, budgetAmt:{color:'#14532d',fontWeight:'700'}, budgetEditRow:{flexDirection:'row',gap:8,marginTop:8},
+  progressTrack:{height:8,backgroundColor:'#dcefe3',borderRadius:999,overflow:'hidden',marginTop:6}, progressTrackDark:{backgroundColor:'#243b30'}, progressFill:{height:'100%',backgroundColor:'#16a34a'}, progressFillDark:{backgroundColor:'#22c55e'}, progressOver:{backgroundColor:'#dc2626'},
   saveBtn:{backgroundColor:'#14b85a',borderRadius:8,paddingHorizontal:10,paddingVertical:8},saveBtnText:{color:'white',fontWeight:'700',fontSize:12},
   row:{flexDirection:'row',gap:8,alignItems:'center'}, flex1:{flex:1},
   pill:{paddingHorizontal:10,paddingVertical:7,borderRadius:999,borderWidth:1,borderColor:'#a9e6b7',backgroundColor:'#f0fff4'}, pillActive:{backgroundColor:'#14b85a',borderColor:'#14b85a'}, pillText:{color:'#1e6e37',fontWeight:'600'}, pillTextActive:{color:'white'},
