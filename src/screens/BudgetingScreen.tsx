@@ -43,7 +43,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
 
   return (
     <View style={[styles.screenContainer, darkMode && styles.screenDark]}>
-      <ScrollView contentContainerStyle={styles.contentContainer}>
+      <View style={styles.contentContainer}>
         <Text style={[styles.title, darkMode && styles.textDark]}>Budgeting</Text>
 
         <View style={styles.overviewRowHorizontal}>
@@ -120,7 +120,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
           );
         })()}
 
-        <View>
+        <ScrollView style={styles.entriesScroll} contentContainerStyle={styles.entriesScrollContent} showsVerticalScrollIndicator={false}>
           {displayedBudgetRows.length === 0 ? <Text style={[styles.ruleText, darkMode && styles.textDark]}>No budgets set yet.</Text> : null}
           {displayedBudgetRows.map((row) => {
             const expanded = row.category === expandedBudgetKey;
@@ -174,7 +174,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
               </Pressable>
             );
           })}
-        </View>
+        </ScrollView>
 
         {showAddBudget ? (
           <View style={[styles.panel, darkMode && styles.panelDark]}>
@@ -203,7 +203,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
             </Pressable>
           </View>
         ) : null}
-      </ScrollView>
+      </View>
 
       <View style={styles.bottomActionWrap}>
         <Pressable style={styles.bigSaveBtn} onPress={() => setShowAddBudget((v) => !v)}>
@@ -217,7 +217,9 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
 const styles = StyleSheet.create({
   screenContainer: { flex: 1 },
   screenDark: { backgroundColor: '#0f1a14' },
-  contentContainer: { paddingHorizontal: 16, gap: 10, paddingTop: 8, paddingBottom: 120 },
+  contentContainer: { flex: 1, paddingHorizontal: 16, gap: 10, paddingTop: 8, paddingBottom: 120 },
+  entriesScroll: { flex: 1 },
+  entriesScrollContent: { paddingBottom: 8 },
   title: { fontSize: 17, fontWeight: '700', color: '#156530' },
   panelTitle: { fontSize: 14, fontWeight: '700', color: '#14532d', marginBottom: 6 },
   textDark: { color: '#d6f5df' },
