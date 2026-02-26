@@ -15,7 +15,7 @@ type Props = {
 };
 
 export function BudgetingScreen({ darkMode, currency, budgets, categoryOptions, onSaveBudget, recurringRules, onAddRecurringRule, onToggleRecurringRule }: Props) {
-  const [tab, setTab] = useState<'budgets' | 'recurring'>('budgets');
+  const [tab, setTab] = useState<'add' | 'budgets' | 'recurring'>('add');
   const [budgetCategory, setBudgetCategory] = useState<TransactionCategory>('Food');
   const [budgetAmount, setBudgetAmount] = useState('');
   const [budgetCategoryOpen, setBudgetCategoryOpen] = useState(false);
@@ -33,62 +33,65 @@ export function BudgetingScreen({ darkMode, currency, budgets, categoryOptions, 
       <Text style={[styles.title, darkMode && styles.textDark]}>Budgeting</Text>
 
       <View style={[styles.switchWrap, darkMode && styles.panelDark]}>
+        <Pressable style={[styles.switchOption, tab === 'add' && styles.switchOptionActive]} onPress={() => setTab('add')}><Text style={[styles.switchText, tab === 'add' && styles.switchTextActive]}>Add</Text></Pressable>
         <Pressable style={[styles.switchOption, tab === 'budgets' && styles.switchOptionActive]} onPress={() => setTab('budgets')}><Text style={[styles.switchText, tab === 'budgets' && styles.switchTextActive]}>Budgets</Text></Pressable>
         <Pressable style={[styles.switchOption, tab === 'recurring' && styles.switchOptionActive]} onPress={() => setTab('recurring')}><Text style={[styles.switchText, tab === 'recurring' && styles.switchTextActive]}>Recurring</Text></Pressable>
       </View>
 
-      {tab === 'budgets' ? (
-        <>
-          <View style={[styles.panel, darkMode && styles.panelDark]}>
-            <Text style={[styles.panelTitle, darkMode && styles.textDark]}>Add Budget</Text>
-            <Pressable style={[styles.dropdownTrigger, darkMode && styles.inputDark]} onPress={() => setBudgetCategoryOpen((p) => !p)}>
-              <Text style={[styles.dropdownText, darkMode && styles.textDark]}>{budgetCategory}</Text>
-              <Text style={styles.dropdownChevron}>{budgetCategoryOpen ? '▴' : '▾'}</Text>
-            </Pressable>
-            {budgetCategoryOpen ? (
-              <View style={[styles.dropdownMenu, darkMode && styles.panelDark]}>
-                {categoryOptions.map((cat) => (
-                  <Pressable key={cat} style={styles.dropdownOption} onPress={() => { setBudgetCategory(cat); setBudgetCategoryOpen(false); }}>
-                    <Text style={[styles.dropdownText, darkMode && styles.textDark]}>{cat}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            ) : null}
-            <TextInput value={budgetAmount} onChangeText={setBudgetAmount} style={[styles.input, darkMode && styles.inputDark]} placeholder="Budget amount" keyboardType="decimal-pad" />
-            <Pressable style={styles.bigSaveBtn} onPress={async () => {
-              const amount = Number(budgetAmount.replace(',', '.'));
-              if (!Number.isFinite(amount) || amount <= 0) return;
-              await onSaveBudget(budgetCategory, amount);
-              setBudgetAmount('');
-            }}>
-              <Text style={styles.bigSaveText}>Save Budget</Text>
-            </Pressable>
-          </View>
-
-          <View style={[styles.panel, darkMode && styles.panelDark]}>
-            <Text style={[styles.panelTitle, darkMode && styles.textDark]}>All Budgets</Text>
-            {budgets.map((b) => (
-              <View key={b.id} style={[styles.budgetItem, darkMode && styles.budgetItemDark]}>
-                <Pressable onPress={() => { setExpandedBudgetId(expandedBudgetId === b.id ? null : b.id); setExpandedBudgetAmount(String(b.amount)); }} style={styles.budgetHeader}>
-                  <Text style={[styles.budgetCat, darkMode && styles.textDark]}>{b.category}</Text>
-                  <Text style={[styles.budgetAmt, darkMode && styles.textDark]}>{formatCurrency(b.amount, currency)}</Text>
+      {tab === 'add' ? (
+        <View style={[styles.panel, darkMode && styles.panelDark]}>
+          <Text style={[styles.panelTitle, darkMode && styles.textDark]}>Add Budget</Text>
+          <Pressable style={[styles.dropdownTrigger, darkMode && styles.inputDark]} onPress={() => setBudgetCategoryOpen((p) => !p)}>
+            <Text style={[styles.dropdownText, darkMode && styles.textDark]}>{budgetCategory}</Text>
+            <Text style={styles.dropdownChevron}>{budgetCategoryOpen ? '▴' : '▾'}</Text>
+          </Pressable>
+          {budgetCategoryOpen ? (
+            <View style={[styles.dropdownMenu, darkMode && styles.panelDark]}>
+              {categoryOptions.map((cat) => (
+                <Pressable key={cat} style={styles.dropdownOption} onPress={() => { setBudgetCategory(cat); setBudgetCategoryOpen(false); }}>
+                  <Text style={[styles.dropdownText, darkMode && styles.textDark]}>{cat}</Text>
                 </Pressable>
-                {expandedBudgetId === b.id ? (
-                  <View style={styles.budgetEditRow}>
-                    <TextInput value={expandedBudgetAmount} onChangeText={setExpandedBudgetAmount} style={[styles.input, styles.flex1, darkMode && styles.inputDark]} keyboardType="decimal-pad" placeholder="New amount" />
-                    <Pressable style={styles.saveBtn} onPress={async () => {
-                      const amount = Number(expandedBudgetAmount.replace(',', '.'));
-                      if (!Number.isFinite(amount) || amount <= 0) return;
-                      await onSaveBudget(b.category, amount);
-                      setExpandedBudgetId(null);
-                    }}><Text style={styles.saveBtnText}>Update</Text></Pressable>
-                  </View>
-                ) : null}
-              </View>
-            ))}
-          </View>
-        </>
-      ) : (
+              ))}
+            </View>
+          ) : null}
+          <TextInput value={budgetAmount} onChangeText={setBudgetAmount} style={[styles.input, darkMode && styles.inputDark]} placeholder="Budget amount" keyboardType="decimal-pad" />
+          <Pressable style={styles.bigSaveBtn} onPress={async () => {
+            const amount = Number(budgetAmount.replace(',', '.'));
+            if (!Number.isFinite(amount) || amount <= 0) return;
+            await onSaveBudget(budgetCategory, amount);
+            setBudgetAmount('');
+          }}>
+            <Text style={styles.bigSaveText}>Add Budget</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
+      {tab === 'budgets' ? (
+        <View style={[styles.panel, darkMode && styles.panelDark]}>
+          <Text style={[styles.panelTitle, darkMode && styles.textDark]}>All Budgets</Text>
+          {budgets.map((b) => (
+            <View key={b.id} style={[styles.budgetItem, darkMode && styles.budgetItemDark]}>
+              <Pressable onPress={() => { setExpandedBudgetId(expandedBudgetId === b.id ? null : b.id); setExpandedBudgetAmount(String(b.amount)); }} style={styles.budgetHeader}>
+                <Text style={[styles.budgetCat, darkMode && styles.textDark]}>{b.category}</Text>
+                <Text style={[styles.budgetAmt, darkMode && styles.textDark]}>{formatCurrency(b.amount, currency)}</Text>
+              </Pressable>
+              {expandedBudgetId === b.id ? (
+                <View style={styles.budgetEditRow}>
+                  <TextInput value={expandedBudgetAmount} onChangeText={setExpandedBudgetAmount} style={[styles.input, styles.flex1, darkMode && styles.inputDark]} keyboardType="decimal-pad" placeholder="New amount" />
+                  <Pressable style={styles.saveBtn} onPress={async () => {
+                    const amount = Number(expandedBudgetAmount.replace(',', '.'));
+                    if (!Number.isFinite(amount) || amount <= 0) return;
+                    await onSaveBudget(b.category, amount);
+                    setExpandedBudgetId(null);
+                  }}><Text style={styles.saveBtnText}>Update</Text></Pressable>
+                </View>
+              ) : null}
+            </View>
+          ))}
+        </View>
+      ) : null}
+
+      {tab === 'recurring' ? (
         <View style={[styles.panel, darkMode && styles.panelDark]}>
           <Text style={[styles.panelTitle, darkMode && styles.textDark]}>Recurring</Text>
           <TextInput value={ruleLabel} onChangeText={setRuleLabel} style={[styles.input, darkMode && styles.inputDark]} placeholder="Label" />
@@ -97,7 +100,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, categoryOptions, 
           <Pressable style={styles.bigSaveBtn} onPress={async()=>{const amount=Number(ruleAmount.replace(',','.')); const day=Number(ruleDay); if(!ruleLabel.trim()||!Number.isFinite(amount)||amount<=0||!Number.isFinite(day))return; await onAddRecurringRule({label:ruleLabel.trim(),amount,dayOfMonth:Math.max(1,Math.min(28,Math.round(day))),type:ruleType,category:ruleCategory}); setRuleLabel(''); setRuleAmount(''); setRuleDay('1');}}><Text style={styles.bigSaveText}>Add Recurring</Text></Pressable>
           {recurringRules.map((r)=><View key={r.id} style={styles.ruleRow}><Text style={[styles.ruleText, darkMode&&styles.textDark]}>{r.label} • day {r.dayOfMonth} • {formatCurrency(r.amount,currency)} • {r.category}</Text><Pressable style={styles.saveBtn} onPress={()=>onToggleRecurringRule(r.id,!r.active)}><Text style={styles.saveBtnText}>{r.active?'On':'Off'}</Text></Pressable></View>)}
         </View>
-      )}
+      ) : null}
     </ScrollView>
   );
 }
