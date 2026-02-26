@@ -4,6 +4,7 @@ import { getMonthLabel } from '../domain/analysis';
 import { formatCurrency } from '../ui/format';
 
 type Props = {
+  darkMode?: boolean;
   currency: string;
   budgetProgressRows: { category: string; budget: number; spent: number; usagePct: number }[];
   year: number;
@@ -21,6 +22,7 @@ type Props = {
 };
 
 export function MonthlySummaryScreen({
+  darkMode,
   currency,
   budgetProgressRows,
   year,
@@ -35,7 +37,7 @@ export function MonthlySummaryScreen({
   const monthLabel = getMonthLabel(year, monthIndex);
 
   return (
-    <ScrollView style={styles.screenContainer} contentContainerStyle={styles.contentContainer}>
+    <ScrollView style={[styles.screenContainer, darkMode && styles.screenDark]} contentContainerStyle={styles.contentContainer}>
       <View style={styles.monthRow}>
         <Pressable style={styles.monthNavBtn} onPress={onPrevMonth}><Text style={styles.monthNavBtnText}>←</Text></Pressable>
         <Text style={styles.sectionTitle}>{monthLabel}</Text>
@@ -61,11 +63,16 @@ export function MonthlySummaryScreen({
           </View>
           {budgetProgressRows.length === 0 ? <Text style={styles.note}>No budgets set yet.</Text> : null}
           {budgetProgressRows.map((row) => (
-            <View key={`b-${row.category}`} style={styles.tableRow}>
-              <Text style={[styles.td, { flex: 1.4 }]}>{row.category}</Text>
-              <Text style={styles.td}>{formatCurrency(row.spent, currency)}</Text>
-              <Text style={styles.td}>{formatCurrency(row.budget, currency)}</Text>
-              <Text style={[styles.td, row.usagePct > 100 ? styles.deltaUp : styles.deltaDown]}>{row.usagePct.toFixed(0)}%</Text>
+            <View key={`b-${row.category}`} style={styles.tableRowBlock}>
+              <View style={styles.tableRow}>
+                <Text style={[styles.td, { flex: 1.4 }]}>{row.category}</Text>
+                <Text style={styles.td}>{formatCurrency(row.spent, currency)}</Text>
+                <Text style={styles.td}>{formatCurrency(row.budget, currency)}</Text>
+                <Text style={[styles.td, row.usagePct > 100 ? styles.deltaUp : styles.deltaDown]}>{row.usagePct.toFixed(0)}%</Text>
+              </View>
+              <View style={styles.progressTrack}>
+                <View style={[styles.progressFill, { width: `${Math.min(100, Math.max(0, row.usagePct))}%` }, row.usagePct > 100 && styles.progressOver]} />
+              </View>
             </View>
           ))}
         </View>
@@ -76,6 +83,7 @@ export function MonthlySummaryScreen({
 
 const styles = StyleSheet.create({
   screenContainer: { flex: 1 },
+  screenDark: { backgroundColor: '#0f1a14' },
   contentContainer: { paddingHorizontal: 16, gap: 10, paddingTop: 4, paddingBottom: 24 },
   monthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 },
   monthNavBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#eaf2ef', borderWidth: 1, borderColor: '#d2e2dc', alignItems: 'center', justifyContent: 'center' },
@@ -94,7 +102,11 @@ const styles = StyleSheet.create({
   analysisTitle: { fontSize: 15, fontWeight: '800', color: '#1f3b35' },
   note: { color: '#49635d' },
   tableHeader: { flexDirection: 'row', paddingTop: 6, paddingBottom: 4, borderBottomWidth: 1, borderBottomColor: '#d8e5df' },
-  tableRow: { flexDirection: 'row', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: '#e8f0ec' },
+  tableRowBlock: { paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: '#e8f0ec' },
+  tableRow: { flexDirection: 'row', paddingVertical: 2 },
+  progressTrack: { height: 8, backgroundColor: '#dcefe3', borderRadius: 999, overflow: 'hidden', marginTop: 4 },
+  progressFill: { height: '100%', backgroundColor: '#16a34a' },
+  progressOver: { backgroundColor: '#dc2626' },
   th: { flex: 1, color: '#35544c', fontWeight: '700', fontSize: 12 },
   td: { flex: 1, color: '#49635d', fontSize: 12 },
   deltaUp: { color: '#9b3a3a', fontWeight: '700' },

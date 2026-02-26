@@ -2,7 +2,7 @@
 
 Simple personal finance app for **iOS + Android** with swipe-based tabs:
 
-1. **Add** — input amount, choose `income` or `expense`, choose category, tap Save
+1. **Add** — input custom name + amount, choose `income` or `expense` via switch, choose category, tap Save
 2. **Monthly** — view month totals + optional deep **Analyze** mode on demand
 3. **Budgeting** — monthly budgets and recurring rules
 4. **Transactions** — filter/search, edit/delete items, and CSV export

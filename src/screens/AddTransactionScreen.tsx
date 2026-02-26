@@ -1,39 +1,22 @@
 import { useState } from 'react';
-import {
-  Alert,
-  InputAccessoryView,
-  Keyboard,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-
+import { Alert, InputAccessoryView, Keyboard, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { TransactionCategory, TransactionType } from '../domain/types';
 
 type Props = {
+  darkMode?: boolean;
+  nameInput: string;
   amountInput: string;
   selectedType: TransactionType;
   selectedCategory: TransactionCategory;
   categoryOptions: TransactionCategory[];
+  onChangeName: (value: string) => void;
   onChangeAmount: (value: string) => void;
   onChangeType: (value: TransactionType) => void;
   onChangeCategory: (value: TransactionCategory) => void;
   onSave: () => Promise<boolean>;
 };
 
-export function AddTransactionScreen({
-  amountInput,
-  selectedType,
-  selectedCategory,
-  categoryOptions,
-  onChangeAmount,
-  onChangeType,
-  onChangeCategory,
-  onSave,
-}: Props) {
+export function AddTransactionScreen({ darkMode, nameInput, amountInput, selectedType, selectedCategory, categoryOptions, onChangeName, onChangeAmount, onChangeType, onChangeCategory, onSave }: Props) {
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const amountAccessoryId = 'amountKeyboardAccessory';
@@ -44,206 +27,76 @@ export function AddTransactionScreen({
       Alert.alert('Invalid amount', 'Please enter a valid amount greater than 0.');
       return;
     }
-    if (isSaving) return;
-    try {
-      setIsSaving(true);
-      await onSave();
-    } finally {
-      setIsSaving(false);
-    }
+    setIsSaving(true);
+    try { await onSave(); } finally { setIsSaving(false); }
   };
 
   return (
     <View style={styles.screenContainer}>
-      <View style={styles.formArea}>
-        <Text style={styles.sectionTitle}>Add transaction</Text>
+      <View style={[styles.formArea, darkMode && styles.formAreaDark]}>
+        <Text style={[styles.sectionTitle, darkMode && styles.textDark]}>Add transaction</Text>
 
-        <TextInput
-          value={amountInput}
-          onChangeText={onChangeAmount}
-          keyboardType="decimal-pad"
-          returnKeyType="done"
-          blurOnSubmit
-          onSubmitEditing={() => Keyboard.dismiss()}
-          inputAccessoryViewID={Platform.OS === 'ios' ? amountAccessoryId : undefined}
-          placeholder="Amount"
-          placeholderTextColor="#3e5f47"
-          style={styles.input}
-        />
+        <TextInput value={nameInput} onChangeText={onChangeName} placeholder="Name (e.g. Lunch, Salary)" placeholderTextColor={darkMode ? '#86a893' : '#3e5f47'} style={[styles.input, darkMode && styles.inputDark]} />
 
-        <View style={styles.switchWrap}>
-          <Pressable
-            onPress={() => onChangeType('income')}
-            style={[styles.switchOption, selectedType === 'income' && styles.switchOptionActive]}
-          >
-            <Text style={[styles.switchText, selectedType === 'income' && styles.switchTextActive]}>Income</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => onChangeType('expense')}
-            style={[styles.switchOption, selectedType === 'expense' && styles.switchOptionActive]}
-          >
-            <Text style={[styles.switchText, selectedType === 'expense' && styles.switchTextActive]}>Expense</Text>
-          </Pressable>
+        <TextInput value={amountInput} onChangeText={onChangeAmount} keyboardType="decimal-pad" returnKeyType="done" blurOnSubmit onSubmitEditing={() => Keyboard.dismiss()} inputAccessoryViewID={Platform.OS === 'ios' ? amountAccessoryId : undefined} placeholder="Amount" placeholderTextColor={darkMode ? '#86a893' : '#3e5f47'} style={[styles.input, darkMode && styles.inputDark]} />
+
+        <View style={[styles.switchWrap, darkMode && styles.switchWrapDark]}>
+          <Pressable onPress={() => onChangeType('income')} style={[styles.switchOption, selectedType === 'income' && styles.switchOptionActive]}><Text style={[styles.switchText, selectedType === 'income' && styles.switchTextActive]}>Income</Text></Pressable>
+          <Pressable onPress={() => onChangeType('expense')} style={[styles.switchOption, selectedType === 'expense' && styles.switchOptionActive]}><Text style={[styles.switchText, selectedType === 'expense' && styles.switchTextActive]}>Expense</Text></Pressable>
         </View>
 
-        <Text style={styles.label}>Category</Text>
+        <Text style={[styles.label, darkMode && styles.textDark]}>Category</Text>
         <View>
-          <Pressable
-            style={styles.dropdownTrigger}
-            onPress={() => setCategoryOpen((prev) => !prev)}
-          >
-            <Text style={styles.dropdownTriggerText}>{selectedCategory}</Text>
+          <Pressable style={[styles.dropdownTrigger, darkMode && styles.inputDark]} onPress={() => setCategoryOpen((p) => !p)}>
+            <Text style={[styles.dropdownTriggerText, darkMode && styles.textDark]}>{selectedCategory}</Text>
             <Text style={styles.dropdownChevron}>{categoryOpen ? '▴' : '▾'}</Text>
           </Pressable>
-
           {categoryOpen ? (
-            <View style={styles.dropdownMenu}>
-              {categoryOptions.map((category) => {
-                const active = category === selectedCategory;
-                return (
-                  <Pressable
-                    key={category}
-                    onPress={() => {
-                      onChangeCategory(category);
-                      setCategoryOpen(false);
-                    }}
-                    style={[styles.dropdownOption, active && styles.dropdownOptionActive]}
-                  >
-                    <Text style={[styles.dropdownOptionText, active && styles.dropdownOptionTextActive]}>
-                      {category}
-                    </Text>
-                  </Pressable>
-                );
-              })}
+            <View style={[styles.dropdownMenu, darkMode && styles.formAreaDark]}>
+              {categoryOptions.map((category) => (
+                <Pressable key={category} onPress={() => { onChangeCategory(category); setCategoryOpen(false); }} style={[styles.dropdownOption, category === selectedCategory && styles.dropdownOptionActive]}>
+                  <Text style={[styles.dropdownOptionText, darkMode && styles.textDark]}>{category}</Text>
+                </Pressable>
+              ))}
             </View>
           ) : null}
         </View>
 
-        <Pressable style={styles.saveBtn} onPress={onPressSave}>
-          <Text style={styles.saveBtnText}>{isSaving ? 'Saving…' : 'Save transaction'}</Text>
-        </Pressable>
+        <Pressable style={styles.saveBtn} onPress={onPressSave}><Text style={styles.saveBtnText}>{isSaving ? 'Saving…' : 'Save transaction'}</Text></Pressable>
       </View>
 
       {Platform.OS === 'ios' ? (
-        <InputAccessoryView nativeID={amountAccessoryId}>
-          <View style={styles.accessoryBar}>
-            <Pressable onPress={() => Keyboard.dismiss()} style={styles.doneTypingButton}>
-              <Text style={styles.doneTypingText}>Done</Text>
-            </Pressable>
-          </View>
-        </InputAccessoryView>
+        <InputAccessoryView nativeID={amountAccessoryId}><View style={styles.accessoryBar}><Pressable onPress={() => Keyboard.dismiss()} style={styles.doneTypingButton}><Text style={styles.doneTypingText}>Done</Text></Pressable></View></InputAccessoryView>
       ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screenContainer: {
-    flex: 1,
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  formArea: {
-    width: '100%',
-    maxWidth: 520,
-    backgroundColor: '#f3fff6',
-    borderWidth: 1,
-    borderColor: '#b8efc4',
-    borderRadius: 18,
-    padding: 16,
-    gap: 14,
-  },
+  screenContainer: { flex: 1, paddingHorizontal: 14, justifyContent: 'center', alignItems: 'center' },
+  formArea: { width: '100%', maxWidth: 520, backgroundColor: '#f3fff6', borderWidth: 1, borderColor: '#b8efc4', borderRadius: 18, padding: 16, gap: 14 },
+  formAreaDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
   sectionTitle: { fontSize: 24, fontWeight: '800', color: '#166534' },
-  input: {
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#86d89d',
-    color: '#14532d',
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    fontSize: 24,
-    fontWeight: '700',
-  },
-  switchWrap: {
-    flexDirection: 'row',
-    backgroundColor: '#e8f8ee',
-    borderRadius: 12,
-    padding: 4,
-    borderWidth: 1,
-    borderColor: '#b6e9c3',
-    gap: 4,
-  },
-  switchOption: {
-    flex: 1,
-    borderRadius: 9,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  switchOptionActive: {
-    backgroundColor: '#16a34a',
-  },
+  textDark: { color: '#d6f5df' },
+  input: { backgroundColor: 'white', borderWidth: 1, borderColor: '#86d89d', color: '#14532d', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, fontSize: 18, fontWeight: '600' },
+  inputDark: { backgroundColor: '#0f1a14', borderColor: '#2e4d3b', color: '#d6f5df' },
+  switchWrap: { flexDirection: 'row', backgroundColor: '#e8f8ee', borderRadius: 12, padding: 4, borderWidth: 1, borderColor: '#b6e9c3', gap: 4 },
+  switchWrapDark: { backgroundColor: '#1a2d22', borderColor: '#2e4d3b' },
+  switchOption: { flex: 1, borderRadius: 9, paddingVertical: 10, alignItems: 'center' },
+  switchOptionActive: { backgroundColor: '#16a34a' },
   switchText: { color: '#1e6e37', fontWeight: '700', fontSize: 16 },
   switchTextActive: { color: 'white' },
-  label: { color: '#166534', fontWeight: '700', fontSize: 16, marginTop: 4 },
-  dropdownTrigger: {
-    minHeight: 52,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#9dddad',
-    backgroundColor: 'white',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
+  label: { color: '#166534', fontWeight: '700', fontSize: 16 },
+  dropdownTrigger: { minHeight: 52, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: '#9dddad', backgroundColor: 'white', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   dropdownTriggerText: { color: '#14532d', fontWeight: '600', fontSize: 18 },
   dropdownChevron: { color: '#2b7a42', fontSize: 16 },
-  dropdownMenu: {
-    marginTop: 6,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#b0e8be',
-    overflow: 'hidden',
-    backgroundColor: 'white',
-  },
-  dropdownOption: {
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e3f6e8',
-  },
+  dropdownMenu: { marginTop: 6, borderRadius: 12, borderWidth: 1, borderColor: '#b0e8be', overflow: 'hidden', backgroundColor: 'white' },
+  dropdownOption: { paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#e3f6e8' },
   dropdownOptionActive: { backgroundColor: '#e4fce9' },
   dropdownOptionText: { color: '#1e6e37', fontWeight: '600', fontSize: 16 },
-  dropdownOptionTextActive: { color: '#14632f' },
-  saveBtn: {
-    marginTop: 'auto',
-    backgroundColor: '#16a34a',
-    borderWidth: 1,
-    borderColor: '#15803d',
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
+  saveBtn: { marginTop: 'auto', backgroundColor: '#16a34a', borderWidth: 1, borderColor: '#15803d', borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
   saveBtnText: { color: 'white', fontWeight: '800', fontSize: 18 },
-  accessoryBar: {
-    backgroundColor: '#e5faeb',
-    borderTopWidth: 1,
-    borderTopColor: '#b9ebc7',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    alignItems: 'flex-end',
-  },
-  doneTypingButton: {
-    backgroundColor: '#d2f5dc',
-    borderWidth: 1,
-    borderColor: '#98dda9',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
+  accessoryBar: { backgroundColor: '#e5faeb', borderTopWidth: 1, borderTopColor: '#b9ebc7', paddingHorizontal: 12, paddingVertical: 8, alignItems: 'flex-end' },
+  doneTypingButton: { backgroundColor: '#d2f5dc', borderWidth: 1, borderColor: '#98dda9', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 },
   doneTypingText: { color: '#14632f', fontWeight: '700' },
 });

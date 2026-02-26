@@ -5,6 +5,7 @@ import { Budget, CurrencyCode, RecurringRule, TransactionCategory, TransactionTy
 import { formatCurrency } from '../ui/format';
 
 type Props = {
+  darkMode?: boolean;
   currency: CurrencyCode;
   budgets: Budget[];
   categoryOptions: TransactionCategory[];
@@ -21,6 +22,7 @@ type Props = {
 };
 
 export function BudgetingScreen({
+  darkMode,
   currency,
   budgets,
   categoryOptions,
@@ -46,7 +48,7 @@ export function BudgetingScreen({
   }, [budgets]);
 
   return (
-    <ScrollView style={styles.screenContainer} contentContainerStyle={styles.contentContainer}>
+    <ScrollView style={[styles.screenContainer, darkMode && styles.screenDark]} contentContainerStyle={styles.contentContainer}>
       <Text style={styles.title}>Budgeting</Text>
 
       <View style={styles.switchWrap}>
@@ -131,6 +133,7 @@ export function BudgetingScreen({
 
 const styles = StyleSheet.create({
   screenContainer: { flex: 1 },
+  screenDark: { backgroundColor: '#0f1a14' },
   contentContainer: { paddingHorizontal: 16, gap: 10, paddingTop: 8, paddingBottom: 24 },
   title: { fontSize: 17, fontWeight: '700', color: '#156530' },
   switchWrap: { flexDirection: 'row', backgroundColor: '#e8f8ee', borderRadius: 12, padding: 4, borderWidth: 1, borderColor: '#b6e9c3', gap: 4 },

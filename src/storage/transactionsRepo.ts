@@ -29,6 +29,7 @@ export async function initTransactionsRepo(): Promise<void> {
       amount REAL NOT NULL,
       type TEXT NOT NULL,
       category TEXT NOT NULL DEFAULT 'Other',
+      name TEXT NOT NULL DEFAULT 'Untitled',
       date TEXT NOT NULL,
       createdAt TEXT NOT NULL
     );
@@ -61,20 +62,26 @@ export async function initTransactionsRepo(): Promise<void> {
   } catch {
     // column exists
   }
+  try {
+    await db.execAsync(`ALTER TABLE ${TX_TABLE} ADD COLUMN name TEXT NOT NULL DEFAULT 'Untitled';`);
+  } catch {
+    // column exists
+  }
 }
 
 export async function insertTransaction(input: {
   amount: number;
   type: TransactionType;
   category: TransactionCategory;
+  name: string;
   date: string;
   createdAt: string;
 }): Promise<Transaction> {
   const db = await getDb();
   const id = `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
   await db.runAsync(
-    `INSERT INTO ${TX_TABLE} (id, amount, type, category, date, createdAt) VALUES (?, ?, ?, ?, ?, ?);`,
-    [id, input.amount, input.type, input.category, input.date, input.createdAt]
+    `INSERT INTO ${TX_TABLE} (id, amount, type, category, name, date, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?);`,
+    [id, input.amount, input.type, input.category, input.name, input.date, input.createdAt]
   );
   return { id, ...input };
 }
@@ -82,7 +89,7 @@ export async function insertTransaction(input: {
 export async function listTransactions(): Promise<Transaction[]> {
   const db = await getDb();
   return db.getAllAsync<Transaction>(
-    `SELECT id, amount, type, COALESCE(category, 'Other') as category, date, createdAt FROM ${TX_TABLE} ORDER BY createdAt DESC;`
+    `SELECT id, amount, type, COALESCE(category, 'Other') as category, COALESCE(name, 'Untitled') as name, date, createdAt FROM ${TX_TABLE} ORDER BY createdAt DESC;`
   );
 }
 
@@ -96,12 +103,13 @@ export async function updateTransaction(input: {
   amount: number;
   type: TransactionType;
   category: TransactionCategory;
+  name: string;
   date: string;
 }): Promise<void> {
   const db = await getDb();
   await db.runAsync(
-    `UPDATE ${TX_TABLE} SET amount = ?, type = ?, category = ?, date = ? WHERE id = ?;`,
-    [input.amount, input.type, input.category, input.date, input.id]
+    `UPDATE ${TX_TABLE} SET amount = ?, type = ?, category = ?, name = ?, date = ? WHERE id = ?;`,
+    [input.amount, input.type, input.category, input.name, input.date, input.id]
   );
 }
 

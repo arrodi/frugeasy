@@ -83,6 +83,7 @@ export default function App() {
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [amountInput, setAmountInput] = useState('');
+  const [nameInput, setNameInput] = useState('');
   const [selectedType, setSelectedType] = useState<TransactionType>('expense');
   const [selectedCategory, setSelectedCategory] = useState<TransactionCategory>('Food');
   const [analysisMode, setAnalysisMode] = useState(false);
@@ -90,8 +91,7 @@ export default function App() {
   const [typeFilter, setTypeFilter] = useState<'all' | TransactionType>('all');
   const [categoryFilter, setCategoryFilter] = useState<'all' | TransactionCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [lastSavedId, setLastSavedId] = useState<string | null>(null);
-  const [budgets, setBudgets] = useState<Budget[]>([]);
+    const [budgets, setBudgets] = useState<Budget[]>([]);
   const [recurringRules, setRecurringRules] = useState<RecurringRule[]>([]);
   const [currency, setCurrency] = useState<CurrencyCode>('USD');
   const [darkMode, setDarkMode] = useState(false);
@@ -180,28 +180,17 @@ export default function App() {
         amount,
         type: selectedType,
         category: selectedCategory,
+        name: nameInput.trim() || 'Untitled',
         date: nowIso,
         createdAt: nowIso,
       });
       setTransactions((prev) => [tx, ...prev]);
-      setLastSavedId(tx.id);
       setAmountInput('');
+      setNameInput('');
       return true;
     } catch {
       Alert.alert('Oops', 'Could not save transaction.');
       return false;
-    }
-  };
-
-  const handleUndoLastSave = async () => {
-    if (!lastSavedId) return;
-    try {
-      await deleteTransaction(lastSavedId);
-      setTransactions((prev) => prev.filter((t) => t.id !== lastSavedId));
-      setLastSavedId(null);
-      Alert.alert('Done', 'Last transaction removed.');
-    } catch {
-      Alert.alert('Oops', 'Could not undo last save.');
     }
   };
 
@@ -219,12 +208,13 @@ export default function App() {
     amount: number;
     type: TransactionType;
     category: TransactionCategory;
+    name: string;
     date: string;
   }) => {
     try {
       await updateTransaction(input);
       setTransactions((prev) =>
-        prev.map((t) => (t.id === input.id ? { ...t, amount: input.amount, type: input.type, category: input.category, date: input.date } : t))
+        prev.map((t) => (t.id === input.id ? { ...t, amount: input.amount, type: input.type, category: input.category, name: input.name, date: input.date } : t))
       );
     } catch {
       Alert.alert('Oops', 'Could not update transaction.');
@@ -306,6 +296,7 @@ export default function App() {
   };
 
   const categoryOptions = Array.from(new Set(baseMonthlyTransactions.map((t) => t.category))).sort();
+  const expenseCategoryOptions = ['Food','Transport','Housing','Utilities','Other'] as TransactionCategory[];
 
   const onPagerEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const nextTab = Math.round(event.nativeEvent.contentOffset.x / width);
@@ -325,10 +316,13 @@ export default function App() {
       >
         <View style={[styles.page, { width }]}> 
           <AddTransactionScreen
+            darkMode={darkMode}
+            nameInput={nameInput}
             amountInput={amountInput}
             selectedType={selectedType}
             selectedCategory={selectedCategory}
             categoryOptions={categoriesFor(selectedType)}
+            onChangeName={setNameInput}
             onChangeAmount={setAmountInput}
             onChangeType={onChangeType}
             onChangeCategory={setSelectedCategory}
@@ -338,6 +332,7 @@ export default function App() {
 
         <View style={[styles.page, { width }]}> 
           <MonthlySummaryScreen
+            darkMode={darkMode}
             currency={currency}
             budgetProgressRows={budgetProgressRows}
             year={selectedWindow.year}
@@ -353,9 +348,10 @@ export default function App() {
 
         <View style={[styles.page, { width }]}> 
           <BudgetingScreen
+            darkMode={darkMode}
             currency={currency}
             budgets={budgets}
-            categoryOptions={categoryOptions}
+            categoryOptions={expenseCategoryOptions}
             onSaveBudget={handleSaveBudget}
             recurringRules={recurringRules}
             onAddRecurringRule={handleAddRecurringRule}
@@ -365,6 +361,7 @@ export default function App() {
 
         <View style={[styles.page, { width }]}> 
           <TransactionsScreen
+            darkMode={darkMode}
             currency={currency}
             transactions={filteredTransactions}
             typeFilter={typeFilter}
@@ -406,13 +403,6 @@ export default function App() {
         ))}
       </View>
 
-      {activeTab === 0 && lastSavedId ? (
-        <View style={styles.undoWrap}>
-          <Pressable style={styles.undoBtn} onPress={handleUndoLastSave}>
-            <Text style={styles.undoText}>Undo last save</Text>
-          </Pressable>
-        </View>
-      ) : null}
     </SafeAreaView>
   );
 }
@@ -438,14 +428,4 @@ const styles = StyleSheet.create({
   dotActive: { backgroundColor: '#14b85a', width: 22 },
   dotLabel: { color: '#3e7b52', fontSize: 12 },
   dotLabelActive: { color: '#14632f', fontWeight: '800' },
-  undoWrap: { paddingHorizontal: 16, paddingBottom: 10 },
-  undoBtn: {
-    backgroundColor: '#e6efeb',
-    borderWidth: 1,
-    borderColor: '#c8d9d2',
-    borderRadius: 12,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  undoText: { color: '#35544c', fontWeight: '700' },
 });

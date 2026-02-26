@@ -16,7 +16,8 @@ export type Transaction = {
   amount: number;
   type: TransactionType;
   category: TransactionCategory;
-  date: string; // ISO
+  name: string;
+  date: string; // ISO timestamp
   createdAt: string; // ISO
 };
 
