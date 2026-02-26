@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { LayoutAnimation, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Svg, { Circle, G } from 'react-native-svg';
 import { Budget, CurrencyCode, Transaction, TransactionCategory, TransactionType } from '../domain/types';
 import { formatCurrency } from '../ui/format';
@@ -149,7 +149,7 @@ export function TransactionsScreen(props: Props) {
             const total = budgets.reduce((s,b)=>s+b.amount,0);
             const size=160; const r=58; const c=2*Math.PI*r;
             let acc=0;
-            const colors=['#16a34a','#22c55e','#4ade80','#86efac','#15803d','#65a30d','#84cc16','#10b981','#059669'];
+            const colors=['#ef4444','#f59e0b','#eab308','#22c55e','#06b6d4','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#f97316','#84cc16','#a855f7'];
             return (
               <View style={styles.chartWrap}>
                 <Svg width={size} height={size}>
@@ -164,6 +164,14 @@ export function TransactionsScreen(props: Props) {
                   </G>
                 </Svg>
                 <Text style={[styles.totalBudgetText, darkMode && styles.textDark]}>Total Budget: {formatCurrency(total, currency)}</Text>
+                <View style={styles.legendWrap}>
+                  {budgets.map((b, i) => (
+                    <View key={`lg-${b.id}`} style={styles.legendRow}>
+                      <View style={[styles.legendDot, { backgroundColor: colors[i % colors.length] }]} />
+                      <Text style={[styles.legendText, darkMode && styles.textDark]}>{b.category}</Text>
+                    </View>
+                  ))}
+                </View>
               </View>
             );
           })()}
@@ -171,14 +179,16 @@ export function TransactionsScreen(props: Props) {
             const expanded = expandedBudgetId === b.id;
             return (
               <Pressable key={b.id} style={[styles.listRow, darkMode && styles.listRowDark]} onPress={() => {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                 setExpandedBudgetId(expanded ? null : b.id);
                 setExpandedBudgetAmount(String(b.amount));
               }}>
-                <View style={styles.topRow}>
-                  <Text style={[styles.name, darkMode && styles.textDark]}>{b.category}</Text>
-                  <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(b.amount, currency)}</Text>
-                </View>
-                {expanded ? (
+                {!expanded ? (
+                  <View style={styles.topRow}>
+                    <Text style={[styles.name, darkMode && styles.textDark]}>{b.category}</Text>
+                    <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(b.amount, currency)}</Text>
+                  </View>
+                ) : (
                   <View style={styles.inlineRow}>
                     <TextInput value={expandedBudgetAmount} onChangeText={setExpandedBudgetAmount} style={[styles.smallInput, darkMode && styles.inputDark, styles.flex1]} keyboardType="decimal-pad" placeholder="New amount" />
                     <Pressable style={styles.actionBtn} onPress={async () => {
@@ -189,7 +199,7 @@ export function TransactionsScreen(props: Props) {
                     }}><Text style={styles.actionBtnText}>Edit</Text></Pressable>
                     <Pressable style={styles.deleteBtn} onPress={() => onDeleteBudget(b.id)}><Text style={styles.deleteBtnText}>Delete</Text></Pressable>
                   </View>
-                ) : null}
+                )}
               </Pressable>
             );
           })}
@@ -245,4 +255,8 @@ const styles = StyleSheet.create({
   panel: { backgroundColor: '#ecfff1', borderWidth: 1, borderColor: '#9ee5ab', borderRadius: 12, padding: 10, gap: 8 },
   chartWrap: { alignItems: 'center', justifyContent: 'center', paddingVertical: 8 },
   totalBudgetText: { color: '#14532d', fontWeight: '800', marginTop: 6 },
+  legendWrap: { width: '100%', marginTop: 8, gap: 6 },
+  legendRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  legendDot: { width: 10, height: 10, borderRadius: 5 },
+  legendText: { color: '#14532d', fontWeight: '600', fontSize: 12 },
 });
