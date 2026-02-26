@@ -22,6 +22,22 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
   const [budgetAmount, setBudgetAmount] = useState('');
   const [budgetCategoryOpen, setBudgetCategoryOpen] = useState(false);
 
+
+  const displayedBudgetRows = (() => {
+    const expenseByCategory = new Map<string, number>();
+    for (const t of transactions) {
+      if (t.type !== 'expense') continue;
+      expenseByCategory.set(t.category, (expenseByCategory.get(t.category) ?? 0) + t.amount);
+    }
+
+    const base = budgetProgressRows.map((row) => ({ ...row, budgetMissing: false }));
+    const withNoBudget = [...expenseByCategory.entries()]
+      .filter(([category, spent]) => spent > 0 && !budgetProgressRows.some((row) => row.category === category))
+      .map(([category, spent]) => ({ category, budget: 0, spent, usagePct: 0, budgetMissing: true }));
+
+    return [...base, ...withNoBudget].sort((a, b) => b.spent - a.spent);
+  })();
+
   return (
     <View style={[styles.screenContainer, darkMode && styles.screenDark]}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
@@ -102,8 +118,8 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
         })()}
 
         <View>
-          {budgetProgressRows.length === 0 ? <Text style={[styles.ruleText, darkMode && styles.textDark]}>No budgets set yet.</Text> : null}
-          {budgetProgressRows.map((row) => {
+          {displayedBudgetRows.length === 0 ? <Text style={[styles.ruleText, darkMode && styles.textDark]}>No budgets set yet.</Text> : null}
+          {displayedBudgetRows.map((row) => {
             const budget = budgets.find((b) => b.category === row.category);
             const expanded = budget?.id === expandedBudgetId;
             const recent = transactions
@@ -138,7 +154,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
                   />
                   <View style={styles.progressOverlayCenter}>
                     <Text style={[styles.progressInsideText, row.usagePct >= 55 ? styles.progressInsideOnFill : styles.progressInsideOffFill]}>
-                      {row.usagePct.toFixed(0)}% used
+                      {row.budgetMissing ? 'Budget not set' : `${row.usagePct.toFixed(0)}% used`}
                     </Text>
                   </View>
                 </View>
