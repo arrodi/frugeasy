@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, InputAccessoryView, Keyboard, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, InputAccessoryView, Keyboard, LayoutAnimation, Platform, Pressable, StyleSheet, Text, TextInput, UIManager, View } from 'react-native';
 import { TransactionCategory, TransactionType } from '../domain/types';
 
 type Props = {
@@ -23,6 +23,10 @@ export function AddTransactionScreen({ darkMode, nameInput, amountInput, selecte
   const [advanced, setAdvanced] = useState(false);
   const [freq, setFreq] = useState<'none' | 'weekly' | 'monthly'>('none');
   const amountAccessoryId = 'amountKeyboardAccessory';
+
+  if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
 
   const onPressSave = async () => {
     const amount = Number(amountInput.replace(',', '.'));
@@ -67,7 +71,13 @@ export function AddTransactionScreen({ darkMode, nameInput, amountInput, selecte
           ) : null}
         </View>
 
-        <Pressable style={[styles.advancedBtn, darkMode && styles.inputDark]} onPress={() => setAdvanced((v) => !v)}>
+        <Pressable
+          style={[styles.advancedBtn, darkMode && styles.inputDark]}
+          onPress={() => {
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+            setAdvanced((v) => !v);
+          }}
+        >
           <Text style={[styles.advancedText, darkMode && styles.textDark]}>{advanced ? 'Hide Advanced Options' : 'Advanced Options'}</Text>
         </Pressable>
 
