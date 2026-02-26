@@ -6,7 +6,6 @@ import { formatCurrency } from '../ui/format';
 
 type Props = {
   currency: CurrencyCode;
-  onCurrencyChange: (currency: CurrencyCode) => Promise<void>;
   budgets: Budget[];
   categoryOptions: TransactionCategory[];
   onSaveBudget: (category: TransactionCategory, amount: number) => Promise<void>;
@@ -23,7 +22,6 @@ type Props = {
 
 export function BudgetingScreen({
   currency,
-  onCurrencyChange,
   budgets,
   categoryOptions,
   onSaveBudget,
@@ -49,17 +47,6 @@ export function BudgetingScreen({
   return (
     <ScrollView style={styles.screenContainer} contentContainerStyle={styles.contentContainer}>
       <Text style={styles.title}>Budgeting</Text>
-
-      <View style={styles.panel}>
-        <Text style={styles.panelTitle}>Currency</Text>
-        <View style={styles.filterRow}>
-          {(['USD', 'EUR', 'GBP', 'JPY', 'RUB', 'UAH'] as CurrencyCode[]).map((c) => (
-            <Pressable key={c} style={[styles.filterChip, currency === c && styles.filterChipActive]} onPress={() => onCurrencyChange(c)}>
-              <Text style={[styles.filterChipText, currency === c && styles.filterChipTextActive]}>{c}</Text>
-            </Pressable>
-          ))}
-        </View>
-      </View>
 
       <View style={styles.panel}>
         <Text style={styles.panelTitle}>Budgets (this month)</Text>

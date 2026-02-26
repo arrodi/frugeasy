@@ -19,6 +19,7 @@ import { AddTransactionScreen } from './src/screens/AddTransactionScreen';
 import { MonthlySummaryScreen } from './src/screens/MonthlySummaryScreen';
 import { BudgetingScreen } from './src/screens/BudgetingScreen';
 import { TransactionsScreen } from './src/screens/TransactionsScreen';
+import { SettingsScreen } from './src/screens/SettingsScreen';
 import {
   categoryComparison,
   categoryTotals,
@@ -397,7 +398,6 @@ export default function App() {
         <View style={[styles.page, { width }]}> 
           <BudgetingScreen
             currency={currency}
-            onCurrencyChange={handleCurrencyChange}
             budgets={budgets}
             categoryOptions={categoryOptions}
             onSaveBudget={handleSaveBudget}
@@ -423,10 +423,14 @@ export default function App() {
             onUpdateTransaction={handleUpdateTransaction}
           />
         </View>
+
+        <View style={[styles.page, { width }]}> 
+          <SettingsScreen currency={currency} onCurrencyChange={handleCurrencyChange} />
+        </View>
       </ScrollView>
 
       <View style={styles.tabDots}>
-        {['Add', 'Monthly', 'Budgeting', 'Transactions'].map((label, idx) => (
+        {['Add', 'Monthly', 'Budgeting', 'Transactions', 'Settings'].map((label, idx) => (
           <Pressable
             key={label}
             style={styles.tabDotWrap}
