@@ -49,6 +49,7 @@ export function AddTransactionScreen({
   const [freq, setFreq] = useState<'none' | 'weekly' | 'monthly'>('none');
   const [typeModalOpen, setTypeModalOpen] = useState(false);
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+  const [recurrenceModalOpen, setRecurrenceModalOpen] = useState(false);
   const [categoryChosen, setCategoryChosen] = useState(false);
   const amountAccessoryId = 'amountKeyboardAccessory';
 
@@ -106,22 +107,19 @@ export function AddTransactionScreen({
 
         {advanced ? (
           <>
-            <Text style={[styles.label, darkMode && styles.textDark]}>Name (optional)</Text>
             <TextInput
               value={nameInput}
               onChangeText={onChangeName}
-              placeholder="e.g. Lunch, Salary"
+              placeholder="Name"
               placeholderTextColor={darkMode ? '#86a893' : '#3e5f47'}
               style={[styles.input, darkMode && styles.inputDark]}
             />
-            <Text style={[styles.label, darkMode && styles.textDark]}>Recurrence</Text>
-            <View style={styles.rowGap}>
-              {(['none', 'weekly', 'monthly'] as const).map((f) => (
-                <Pressable key={f} style={[styles.pill, freq === f && styles.pillActive]} onPress={() => setFreq(f)}>
-                  <Text style={[styles.pillText, freq === f && styles.pillTextActive]}>{f}</Text>
-                </Pressable>
-              ))}
-            </View>
+
+            <Pressable style={[styles.categoryButton, darkMode && styles.inputDark]} onPress={() => setRecurrenceModalOpen(true)}>
+              <Text style={[styles.categoryButtonValue, darkMode && styles.textDark]}>
+                {freq === 'none' ? 'Recurrence' : freq === 'monthly' ? 'Monthly' : 'Weekly'}
+              </Text>
+            </Pressable>
           </>
         ) : null}
 
@@ -129,17 +127,15 @@ export function AddTransactionScreen({
           <Text style={styles.saveBtnText}>{isSaving ? 'Saving…' : 'Save transaction'}</Text>
         </Pressable>
 
-        {!advanced ? (
-          <Pressable
-            style={styles.advancedHintWrap}
-            onPress={() => {
-              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-              setAdvanced(true);
-            }}
-          >
-            <Text style={styles.advancedHint}>advanced options</Text>
-          </Pressable>
-        ) : null}
+        <Pressable
+          style={styles.advancedHintWrap}
+          onPress={() => {
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+            setAdvanced((v) => !v);
+          }}
+        >
+          <Text style={styles.advancedHint}>{advanced ? 'hide advanced options' : 'advanced options'}</Text>
+        </Pressable>
       </View>
 
       <Modal visible={typeModalOpen} animationType="fade" transparent onRequestClose={() => setTypeModalOpen(false)}>
@@ -152,6 +148,24 @@ export function AddTransactionScreen({
                 return (
                   <Pressable key={type} style={[styles.typeTile, selected && styles.categoryTileSelected]} onPress={() => { onChangeType(type); setTypeModalOpen(false); }}>
                     <Text style={[styles.categoryTileText, selected && styles.categoryTileTextSelected]}>{type === 'income' ? 'Income' : 'Expense'}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal visible={recurrenceModalOpen} animationType="fade" transparent onRequestClose={() => setRecurrenceModalOpen(false)}>
+        <Pressable style={styles.modalBackdrop} onPress={() => setRecurrenceModalOpen(false)}>
+          <Pressable style={[styles.modalCard, darkMode && styles.formAreaDark]} onPress={() => {}}>
+            <Text style={[styles.modalTitle, darkMode && styles.textDark]}>Select recurrence</Text>
+            <View style={styles.typeTileWrap}>
+              {(['none', 'weekly', 'monthly'] as const).map((r) => {
+                const selected = r === freq;
+                return (
+                  <Pressable key={r} style={[styles.typeTile, selected && styles.categoryTileSelected]} onPress={() => { setFreq(r); setRecurrenceModalOpen(false); }}>
+                    <Text style={[styles.categoryTileText, selected && styles.categoryTileTextSelected]}>{r === 'none' ? 'None' : r === 'weekly' ? 'Weekly' : 'Monthly'}</Text>
                   </Pressable>
                 );
               })}
