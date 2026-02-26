@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { LayoutAnimation, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import Svg, { Circle, G } from 'react-native-svg';
+import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg';
 import { Budget, CurrencyCode, Transaction, TransactionCategory, TransactionType } from '../domain/types';
 import { formatCurrency } from '../ui/format';
 
@@ -149,29 +149,59 @@ export function TransactionsScreen(props: Props) {
             const total = budgets.reduce((s,b)=>s+b.amount,0);
             const size=160; const r=58; const c=2*Math.PI*r;
             let acc=0;
-            const colors=['#ef4444','#f59e0b','#eab308','#22c55e','#06b6d4','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#f97316','#84cc16','#a855f7'];
+            const colors=['#ff6b6b','#f59e0b','#facc15','#22c55e','#14b8a6','#0ea5e9','#6366f1','#a855f7','#ec4899','#f97316','#84cc16','#06b6d4'];
+            const center=size/2;
+            let cumulative=0;
+            const slices = total > 0 ? budgets.map((b,i)=>{
+              const frac=b.amount/total;
+              const start=cumulative;
+              const mid=start + frac/2;
+              cumulative += frac;
+              return { b, i, frac, mid };
+            }) : [];
+
             return (
               <View style={styles.chartWrap}>
-                <Svg width={size} height={size}>
-                  <G rotation={-90} origin={`${size/2}, ${size/2}`}>
-                    {total>0 ? budgets.map((b,i)=>{
-                      const frac=b.amount/total;
-                      const seg=c*frac;
-                      const dash=`${seg} ${c-seg}`;
-                      const off=-acc*c; acc+=frac;
-                      return <Circle key={b.id} cx={size/2} cy={size/2} r={r} fill="none" stroke={colors[i%colors.length]} strokeWidth={20} strokeDasharray={dash} strokeDashoffset={off} strokeLinecap="butt"/>;
-                    }) : <Circle cx={size/2} cy={size/2} r={r} fill="none" stroke={darkMode ? '#2e4d3b' : '#d1fae5'} strokeWidth={20}/>}
+                <Svg width={size+140} height={size+40}>
+                  <G x={70} y={20}>
+                    <G rotation={-90} origin={`${center}, ${center}`}>
+                      {total>0 ? budgets.map((b,i)=>{
+                        const frac=b.amount/total;
+                        const seg=c*frac;
+                        const dash=`${seg} ${c-seg}`;
+                        const off=-acc*c; acc+=frac;
+                        return <Circle key={b.id} cx={center} cy={center} r={r} fill="none" stroke={colors[i%colors.length]} strokeWidth={20} strokeDasharray={dash} strokeDashoffset={off} strokeLinecap="butt"/>;
+                      }) : <Circle cx={center} cy={center} r={r} fill="none" stroke={darkMode ? '#2e4d3b' : '#d1fae5'} strokeWidth={20}/>}
+                    </G>
+
+                    {slices.map(({ b, i, frac, mid }) => {
+                      const angle = mid * Math.PI * 2 - Math.PI/2;
+                      const x1 = center + Math.cos(angle) * (r + 10);
+                      const y1 = center + Math.sin(angle) * (r + 10);
+                      const x2 = center + Math.cos(angle) * (r + 28);
+                      const y2 = center + Math.sin(angle) * (r + 28);
+                      const right = Math.cos(angle) >= 0;
+                      const x3 = x2 + (right ? 24 : -24);
+                      const label = `${b.category} ${(frac*100).toFixed(0)}%`;
+                      return (
+                        <G key={`callout-${b.id}`}>
+                          <Line x1={x1} y1={y1} x2={x2} y2={y2} stroke={colors[i%colors.length]} strokeWidth={1.5} />
+                          <Line x1={x2} y1={y2} x2={x3} y2={y2} stroke={colors[i%colors.length]} strokeWidth={1.5} />
+                          <SvgText
+                            x={x3 + (right ? 4 : -4)}
+                            y={y2 + 4}
+                            fontSize={10}
+                            fill={darkMode ? '#d6f5df' : '#14532d'}
+                            textAnchor={right ? 'start' : 'end'}
+                          >
+                            {label}
+                          </SvgText>
+                        </G>
+                      );
+                    })}
                   </G>
                 </Svg>
                 <Text style={[styles.totalBudgetText, darkMode && styles.textDark]}>Total Budget: {formatCurrency(total, currency)}</Text>
-                <View style={styles.legendWrap}>
-                  {budgets.map((b, i) => (
-                    <View key={`lg-${b.id}`} style={styles.legendRow}>
-                      <View style={[styles.legendDot, { backgroundColor: colors[i % colors.length] }]} />
-                      <Text style={[styles.legendText, darkMode && styles.textDark]}>{b.category}</Text>
-                    </View>
-                  ))}
-                </View>
               </View>
             );
           })()}
