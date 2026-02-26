@@ -369,7 +369,7 @@ export default function App() {
             budgetProgressRows={budgetProgressRows}
             categoryOptions={expenseCategoryOptions}
             onSaveBudget={handleSaveBudget}
-            onDeleteBudget={handleDeleteBudget}
+            transactions={transactions}
           />
         </View>
 
@@ -388,6 +388,9 @@ export default function App() {
             onDeleteTransaction={handleDeleteTransaction}
             onExportCsv={handleExportCsv}
             onUpdateTransaction={handleUpdateTransaction}
+            budgets={budgets}
+            onSaveBudget={handleSaveBudget}
+            onDeleteBudget={handleDeleteBudget}
           />
         </View>
 
