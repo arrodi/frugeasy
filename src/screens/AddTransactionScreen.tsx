@@ -60,9 +60,10 @@ export function AddTransactionScreen({
   const panResponder = useMemo(
     () =>
       PanResponder.create({
-        onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dy) > 12 && Math.abs(g.dy) > Math.abs(g.dx),
+        onStartShouldSetPanResponder: () => !advanced,
+        onMoveShouldSetPanResponder: (_, g) => !advanced && Math.abs(g.dy) > 8,
         onPanResponderRelease: (_, g) => {
-          if (g.dy > 50 && !advanced) {
+          if (g.dy > 35 && !advanced) {
             LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
             setAdvanced(true);
           }
@@ -137,16 +138,17 @@ export function AddTransactionScreen({
               ))}
             </View>
           </>
-        ) : (
-          <View style={styles.advancedHintWrap}>
-            <Text style={styles.advancedHint}>advanced options</Text>
-            <Text style={styles.advancedArrows}>⌄⌄</Text>
-          </View>
-        )}
+        ) : null}
 
         <Pressable style={styles.saveBtn} onPress={onPressSave}>
           <Text style={styles.saveBtnText}>{isSaving ? 'Saving…' : 'Save transaction'}</Text>
         </Pressable>
+
+        {!advanced ? (
+          <View style={styles.advancedHintWrap}>
+            <Text style={styles.advancedHint}>⌄  advanced options  ⌄</Text>
+          </View>
+        ) : null}
       </View>
 
       <Modal visible={typeModalOpen} animationType="fade" transparent onRequestClose={() => setTypeModalOpen(false)}>
@@ -215,9 +217,8 @@ const styles = StyleSheet.create({
   pillActive: { backgroundColor: '#14b85a', borderColor: '#14b85a' },
   pillText: { color: '#1e6e37', fontWeight: '600' },
   pillTextActive: { color: 'white' },
-  advancedHintWrap: { alignItems: 'center', justifyContent: 'center', paddingTop: 4 },
+  advancedHintWrap: { alignItems: 'center', justifyContent: 'center', paddingTop: 6 },
   advancedHint: { color: '#6f8f78', fontSize: 12, fontWeight: '500' },
-  advancedArrows: { color: '#6f8f78', fontSize: 14, marginTop: 2 },
   saveBtn: { marginTop: 'auto', backgroundColor: '#16a34a', borderWidth: 1, borderColor: '#15803d', borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
   saveBtnText: { color: 'white', fontWeight: '800', fontSize: 18 },
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center', padding: 20 },
