@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { LayoutAnimation, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg';
 import { Budget, CurrencyCode, Transaction, TransactionCategory } from '../domain/types';
 import { formatCurrency } from '../ui/format';
 
@@ -203,6 +204,7 @@ const styles = StyleSheet.create({
   screenDark: { backgroundColor: '#0f1a14' },
   contentContainer: { paddingHorizontal: 16, gap: 10, paddingTop: 8, paddingBottom: 24 },
   title: { fontSize: 17, fontWeight: '700', color: '#156530' },
+  panelTitle: { fontSize: 14, fontWeight: '700', color: '#14532d', marginBottom: 6 },
   textDark: { color: '#d6f5df' },
   overviewRowHorizontal: { flexDirection: 'row', gap: 8 },
   card: { backgroundColor: '#eef5f2', borderRadius: 16, padding: 12, borderWidth: 1, borderColor: '#d2e2dc' },
