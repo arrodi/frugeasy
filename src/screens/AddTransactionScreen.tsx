@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Alert,
   InputAccessoryView,
   Keyboard,
   LayoutAnimation,
   Modal,
+  PanResponder,
   Platform,
   Pressable,
   StyleSheet,
@@ -56,6 +57,20 @@ export function AddTransactionScreen({
     UIManager.setLayoutAnimationEnabledExperimental(true);
   }
 
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dy) > 12 && Math.abs(g.dy) > Math.abs(g.dx),
+        onPanResponderRelease: (_, g) => {
+          if (g.dy > 50 && !advanced) {
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+            setAdvanced(true);
+          }
+        },
+      }),
+    [advanced]
+  );
+
   const onPressSave = async () => {
     const amount = Number(amountInput.replace(',', '.'));
     if (!Number.isFinite(amount) || amount <= 0) {
@@ -79,7 +94,7 @@ export function AddTransactionScreen({
         <Text style={[styles.sectionTitle, darkMode && styles.textDark]}>Transact!</Text>
       </View>
 
-      <View style={[styles.formArea, darkMode && styles.formAreaDark]}>
+      <View style={[styles.formArea, darkMode && styles.formAreaDark]} {...panResponder.panHandlers}>
         <TextInput
           value={amountInput}
           onChangeText={onChangeAmount}
@@ -93,32 +108,14 @@ export function AddTransactionScreen({
           style={[styles.input, darkMode && styles.inputDark]}
         />
 
-        <Pressable
-          style={[styles.categoryButton, darkMode && styles.inputDark]}
-          onPress={() => setTypeModalOpen(true)}
-        >
+        <Pressable style={[styles.categoryButton, darkMode && styles.inputDark]} onPress={() => setTypeModalOpen(true)}>
           <Text style={[styles.categoryButtonValue, darkMode && styles.textDark]}>
             {selectedType === 'income' ? 'Income' : 'Expense'}
           </Text>
         </Pressable>
 
-        <Pressable
-          style={[styles.categoryButton, darkMode && styles.inputDark]}
-          onPress={() => setCategoryModalOpen(true)}
-        >
-          <Text style={[styles.categoryButtonValue, darkMode && styles.textDark]}>
-            {categoryChosen ? selectedCategory : 'Category'}
-          </Text>
-        </Pressable>
-
-        <Pressable
-          style={[styles.advancedBtn, darkMode && styles.inputDark]}
-          onPress={() => {
-            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-            setAdvanced((v) => !v);
-          }}
-        >
-          <Text style={[styles.advancedText, darkMode && styles.textDark]}>{advanced ? 'Hide Advanced Options' : 'Advanced Options'}</Text>
+        <Pressable style={[styles.categoryButton, darkMode && styles.inputDark]} onPress={() => setCategoryModalOpen(true)}>
+          <Text style={[styles.categoryButtonValue, darkMode && styles.textDark]}>{categoryChosen ? selectedCategory : 'Category'}</Text>
         </Pressable>
 
         {advanced ? (
@@ -140,19 +137,19 @@ export function AddTransactionScreen({
               ))}
             </View>
           </>
-        ) : null}
+        ) : (
+          <View style={styles.advancedHintWrap}>
+            <Text style={styles.advancedHint}>advanced options</Text>
+            <Text style={styles.advancedArrows}>⌄⌄</Text>
+          </View>
+        )}
 
         <Pressable style={styles.saveBtn} onPress={onPressSave}>
           <Text style={styles.saveBtnText}>{isSaving ? 'Saving…' : 'Save transaction'}</Text>
         </Pressable>
       </View>
 
-      <Modal
-        visible={typeModalOpen}
-        animationType="fade"
-        transparent
-        onRequestClose={() => setTypeModalOpen(false)}
-      >
+      <Modal visible={typeModalOpen} animationType="fade" transparent onRequestClose={() => setTypeModalOpen(false)}>
         <Pressable style={styles.modalBackdrop} onPress={() => setTypeModalOpen(false)}>
           <Pressable style={[styles.modalCard, darkMode && styles.formAreaDark]} onPress={() => {}}>
             <Text style={[styles.modalTitle, darkMode && styles.textDark]}>Select type</Text>
@@ -160,17 +157,8 @@ export function AddTransactionScreen({
               {(['expense', 'income'] as const).map((type) => {
                 const selected = type === selectedType;
                 return (
-                  <Pressable
-                    key={type}
-                    style={[styles.typeTile, selected && styles.categoryTileSelected]}
-                    onPress={() => {
-                      onChangeType(type);
-                      setTypeModalOpen(false);
-                    }}
-                  >
-                    <Text style={[styles.categoryTileText, selected && styles.categoryTileTextSelected]}>
-                      {type === 'income' ? 'Income' : 'Expense'}
-                    </Text>
+                  <Pressable key={type} style={[styles.typeTile, selected && styles.categoryTileSelected]} onPress={() => { onChangeType(type); setTypeModalOpen(false); }}>
+                    <Text style={[styles.categoryTileText, selected && styles.categoryTileTextSelected]}>{type === 'income' ? 'Income' : 'Expense'}</Text>
                   </Pressable>
                 );
               })}
@@ -179,12 +167,7 @@ export function AddTransactionScreen({
         </Pressable>
       </Modal>
 
-      <Modal
-        visible={categoryModalOpen}
-        animationType="fade"
-        transparent
-        onRequestClose={() => setCategoryModalOpen(false)}
-      >
+      <Modal visible={categoryModalOpen} animationType="fade" transparent onRequestClose={() => setCategoryModalOpen(false)}>
         <Pressable style={styles.modalBackdrop} onPress={() => setCategoryModalOpen(false)}>
           <Pressable style={[styles.modalCard, darkMode && styles.formAreaDark]} onPress={() => {}}>
             <Text style={[styles.modalTitle, darkMode && styles.textDark]}>Select category</Text>
@@ -192,15 +175,7 @@ export function AddTransactionScreen({
               {categoryOptions.map((category) => {
                 const selected = category === selectedCategory;
                 return (
-                  <Pressable
-                    key={category}
-                    style={[styles.categoryTile, selected && styles.categoryTileSelected]}
-                    onPress={() => {
-                      onChangeCategory(category);
-                      setCategoryChosen(true);
-                      setCategoryModalOpen(false);
-                    }}
-                  >
+                  <Pressable key={category} style={[styles.categoryTile, selected && styles.categoryTileSelected]} onPress={() => { onChangeCategory(category); setCategoryChosen(true); setCategoryModalOpen(false); }}>
                     <Text style={[styles.categoryTileText, selected && styles.categoryTileTextSelected]}>{category}</Text>
                   </Pressable>
                 );
@@ -233,75 +208,28 @@ const styles = StyleSheet.create({
   input: { backgroundColor: 'white', borderWidth: 1, borderColor: '#86d89d', color: '#14532d', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, fontSize: 18, fontWeight: '600' },
   inputDark: { backgroundColor: '#0f1a14', borderColor: '#2e4d3b', color: '#d6f5df' },
   label: { color: '#166534', fontWeight: '700', fontSize: 16 },
-  categoryButton: {
-    minHeight: 52,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#9dddad',
-    backgroundColor: 'white',
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  categoryButton: { minHeight: 52, borderRadius: 12, borderWidth: 1, borderColor: '#9dddad', backgroundColor: 'white', paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center' },
   categoryButtonValue: { color: '#14532d', fontWeight: '700', fontSize: 16, textAlign: 'center' },
-  advancedBtn: { borderWidth: 1, borderColor: '#9dddad', borderRadius: 10, paddingVertical: 10, alignItems: 'center', backgroundColor: '#ecfff1' },
-  advancedText: { color: '#166534', fontWeight: '700' },
   rowGap: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   pill: { paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: '#a9e6b7', backgroundColor: '#f0fff4' },
   pillActive: { backgroundColor: '#14b85a', borderColor: '#14b85a' },
   pillText: { color: '#1e6e37', fontWeight: '600' },
   pillTextActive: { color: 'white' },
+  advancedHintWrap: { alignItems: 'center', justifyContent: 'center', paddingTop: 4 },
+  advancedHint: { color: '#6f8f78', fontSize: 12, fontWeight: '500' },
+  advancedArrows: { color: '#6f8f78', fontSize: 14, marginTop: 2 },
   saveBtn: { marginTop: 'auto', backgroundColor: '#16a34a', borderWidth: 1, borderColor: '#15803d', borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
   saveBtnText: { color: 'white', fontWeight: '800', fontSize: 18 },
-
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  modalCard: {
-    width: '100%',
-    maxWidth: 520,
-    backgroundColor: '#f3fff6',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#b8efc4',
-    padding: 14,
-    gap: 12,
-  },
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  modalCard: { width: '100%', maxWidth: 520, backgroundColor: '#f3fff6', borderRadius: 16, borderWidth: 1, borderColor: '#b8efc4', padding: 14, gap: 12 },
   modalTitle: { fontSize: 18, fontWeight: '800', color: '#166534' },
   typeTileWrap: { width: '100%', gap: 8 },
-  typeTile: {
-    width: '100%',
-    paddingVertical: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#9dddad',
-    backgroundColor: 'white',
-    alignItems: 'center',
-  },
-  tileWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    justifyContent: 'center',
-  },
-  categoryTile: {
-    width: '31%',
-    minHeight: 52,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#9dddad',
-    backgroundColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  typeTile: { width: '100%', paddingVertical: 12, borderRadius: 10, borderWidth: 1, borderColor: '#9dddad', backgroundColor: 'white', alignItems: 'center' },
+  tileWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
+  categoryTile: { width: '31%', minHeight: 52, borderRadius: 10, borderWidth: 1, borderColor: '#9dddad', backgroundColor: 'white', alignItems: 'center', justifyContent: 'center' },
   categoryTileSelected: { backgroundColor: '#16a34a', borderColor: '#16a34a' },
   categoryTileText: { color: '#14532d', fontWeight: '700' },
   categoryTileTextSelected: { color: 'white' },
-
   accessoryBar: { backgroundColor: '#e5faeb', borderTopWidth: 1, borderTopColor: '#b9ebc7', paddingHorizontal: 12, paddingVertical: 8, alignItems: 'flex-end' },
   doneTypingButton: { backgroundColor: '#d2f5dc', borderWidth: 1, borderColor: '#98dda9', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 },
   doneTypingText: { color: '#14632f', fontWeight: '700' },
