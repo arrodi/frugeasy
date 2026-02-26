@@ -64,7 +64,6 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
 
           return (
             <View style={styles.expenseChartWrap}>
-              <Text style={[styles.panelTitle, darkMode && styles.textDark]}>Expenditure Breakdown</Text>
               <Svg width={size + 220} height={size + 80}>
                 <G x={110} y={30}>
                   <G rotation={-90} origin={`${size/2}, ${size/2}`}>
@@ -98,7 +97,6 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
                   })}
                 </G>
               </Svg>
-              <Text style={[styles.totalBudgetText, darkMode && styles.textDark]}>Total Expenditure: {formatCurrency(total, currency)}</Text>
             </View>
           );
         })()}
