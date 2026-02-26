@@ -44,6 +44,10 @@ const INCOME_CATEGORIES: TransactionCategory[] = [
   'Freelance',
   'Business',
   'Investment',
+  'Gift',
+  'Refund',
+  'Bonus',
+  'Interest',
   'Other',
 ];
 
@@ -52,6 +56,10 @@ const EXPENSE_CATEGORIES: TransactionCategory[] = [
   'Transport',
   'Housing',
   'Utilities',
+  'Health',
+  'Entertainment',
+  'Shopping',
+  'Education',
   'Other',
 ];
 
@@ -307,7 +315,7 @@ export default function App() {
   };
 
   const categoryOptions = Array.from(new Set(baseMonthlyTransactions.map((t) => t.category))).sort();
-  const expenseCategoryOptions = ['Food','Transport','Housing','Utilities','Other'] as TransactionCategory[];
+  const expenseCategoryOptions = ['Food','Transport','Housing','Utilities','Health','Entertainment','Shopping','Education','Other'] as TransactionCategory[];
 
   const onPagerEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const nextTab = Math.round(event.nativeEvent.contentOffset.x / width);

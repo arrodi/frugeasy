@@ -156,13 +156,13 @@ export function AddTransactionScreen({
         <Pressable style={styles.modalBackdrop} onPress={() => setTypeModalOpen(false)}>
           <Pressable style={[styles.modalCard, darkMode && styles.formAreaDark]} onPress={() => {}}>
             <Text style={[styles.modalTitle, darkMode && styles.textDark]}>Select type</Text>
-            <View style={styles.tileWrap}>
+            <View style={styles.typeTileWrap}>
               {(['expense', 'income'] as const).map((type) => {
                 const selected = type === selectedType;
                 return (
                   <Pressable
                     key={type}
-                    style={[styles.categoryTile, selected && styles.categoryTileSelected]}
+                    style={[styles.typeTile, selected && styles.categoryTileSelected]}
                     onPress={() => {
                       onChangeType(type);
                       setTypeModalOpen(false);
@@ -272,14 +272,31 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   modalTitle: { fontSize: 18, fontWeight: '800', color: '#166534' },
-  tileWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  categoryTile: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+  typeTileWrap: { width: '100%', gap: 8 },
+  typeTile: {
+    width: '100%',
+    paddingVertical: 12,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#9dddad',
     backgroundColor: 'white',
+    alignItems: 'center',
+  },
+  tileWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    justifyContent: 'center',
+  },
+  categoryTile: {
+    width: '31%',
+    minHeight: 52,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#9dddad',
+    backgroundColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   categoryTileSelected: { backgroundColor: '#16a34a', borderColor: '#16a34a' },
   categoryTileText: { color: '#14532d', fontWeight: '700' },

@@ -5,10 +5,18 @@ export type TransactionCategory =
   | 'Freelance'
   | 'Business'
   | 'Investment'
+  | 'Gift'
+  | 'Refund'
+  | 'Bonus'
+  | 'Interest'
   | 'Food'
   | 'Transport'
   | 'Housing'
   | 'Utilities'
+  | 'Health'
+  | 'Entertainment'
+  | 'Shopping'
+  | 'Education'
   | 'Other';
 
 export type Transaction = {
