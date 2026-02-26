@@ -20,16 +20,7 @@ import { MonthlySummaryScreen } from './src/screens/MonthlySummaryScreen';
 import { BudgetingScreen } from './src/screens/BudgetingScreen';
 import { TransactionsScreen } from './src/screens/TransactionsScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
-import {
-  categoryComparison,
-  categoryTotals,
-  dailySeries,
-  largestTransactions,
-  projectedMonthEnd,
-  smartNudges,
-  unusualTransactions,
-  weeklyBurn,
-} from './src/domain/analysis';
+
 import { calculateMonthlyTotals, filterTransactionsByMonth } from './src/domain/summary';
 import { Budget, CurrencyCode, RecurringRule, Transaction, TransactionCategory, TransactionType } from './src/domain/types';
 import {
@@ -103,6 +94,7 @@ export default function App() {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [recurringRules, setRecurringRules] = useState<RecurringRule[]>([]);
   const [currency, setCurrency] = useState<CurrencyCode>('USD');
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -110,16 +102,18 @@ export default function App() {
         await initTransactionsRepo();
         const now = new Date();
         await applyRecurringRulesForMonth(now.getUTCFullYear(), now.getUTCMonth());
-        const [existing, rules, savedCurrency] = await Promise.all([
+        const [existing, rules, savedCurrency, savedTheme] = await Promise.all([
           listTransactions(),
           listRecurringRules(),
           getSetting('currency'),
+          getSetting('theme'),
         ]);
         setTransactions(existing);
         setRecurringRules(rules);
         if (savedCurrency && ['USD', 'EUR', 'GBP', 'JPY', 'RUB', 'UAH'].includes(savedCurrency)) {
           setCurrency(savedCurrency as CurrencyCode);
         }
+        if (savedTheme === 'dark') setDarkMode(true);
       } catch {
         Alert.alert('Oops', 'Could not initialize local database.');
       }
@@ -128,7 +122,6 @@ export default function App() {
 
   const now = new Date();
   const selectedWindow = monthWindow(now, monthOffset);
-  const previousWindow = monthWindow(now, monthOffset - 1);
 
   useEffect(() => {
     (async () => {
@@ -142,10 +135,6 @@ export default function App() {
     [transactions, selectedWindow.year, selectedWindow.month]
   );
 
-  const previousMonthlyTransactions = useMemo(
-    () => filterTransactionsByMonth(transactions, previousWindow.year, previousWindow.month),
-    [transactions, previousWindow.year, previousWindow.month]
-  );
 
   const filteredTransactions = useMemo(() => {
     return baseMonthlyTransactions.filter((t) => {
@@ -161,39 +150,7 @@ export default function App() {
   }, [baseMonthlyTransactions, typeFilter, categoryFilter, searchQuery]);
 
   const totals = useMemo(() => calculateMonthlyTotals(baseMonthlyTransactions), [baseMonthlyTransactions]);
-  const previousTotals = useMemo(
-    () => calculateMonthlyTotals(previousMonthlyTransactions),
-    [previousMonthlyTransactions]
-  );
 
-  const expenseCategoryBreakdown = useMemo(
-    () => categoryTotals(baseMonthlyTransactions, 'expense'),
-    [baseMonthlyTransactions]
-  );
-  const incomeCategoryBreakdown = useMemo(
-    () => categoryTotals(baseMonthlyTransactions, 'income'),
-    [baseMonthlyTransactions]
-  );
-
-  const daysElapsed = new Date().getUTCDate();
-  const daysInMonth = new Date(Date.UTC(selectedWindow.year, selectedWindow.month + 1, 0)).getUTCDate();
-  const weeklyBurnRate = weeklyBurn(totals.expense, daysElapsed);
-  const projectedExpense = projectedMonthEnd(totals.expense, daysElapsed, daysInMonth);
-
-  const biggest = useMemo(() => largestTransactions(baseMonthlyTransactions), [baseMonthlyTransactions]);
-  const unusual = useMemo(() => unusualTransactions(baseMonthlyTransactions), [baseMonthlyTransactions]);
-  const nudges = useMemo(
-    () => smartNudges(baseMonthlyTransactions, previousMonthlyTransactions),
-    [baseMonthlyTransactions, previousMonthlyTransactions]
-  );
-  const dailyPoints = useMemo(
-    () => dailySeries(baseMonthlyTransactions, selectedWindow.year, selectedWindow.month),
-    [baseMonthlyTransactions, selectedWindow.year, selectedWindow.month]
-  );
-  const categoryCompareRows = useMemo(
-    () => categoryComparison(baseMonthlyTransactions, previousMonthlyTransactions),
-    [baseMonthlyTransactions, previousMonthlyTransactions]
-  );
 
   const budgetProgressRows = useMemo(() => {
     const spentMap = new Map<TransactionCategory, number>();
@@ -323,6 +280,15 @@ export default function App() {
     }
   };
 
+  const handleDarkModeChange = async (enabled: boolean) => {
+    setDarkMode(enabled);
+    try {
+      await setSetting('theme', enabled ? 'dark' : 'light');
+    } catch {
+      Alert.alert('Oops', 'Could not save theme preference.');
+    }
+  };
+
   const handleExportCsv = async () => {
     try {
       const csv = toCsv(filteredTransactions);
@@ -347,8 +313,8 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar style="dark" />
+    <SafeAreaView style={[styles.safeArea, darkMode && styles.safeAreaDark]}>
+      <StatusBar style={darkMode ? 'light' : 'dark'} />
 
       <ScrollView
         ref={pagerRef}
@@ -377,21 +343,11 @@ export default function App() {
             year={selectedWindow.year}
             monthIndex={selectedWindow.month}
             totals={totals}
-            previousTotals={previousTotals}
             analysisMode={analysisMode}
             onToggleAnalysisMode={() => setAnalysisMode((prev) => !prev)}
             onPrevMonth={() => setMonthOffset((prev) => prev - 1)}
             onNextMonth={() => setMonthOffset((prev) => Math.min(prev + 1, 0))}
             canGoNextMonth={monthOffset < 0}
-            expenseCategoryTotals={expenseCategoryBreakdown}
-            incomeCategoryTotals={incomeCategoryBreakdown}
-            categoryCompareRows={categoryCompareRows}
-            dailyPoints={dailyPoints}
-            weeklyBurnRate={weeklyBurnRate}
-            projectedExpense={projectedExpense}
-            largestTransactions={biggest}
-            unusualTransactions={unusual}
-            nudges={nudges}
           />
         </View>
 
@@ -425,7 +381,12 @@ export default function App() {
         </View>
 
         <View style={[styles.page, { width }]}> 
-          <SettingsScreen currency={currency} onCurrencyChange={handleCurrencyChange} />
+          <SettingsScreen
+            currency={currency}
+            onCurrencyChange={handleCurrencyChange}
+            darkMode={darkMode}
+            onDarkModeChange={handleDarkModeChange}
+          />
         </View>
       </ScrollView>
 
@@ -458,6 +419,7 @@ export default function App() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#eaffef' },
+  safeAreaDark: { backgroundColor: '#0f1a14' },
   page: { flex: 1 },
   tabDots: {
     flexDirection: 'row',

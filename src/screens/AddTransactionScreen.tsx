@@ -71,18 +71,18 @@ export function AddTransactionScreen({
           style={styles.input}
         />
 
-        <View style={styles.typeRow}>
+        <View style={styles.switchWrap}>
           <Pressable
             onPress={() => onChangeType('income')}
-            style={[styles.typeButton, selectedType === 'income' && styles.typeButtonIncomeActive]}
+            style={[styles.switchOption, selectedType === 'income' && styles.switchOptionActive]}
           >
-            <Text style={styles.typeButtonText}>Income</Text>
+            <Text style={[styles.switchText, selectedType === 'income' && styles.switchTextActive]}>Income</Text>
           </Pressable>
           <Pressable
             onPress={() => onChangeType('expense')}
-            style={[styles.typeButton, selectedType === 'expense' && styles.typeButtonExpenseActive]}
+            style={[styles.switchOption, selectedType === 'expense' && styles.switchOptionActive]}
           >
-            <Text style={styles.typeButtonText}>Expense</Text>
+            <Text style={[styles.switchText, selectedType === 'expense' && styles.switchTextActive]}>Expense</Text>
           </Pressable>
         </View>
 
@@ -138,9 +138,17 @@ export function AddTransactionScreen({
 }
 
 const styles = StyleSheet.create({
-  screenContainer: { flex: 1, paddingHorizontal: 14, paddingTop: 12, paddingBottom: 12 },
-  formArea: {
+  screenContainer: {
     flex: 1,
+    paddingHorizontal: 14,
+    paddingTop: 12,
+    paddingBottom: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  formArea: {
+    width: '100%',
+    maxWidth: 520,
     backgroundColor: '#f3fff6',
     borderWidth: 1,
     borderColor: '#b8efc4',
@@ -160,19 +168,26 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
   },
-  typeRow: { flexDirection: 'row', gap: 10 },
-  typeButton: {
-    flex: 1,
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-    backgroundColor: '#e9f9ee',
+  switchWrap: {
+    flexDirection: 'row',
+    backgroundColor: '#e8f8ee',
+    borderRadius: 12,
+    padding: 4,
     borderWidth: 1,
-    borderColor: '#a7e4b8',
+    borderColor: '#b6e9c3',
+    gap: 4,
   },
-  typeButtonIncomeActive: { backgroundColor: '#1fbf67', borderColor: '#1fbf67' },
-  typeButtonExpenseActive: { backgroundColor: '#2f9e5f', borderColor: '#2f9e5f' },
-  typeButtonText: { color: 'white', fontWeight: '700', fontSize: 18 },
+  switchOption: {
+    flex: 1,
+    borderRadius: 9,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  switchOptionActive: {
+    backgroundColor: '#16a34a',
+  },
+  switchText: { color: '#1e6e37', fontWeight: '700', fontSize: 16 },
+  switchTextActive: { color: 'white' },
   label: { color: '#166534', fontWeight: '700', fontSize: 16, marginTop: 4 },
   dropdownTrigger: {
     minHeight: 52,

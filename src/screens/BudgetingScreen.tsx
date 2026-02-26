@@ -29,6 +29,7 @@ export function BudgetingScreen({
   onAddRecurringRule,
   onToggleRecurringRule,
 }: Props) {
+  const [tab, setTab] = useState<'budgets' | 'recurring'>('budgets');
   const [budgetCategory, setBudgetCategory] = useState<TransactionCategory>('Food');
   const [budgetAmount, setBudgetAmount] = useState('');
 
@@ -48,71 +49,82 @@ export function BudgetingScreen({
     <ScrollView style={styles.screenContainer} contentContainerStyle={styles.contentContainer}>
       <Text style={styles.title}>Budgeting</Text>
 
-      <View style={styles.panel}>
-        <Text style={styles.panelTitle}>Budgets (this month)</Text>
-        <View style={styles.inlineRow}>
-          <TextInput value={budgetCategory} onChangeText={(v) => setBudgetCategory(v as TransactionCategory)} style={styles.smallInput} placeholder="Category" />
-          <TextInput value={budgetAmount} onChangeText={setBudgetAmount} style={styles.smallInput} placeholder="Amount" keyboardType="decimal-pad" />
-          <Pressable
-            style={styles.saveBtn}
-            onPress={async () => {
-              const amount = Number(budgetAmount.replace(',', '.'));
-              if (!Number.isFinite(amount) || amount <= 0) return;
-              await onSaveBudget(budgetCategory, amount);
-              setBudgetAmount('');
-            }}
-          >
-            <Text style={styles.saveBtnText}>Save</Text>
-          </Pressable>
-        </View>
-        <View style={styles.filterRow}>
-          {categoryOptions.map((cat) => (
-            <Text key={cat} style={styles.miniPill}>{cat}: {formatCurrency(budgetMap.get(cat) ?? 0, currency)}</Text>
-          ))}
-        </View>
+      <View style={styles.switchWrap}>
+        <Pressable style={[styles.switchOption, tab === 'budgets' && styles.switchOptionActive]} onPress={() => setTab('budgets')}>
+          <Text style={[styles.switchText, tab === 'budgets' && styles.switchTextActive]}>Budgets</Text>
+        </Pressable>
+        <Pressable style={[styles.switchOption, tab === 'recurring' && styles.switchOptionActive]} onPress={() => setTab('recurring')}>
+          <Text style={[styles.switchText, tab === 'recurring' && styles.switchTextActive]}>Recurring</Text>
+        </Pressable>
       </View>
 
-      <View style={styles.panel}>
-        <Text style={styles.panelTitle}>Recurring</Text>
-        <TextInput value={ruleLabel} onChangeText={setRuleLabel} style={styles.searchInput} placeholder="Label (e.g. Rent)" />
-        <View style={styles.inlineRow}>
-          <TextInput value={ruleAmount} onChangeText={setRuleAmount} style={styles.smallInput} placeholder="Amount" keyboardType="decimal-pad" />
-          <TextInput value={ruleDay} onChangeText={setRuleDay} style={styles.smallInput} placeholder="Day" keyboardType="number-pad" />
-        </View>
-        <View style={styles.inlineRow}>
-          <Pressable style={[styles.filterChip, ruleType === 'income' && styles.filterChipActive]} onPress={() => setRuleType('income')}><Text style={[styles.filterChipText, ruleType === 'income' && styles.filterChipTextActive]}>income</Text></Pressable>
-          <Pressable style={[styles.filterChip, ruleType === 'expense' && styles.filterChipActive]} onPress={() => setRuleType('expense')}><Text style={[styles.filterChipText, ruleType === 'expense' && styles.filterChipTextActive]}>expense</Text></Pressable>
-          <TextInput value={ruleCategory} onChangeText={(v) => setRuleCategory(v as TransactionCategory)} style={styles.smallInput} placeholder="Category" />
-          <Pressable
-            style={styles.saveBtn}
-            onPress={async () => {
-              const amount = Number(ruleAmount.replace(',', '.'));
-              const day = Number(ruleDay);
-              if (!ruleLabel.trim() || !Number.isFinite(amount) || amount <= 0 || !Number.isFinite(day)) return;
-              await onAddRecurringRule({
-                label: ruleLabel.trim(),
-                amount,
-                dayOfMonth: Math.max(1, Math.min(28, Math.round(day))),
-                type: ruleType,
-                category: ruleCategory,
-              });
-              setRuleLabel('');
-              setRuleAmount('');
-              setRuleDay('1');
-            }}
-          >
-            <Text style={styles.saveBtnText}>Add</Text>
-          </Pressable>
-        </View>
-        {recurringRules.map((r) => (
-          <View key={r.id} style={styles.ruleRow}>
-            <Text style={styles.ruleText}>{r.label} • day {r.dayOfMonth} • {formatCurrency(r.amount, currency)} • {r.category}</Text>
-            <Pressable style={styles.deleteBtn} onPress={() => onToggleRecurringRule(r.id, !r.active)}>
-              <Text style={styles.deleteBtnText}>{r.active ? 'On' : 'Off'}</Text>
+      {tab === 'budgets' ? (
+        <View style={styles.panel}>
+          <Text style={styles.panelTitle}>Budgets (this month)</Text>
+          <View style={styles.inlineRow}>
+            <TextInput value={budgetCategory} onChangeText={(v) => setBudgetCategory(v as TransactionCategory)} style={styles.smallInput} placeholder="Category" />
+            <TextInput value={budgetAmount} onChangeText={setBudgetAmount} style={styles.smallInput} placeholder="Amount" keyboardType="decimal-pad" />
+            <Pressable
+              style={styles.saveBtn}
+              onPress={async () => {
+                const amount = Number(budgetAmount.replace(',', '.'));
+                if (!Number.isFinite(amount) || amount <= 0) return;
+                await onSaveBudget(budgetCategory, amount);
+                setBudgetAmount('');
+              }}
+            >
+              <Text style={styles.saveBtnText}>Save</Text>
             </Pressable>
           </View>
-        ))}
-      </View>
+          <View style={styles.filterRow}>
+            {categoryOptions.map((cat) => (
+              <Text key={cat} style={styles.miniPill}>{cat}: {formatCurrency(budgetMap.get(cat) ?? 0, currency)}</Text>
+            ))}
+          </View>
+        </View>
+      ) : (
+        <View style={styles.panel}>
+          <Text style={styles.panelTitle}>Recurring</Text>
+          <TextInput value={ruleLabel} onChangeText={setRuleLabel} style={styles.searchInput} placeholder="Label (e.g. Rent)" />
+          <View style={styles.inlineRow}>
+            <TextInput value={ruleAmount} onChangeText={setRuleAmount} style={styles.smallInput} placeholder="Amount" keyboardType="decimal-pad" />
+            <TextInput value={ruleDay} onChangeText={setRuleDay} style={styles.smallInput} placeholder="Day" keyboardType="number-pad" />
+          </View>
+          <View style={styles.inlineRow}>
+            <Pressable style={[styles.filterChip, ruleType === 'income' && styles.filterChipActive]} onPress={() => setRuleType('income')}><Text style={[styles.filterChipText, ruleType === 'income' && styles.filterChipTextActive]}>income</Text></Pressable>
+            <Pressable style={[styles.filterChip, ruleType === 'expense' && styles.filterChipActive]} onPress={() => setRuleType('expense')}><Text style={[styles.filterChipText, ruleType === 'expense' && styles.filterChipTextActive]}>expense</Text></Pressable>
+            <TextInput value={ruleCategory} onChangeText={(v) => setRuleCategory(v as TransactionCategory)} style={styles.smallInput} placeholder="Category" />
+            <Pressable
+              style={styles.saveBtn}
+              onPress={async () => {
+                const amount = Number(ruleAmount.replace(',', '.'));
+                const day = Number(ruleDay);
+                if (!ruleLabel.trim() || !Number.isFinite(amount) || amount <= 0 || !Number.isFinite(day)) return;
+                await onAddRecurringRule({
+                  label: ruleLabel.trim(),
+                  amount,
+                  dayOfMonth: Math.max(1, Math.min(28, Math.round(day))),
+                  type: ruleType,
+                  category: ruleCategory,
+                });
+                setRuleLabel('');
+                setRuleAmount('');
+                setRuleDay('1');
+              }}
+            >
+              <Text style={styles.saveBtnText}>Add</Text>
+            </Pressable>
+          </View>
+          {recurringRules.map((r) => (
+            <View key={r.id} style={styles.ruleRow}>
+              <Text style={styles.ruleText}>{r.label} • day {r.dayOfMonth} • {formatCurrency(r.amount, currency)} • {r.category}</Text>
+              <Pressable style={styles.deleteBtn} onPress={() => onToggleRecurringRule(r.id, !r.active)}>
+                <Text style={styles.deleteBtnText}>{r.active ? 'On' : 'Off'}</Text>
+              </Pressable>
+            </View>
+          ))}
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -121,6 +133,11 @@ const styles = StyleSheet.create({
   screenContainer: { flex: 1 },
   contentContainer: { paddingHorizontal: 16, gap: 10, paddingTop: 8, paddingBottom: 24 },
   title: { fontSize: 17, fontWeight: '700', color: '#156530' },
+  switchWrap: { flexDirection: 'row', backgroundColor: '#e8f8ee', borderRadius: 12, padding: 4, borderWidth: 1, borderColor: '#b6e9c3', gap: 4 },
+  switchOption: { flex: 1, borderRadius: 9, paddingVertical: 10, alignItems: 'center' },
+  switchOptionActive: { backgroundColor: '#14b85a' },
+  switchText: { color: '#1e6e37', fontWeight: '700' },
+  switchTextActive: { color: 'white' },
   panel: { backgroundColor: '#ecfff1', borderWidth: 1, borderColor: '#9ee5ab', borderRadius: 12, padding: 10, gap: 8 },
   panelTitle: { fontWeight: '700', color: '#1e6e37' },
   searchInput: { backgroundColor: 'white', borderWidth: 1, borderColor: '#b7ebc3', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, color: '#156530' },

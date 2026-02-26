@@ -6,7 +6,7 @@ Simple personal finance app for **iOS + Android** with swipe-based tabs:
 2. **Monthly** — view month totals + optional deep **Analyze** mode on demand
 3. **Budgeting** — monthly budgets and recurring rules
 4. **Transactions** — filter/search, edit/delete items, and CSV export
-5. **Settings** — currency preference
+5. **Settings** — currency preference + dark mode
 
 ## Stack
 
