@@ -69,8 +69,8 @@ function monthKey(year: number, monthIndex: number): string {
 }
 
 function toCsv(transactions: Transaction[]): string {
-  const header = ['id', 'amount', 'type', 'category', 'date', 'createdAt'];
-  const rows = transactions.map((t) => [t.id, String(t.amount), t.type, t.category, t.date, t.createdAt]);
+  const header = ['id', 'name', 'amount', 'type', 'category', 'date', 'createdAt'];
+  const rows = transactions.map((t) => [t.id, t.name, String(t.amount), t.type, t.category, t.date, t.createdAt]);
   return [header, ...rows]
     .map((r) => r.map((c) => `"${String(c).replaceAll('"', '""')}"`).join(','))
     .join('\n');

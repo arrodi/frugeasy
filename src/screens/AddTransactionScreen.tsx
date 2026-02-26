@@ -34,9 +34,7 @@ export function AddTransactionScreen({ darkMode, nameInput, amountInput, selecte
   return (
     <View style={styles.screenContainer}>
       <View style={[styles.formArea, darkMode && styles.formAreaDark]}>
-        <Text style={[styles.sectionTitle, darkMode && styles.textDark]}>Add transaction</Text>
-
-        <TextInput value={nameInput} onChangeText={onChangeName} placeholder="Name (e.g. Lunch, Salary)" placeholderTextColor={darkMode ? '#86a893' : '#3e5f47'} style={[styles.input, darkMode && styles.inputDark]} />
+        <Text style={[styles.sectionTitle, darkMode && styles.textDark]}>Transact!</Text>
 
         <TextInput value={amountInput} onChangeText={onChangeAmount} keyboardType="decimal-pad" returnKeyType="done" blurOnSubmit onSubmitEditing={() => Keyboard.dismiss()} inputAccessoryViewID={Platform.OS === 'ios' ? amountAccessoryId : undefined} placeholder="Amount" placeholderTextColor={darkMode ? '#86a893' : '#3e5f47'} style={[styles.input, darkMode && styles.inputDark]} />
 
@@ -61,6 +59,9 @@ export function AddTransactionScreen({ darkMode, nameInput, amountInput, selecte
             </View>
           ) : null}
         </View>
+
+        <Text style={[styles.label, darkMode && styles.textDark]}>Name (optional)</Text>
+        <TextInput value={nameInput} onChangeText={onChangeName} placeholder="e.g. Lunch, Salary" placeholderTextColor={darkMode ? '#86a893' : '#3e5f47'} style={[styles.input, darkMode && styles.inputDark]} />
 
         <Pressable style={styles.saveBtn} onPress={onPressSave}><Text style={styles.saveBtnText}>{isSaving ? 'Saving…' : 'Save transaction'}</Text></Pressable>
       </View>

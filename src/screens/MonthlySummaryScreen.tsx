@@ -40,7 +40,7 @@ export function MonthlySummaryScreen({
     <ScrollView style={[styles.screenContainer, darkMode && styles.screenDark]} contentContainerStyle={styles.contentContainer}>
       <View style={styles.monthRow}>
         <Pressable style={styles.monthNavBtn} onPress={onPrevMonth}><Text style={styles.monthNavBtnText}>←</Text></Pressable>
-        <Text style={styles.sectionTitle}>{monthLabel}</Text>
+        <Text style={[styles.sectionTitle, darkMode && styles.textDark]}>{monthLabel}</Text>
         <Pressable style={[styles.monthNavBtn, !canGoNextMonth && styles.monthNavBtnDisabled]} onPress={onNextMonth} disabled={!canGoNextMonth}><Text style={styles.monthNavBtnText}>→</Text></Pressable>
       </View>
 
@@ -53,8 +53,8 @@ export function MonthlySummaryScreen({
       </Pressable>
 
       {analysisMode ? (
-        <View style={styles.analysisWrap}>
-          <Text style={styles.analysisTitle}>Expenditure vs Budget by Category</Text>
+        <View style={[styles.analysisWrap, darkMode && styles.cardDark]}>
+          <Text style={[styles.analysisTitle, darkMode && styles.textDark]}>Expenditure vs Budget by Category</Text>
           <View style={styles.tableHeader}>
             <Text style={[styles.th, { flex: 1.4 }]}>Category</Text>
             <Text style={styles.th}>Spent</Text>
@@ -84,6 +84,8 @@ export function MonthlySummaryScreen({
 const styles = StyleSheet.create({
   screenContainer: { flex: 1 },
   screenDark: { backgroundColor: '#0f1a14' },
+  cardDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
+  textDark: { color: '#d6f5df' },
   contentContainer: { paddingHorizontal: 16, gap: 10, paddingTop: 4, paddingBottom: 24 },
   monthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 },
   monthNavBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#eaf2ef', borderWidth: 1, borderColor: '#d2e2dc', alignItems: 'center', justifyContent: 'center' },
