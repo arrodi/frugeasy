@@ -86,7 +86,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
               <View style={[styles.progressTrack, darkMode && styles.progressTrackDark]}>
                 <View style={[styles.progressFill, darkMode && styles.progressFillDark, { width: `${Math.min(100, Math.max(0, row.usagePct))}%` }, row.usagePct > 100 && styles.progressOver]} />
                 <View style={styles.progressOverlayCenter}>
-                  <Text style={styles.progressInsideText}>{row.usagePct.toFixed(0)}% • {formatCurrency(row.spent, currency)} / {formatCurrency(row.budget, currency)}</Text>
+                  <Text style={[styles.progressInsideText, row.usagePct >= 55 ? styles.progressInsideOnFill : styles.progressInsideOffFill]}>{row.usagePct.toFixed(0)}% used</Text>
                 </View>
               </View>
             </View>
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
   cardHorizontal:{flex:1,minWidth:0},
   cardDark:{backgroundColor:'#15251c',borderColor:'#2e4d3b'},
   cardLabel:{color:'#49635d',marginBottom:4,fontWeight:'600'},
-  cardValue:{fontSize:22,fontWeight:'800',color:'#1f3b35'},
+  cardValue:{fontSize:18,fontWeight:'800',color:'#1f3b35'},
   income:{color:'#1f8b63'},
   expense:{color:'#536c90'},
   net:{color:'#355f53'},
@@ -131,7 +131,9 @@ const styles = StyleSheet.create({
   budgetItem:{borderWidth:1,borderColor:'#b7ebc3',borderRadius:10,padding:8,backgroundColor:'#f6fff8'}, budgetItemDark:{backgroundColor:'#1a2d22', borderColor:'#2e4d3b'}, budgetHeader:{flexDirection:'row',justifyContent:'space-between',alignItems:'center'}, budgetCat:{fontWeight:'700',color:'#1e6e37'}, budgetAmt:{color:'#14532d',fontWeight:'700'}, budgetEditRow:{flexDirection:'row',gap:8,marginTop:8},
   progressTrack:{height:24,backgroundColor:'#dcefe3',borderRadius:999,overflow:'hidden',marginTop:6,justifyContent:'center'}, progressTrackDark:{backgroundColor:'#243b30'}, progressFill:{position:'absolute',left:0,top:0,bottom:0,backgroundColor:'#16a34a'}, progressFillDark:{backgroundColor:'#22c55e'}, progressOver:{backgroundColor:'#dc2626'},
   progressOverlayCenter:{alignItems:'center',justifyContent:'center',paddingHorizontal:8},
-  progressInsideText:{color:'#ffffff',fontWeight:'800',fontSize:11},
+  progressInsideText:{fontWeight:'800',fontSize:11},
+  progressInsideOnFill:{color:'#ffffff'},
+  progressInsideOffFill:{color:'#14532d'},
   saveBtn:{backgroundColor:'#14b85a',borderRadius:8,paddingHorizontal:10,paddingVertical:8},saveBtnText:{color:'white',fontWeight:'700',fontSize:12},
   row:{flexDirection:'row',gap:8,alignItems:'center'}, flex1:{flex:1},
   pill:{paddingHorizontal:10,paddingVertical:7,borderRadius:999,borderWidth:1,borderColor:'#a9e6b7',backgroundColor:'#f0fff4'}, pillActive:{backgroundColor:'#14b85a',borderColor:'#14b85a'}, pillText:{color:'#1e6e37',fontWeight:'600'}, pillTextActive:{color:'white'},
