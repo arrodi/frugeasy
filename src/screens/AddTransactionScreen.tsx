@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   Alert,
   InputAccessoryView,
@@ -58,10 +58,7 @@ export function AddTransactionScreen({
   const amountInputRef = useRef<TextInput>(null);
   const amountAccessoryId = 'amountKeyboardAccessory';
 
-  useEffect(() => {
-    const t = setTimeout(() => amountInputRef.current?.focus(), 200);
-    return () => clearTimeout(t);
-  }, []);
+
 
   if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -113,7 +110,6 @@ export function AddTransactionScreen({
       <View style={[styles.formArea, darkMode && styles.formAreaDark]}>
         <TextInput
           ref={amountInputRef}
-          autoFocus
           value={amountInput}
           onChangeText={onChangeAmount}
           keyboardType="decimal-pad"
