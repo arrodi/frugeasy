@@ -69,12 +69,16 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
       ) : null}
 
       {tab === 'budgets' ? (
+        <>
         <View style={[styles.panel, darkMode && styles.panelDark]}>
           <Text style={[styles.panelTitle, darkMode && styles.textDark]}>Monthly Overview</Text>
-          <View style={styles.overviewRow}><Text style={[styles.overviewLabel, darkMode && styles.textDark]}>Income</Text><Text style={[styles.overviewValue, darkMode && styles.textDark]}>{formatCurrency(totals.income, currency)}</Text></View>
-          <View style={styles.overviewRow}><Text style={[styles.overviewLabel, darkMode && styles.textDark]}>Expenditure</Text><Text style={[styles.overviewValue, darkMode && styles.textDark]}>{formatCurrency(totals.expense, currency)}</Text></View>
-          <View style={styles.overviewRow}><Text style={[styles.overviewLabel, darkMode && styles.textDark]}>Net</Text><Text style={[styles.overviewValue, darkMode && styles.textDark]}>{formatCurrency(totals.net, currency)}</Text></View>
+          <View style={[styles.card, darkMode && styles.cardDark]}><Text style={[styles.cardLabel, darkMode && styles.textDark]}>Income</Text><Text style={[styles.cardValue, styles.income]}>{formatCurrency(totals.income, currency)}</Text></View>
+          <View style={[styles.card, darkMode && styles.cardDark]}><Text style={[styles.cardLabel, darkMode && styles.textDark]}>Expenditure</Text><Text style={[styles.cardValue, styles.expense]}>{formatCurrency(totals.expense, currency)}</Text></View>
+          <View style={[styles.card, darkMode && styles.cardDark]}><Text style={[styles.cardLabel, darkMode && styles.textDark]}>Net</Text><Text style={[styles.cardValue, styles.net]}>{formatCurrency(totals.net, currency)}</Text></View>
 
+        </View>
+
+        <View style={[styles.panel, darkMode && styles.panelDark]}>
           <Text style={[styles.panelTitle, darkMode && styles.textDark]}>Expenditure vs Budget by Category</Text>
           {budgetProgressRows.length === 0 ? <Text style={[styles.ruleText, darkMode && styles.textDark]}>No budgets set yet.</Text> : null}
           {budgetProgressRows.map((row) => (
@@ -114,6 +118,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
             </View>
           ))}
         </View>
+        </>
       ) : null}
 
       {tab === 'recurring' ? (
@@ -137,9 +142,13 @@ const styles = StyleSheet.create({
   switchOption:{flex:1,borderRadius:9,paddingVertical:10,alignItems:'center'},switchOptionActive:{backgroundColor:'#14b85a'},switchText:{color:'#1e6e37',fontWeight:'700'},switchTextActive:{color:'white'},
   panel:{backgroundColor:'#ecfff1',borderWidth:1,borderColor:'#9ee5ab',borderRadius:12,padding:10,gap:8}, panelDark:{backgroundColor:'#15251c',borderColor:'#2e4d3b'},
   panelTitle:{fontWeight:'700',color:'#1e6e37'},
-  overviewRow:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',paddingVertical:4},
-  overviewLabel:{color:'#1e6e37',fontWeight:'600'},
-  overviewValue:{color:'#14532d',fontWeight:'700'},
+  card:{backgroundColor:'#eef5f2',borderRadius:16,padding:12,borderWidth:1,borderColor:'#d2e2dc'},
+  cardDark:{backgroundColor:'#15251c',borderColor:'#2e4d3b'},
+  cardLabel:{color:'#49635d',marginBottom:4,fontWeight:'600'},
+  cardValue:{fontSize:22,fontWeight:'800',color:'#1f3b35'},
+  income:{color:'#1f8b63'},
+  expense:{color:'#536c90'},
+  net:{color:'#355f53'},
   input:{backgroundColor:'white',borderWidth:1,borderColor:'#b7ebc3',borderRadius:10,paddingHorizontal:10,paddingVertical:10,color:'#156530'}, inputDark:{backgroundColor:'#0f1a14',borderColor:'#2e4d3b',color:'#d6f5df'},
   dropdownTrigger:{minHeight:46,paddingHorizontal:12,borderRadius:10,borderWidth:1,borderColor:'#b7ebc3',backgroundColor:'white',flexDirection:'row',justifyContent:'space-between',alignItems:'center'},dropdownText:{color:'#156530',fontWeight:'600'},dropdownChevron:{color:'#2d7a43'},dropdownMenu:{borderWidth:1,borderColor:'#b7ebc3',borderRadius:10,overflow:'hidden'},dropdownOption:{paddingHorizontal:12,paddingVertical:10,borderBottomWidth:1,borderBottomColor:'#e3f6e8'},
   bigSaveBtn:{backgroundColor:'#14b85a',borderRadius:12,paddingVertical:16,alignItems:'center'}, bigSaveText:{color:'white',fontWeight:'800',fontSize:18},
