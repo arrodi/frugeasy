@@ -48,6 +48,7 @@ export function AddTransactionScreen({
   const [advanced, setAdvanced] = useState(false);
   const [freq, setFreq] = useState<'none' | 'weekly' | 'monthly'>('none');
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+  const [categoryChosen, setCategoryChosen] = useState(false);
   const amountAccessoryId = 'amountKeyboardAccessory';
 
   if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -100,13 +101,13 @@ export function AddTransactionScreen({
           </Pressable>
         </View>
 
-        <Text style={[styles.label, darkMode && styles.textDark]}>Category</Text>
         <Pressable
           style={[styles.categoryButton, darkMode && styles.inputDark]}
           onPress={() => setCategoryModalOpen(true)}
         >
-          <Text style={[styles.categoryButtonLabel, darkMode && styles.textDark]}>Category</Text>
-          <Text style={[styles.categoryButtonValue, darkMode && styles.textDark]}>{selectedCategory}</Text>
+          <Text style={[styles.categoryButtonValue, darkMode && styles.textDark]}>
+            {categoryChosen ? selectedCategory : 'Category'}
+          </Text>
         </Pressable>
 
         <Pressable
@@ -163,6 +164,7 @@ export function AddTransactionScreen({
                     style={[styles.categoryTile, selected && styles.categoryTileSelected]}
                     onPress={() => {
                       onChangeCategory(category);
+                      setCategoryChosen(true);
                       setCategoryModalOpen(false);
                     }}
                   >
@@ -211,12 +213,10 @@ const styles = StyleSheet.create({
     borderColor: '#9dddad',
     backgroundColor: 'white',
     paddingHorizontal: 14,
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
   },
-  categoryButtonLabel: { color: '#2b7a42', fontWeight: '700' },
-  categoryButtonValue: { color: '#14532d', fontWeight: '700', fontSize: 16 },
+  categoryButtonValue: { color: '#14532d', fontWeight: '700', fontSize: 16, textAlign: 'center' },
   advancedBtn: { borderWidth: 1, borderColor: '#9dddad', borderRadius: 10, paddingVertical: 10, alignItems: 'center', backgroundColor: '#ecfff1' },
   advancedText: { color: '#166534', fontWeight: '700' },
   rowGap: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
