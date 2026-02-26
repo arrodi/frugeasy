@@ -16,7 +16,6 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 
 import { AddTransactionScreen } from './src/screens/AddTransactionScreen';
-import { MonthlySummaryScreen } from './src/screens/MonthlySummaryScreen';
 import { BudgetingScreen } from './src/screens/BudgetingScreen';
 import { TransactionsScreen } from './src/screens/TransactionsScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
@@ -330,24 +329,11 @@ export default function App() {
         </View>
 
         <View style={[styles.page, { width }]}> 
-          <MonthlySummaryScreen
-            darkMode={darkMode}
-            currency={currency}
-            budgetProgressRows={budgetProgressRows}
-            year={selectedWindow.year}
-            monthIndex={selectedWindow.month}
-            totals={totals}
-            onPrevMonth={() => setMonthOffset((prev) => prev - 1)}
-            onNextMonth={() => setMonthOffset((prev) => Math.min(prev + 1, 0))}
-            canGoNextMonth={monthOffset < 0}
-          />
-        </View>
-
-        <View style={[styles.page, { width }]}> 
           <BudgetingScreen
             darkMode={darkMode}
             currency={currency}
             budgets={budgets}
+            totals={totals}
             budgetProgressRows={budgetProgressRows}
             categoryOptions={expenseCategoryOptions}
             onSaveBudget={handleSaveBudget}
@@ -386,7 +372,7 @@ export default function App() {
       </ScrollView>
 
       <View style={styles.tabDots}>
-        {['Add', 'Monthly', 'Budgeting', 'Transactions', 'Settings'].map((label, idx) => (
+        {['Add', 'Budgeting', 'Transactions', 'Settings'].map((label, idx) => (
           <Pressable
             key={label}
             style={styles.tabDotWrap}

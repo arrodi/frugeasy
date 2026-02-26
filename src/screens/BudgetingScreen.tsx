@@ -7,6 +7,7 @@ type Props = {
   darkMode?: boolean;
   currency: CurrencyCode;
   budgets: Budget[];
+  totals: { income: number; expense: number; net: number };
   budgetProgressRows: { category: string; budget: number; spent: number; usagePct: number }[];
   categoryOptions: TransactionCategory[];
   onSaveBudget: (category: TransactionCategory, amount: number) => Promise<void>;
@@ -15,7 +16,7 @@ type Props = {
   onToggleRecurringRule: (id: string, active: boolean) => Promise<void>;
 };
 
-export function BudgetingScreen({ darkMode, currency, budgets, budgetProgressRows, categoryOptions, onSaveBudget, recurringRules, onAddRecurringRule, onToggleRecurringRule }: Props) {
+export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetProgressRows, categoryOptions, onSaveBudget, recurringRules, onAddRecurringRule, onToggleRecurringRule }: Props) {
   const [tab, setTab] = useState<'add' | 'budgets' | 'recurring'>('add');
   const [budgetCategory, setBudgetCategory] = useState<TransactionCategory>('Food');
   const [budgetAmount, setBudgetAmount] = useState('');
@@ -69,18 +70,47 @@ export function BudgetingScreen({ darkMode, currency, budgets, budgetProgressRow
 
       {tab === 'budgets' ? (
         <View style={[styles.panel, darkMode && styles.panelDark]}>
+          <Text style={[styles.panelTitle, darkMode && styles.textDark]}>Monthly Overview</Text>
+          <View style={styles.overviewRow}><Text style={[styles.overviewLabel, darkMode && styles.textDark]}>Income</Text><Text style={[styles.overviewValue, darkMode && styles.textDark]}>{formatCurrency(totals.income, currency)}</Text></View>
+          <View style={styles.overviewRow}><Text style={[styles.overviewLabel, darkMode && styles.textDark]}>Expenditure</Text><Text style={[styles.overviewValue, darkMode && styles.textDark]}>{formatCurrency(totals.expense, currency)}</Text></View>
+          <View style={styles.overviewRow}><Text style={[styles.overviewLabel, darkMode && styles.textDark]}>Net</Text><Text style={[styles.overviewValue, darkMode && styles.textDark]}>{formatCurrency(totals.net, currency)}</Text></View>
+
           <Text style={[styles.panelTitle, darkMode && styles.textDark]}>Expenditure vs Budget by Category</Text>
           {budgetProgressRows.length === 0 ? <Text style={[styles.ruleText, darkMode && styles.textDark]}>No budgets set yet.</Text> : null}
           {budgetProgressRows.map((row) => (
             <View key={`b-${row.category}`} style={[styles.budgetItem, darkMode && styles.budgetItemDark]}>
               <View style={styles.budgetHeader}>
                 <Text style={[styles.budgetCat, darkMode && styles.textDark]}>{row.category}</Text>
-                <Text style={[styles.budgetAmt, darkMode && styles.textDark]}>{formatCurrency(row.spent, currency)} / {formatCurrency(row.budget, currency)}</Text>
+                <View style={styles.row}>
+                  <Text style={[styles.budgetAmt, darkMode && styles.textDark]}>{formatCurrency(row.spent, currency)} / {formatCurrency(row.budget, currency)}</Text>
+                  <Pressable style={styles.saveBtn} onPress={() => {
+                    const b = budgets.find((x) => x.category === row.category);
+                    if (b) {
+                      setExpandedBudgetId(b.id);
+                      setExpandedBudgetAmount(String(b.amount));
+                    }
+                  }}><Text style={styles.saveBtnText}>Edit</Text></Pressable>
+                </View>
               </View>
               <View style={[styles.progressTrack, darkMode && styles.progressTrackDark]}>
                 <View style={[styles.progressFill, darkMode && styles.progressFillDark, { width: `${Math.min(100, Math.max(0, row.usagePct))}%` }, row.usagePct > 100 && styles.progressOver]} />
               </View>
               <Text style={[styles.ruleText, darkMode && styles.textDark]}>{row.usagePct.toFixed(0)}% used</Text>
+              {(() => {
+                const b = budgets.find((x) => x.category === row.category);
+                if (!b || expandedBudgetId !== b.id) return null;
+                return (
+                  <View style={styles.budgetEditRow}>
+                    <TextInput value={expandedBudgetAmount} onChangeText={setExpandedBudgetAmount} style={[styles.input, styles.flex1, darkMode && styles.inputDark]} keyboardType="decimal-pad" placeholder="New amount" />
+                    <Pressable style={styles.saveBtn} onPress={async () => {
+                      const amount = Number(expandedBudgetAmount.replace(',', '.'));
+                      if (!Number.isFinite(amount) || amount <= 0) return;
+                      await onSaveBudget(b.category, amount);
+                      setExpandedBudgetId(null);
+                    }}><Text style={styles.saveBtnText}>Update</Text></Pressable>
+                  </View>
+                );
+              })()}
             </View>
           ))}
         </View>
@@ -107,6 +137,9 @@ const styles = StyleSheet.create({
   switchOption:{flex:1,borderRadius:9,paddingVertical:10,alignItems:'center'},switchOptionActive:{backgroundColor:'#14b85a'},switchText:{color:'#1e6e37',fontWeight:'700'},switchTextActive:{color:'white'},
   panel:{backgroundColor:'#ecfff1',borderWidth:1,borderColor:'#9ee5ab',borderRadius:12,padding:10,gap:8}, panelDark:{backgroundColor:'#15251c',borderColor:'#2e4d3b'},
   panelTitle:{fontWeight:'700',color:'#1e6e37'},
+  overviewRow:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',paddingVertical:4},
+  overviewLabel:{color:'#1e6e37',fontWeight:'600'},
+  overviewValue:{color:'#14532d',fontWeight:'700'},
   input:{backgroundColor:'white',borderWidth:1,borderColor:'#b7ebc3',borderRadius:10,paddingHorizontal:10,paddingVertical:10,color:'#156530'}, inputDark:{backgroundColor:'#0f1a14',borderColor:'#2e4d3b',color:'#d6f5df'},
   dropdownTrigger:{minHeight:46,paddingHorizontal:12,borderRadius:10,borderWidth:1,borderColor:'#b7ebc3',backgroundColor:'white',flexDirection:'row',justifyContent:'space-between',alignItems:'center'},dropdownText:{color:'#156530',fontWeight:'600'},dropdownChevron:{color:'#2d7a43'},dropdownMenu:{borderWidth:1,borderColor:'#b7ebc3',borderRadius:10,overflow:'hidden'},dropdownOption:{paddingHorizontal:12,paddingVertical:10,borderBottomWidth:1,borderBottomColor:'#e3f6e8'},
   bigSaveBtn:{backgroundColor:'#14b85a',borderRadius:12,paddingVertical:16,alignItems:'center'}, bigSaveText:{color:'white',fontWeight:'800',fontSize:18},
