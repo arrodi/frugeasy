@@ -47,6 +47,7 @@ export function AddTransactionScreen({
   const [isSaving, setIsSaving] = useState(false);
   const [advanced, setAdvanced] = useState(false);
   const [freq, setFreq] = useState<'none' | 'weekly' | 'monthly'>('none');
+  const [typeModalOpen, setTypeModalOpen] = useState(false);
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [categoryChosen, setCategoryChosen] = useState(false);
   const amountAccessoryId = 'amountKeyboardAccessory';
@@ -92,14 +93,14 @@ export function AddTransactionScreen({
           style={[styles.input, darkMode && styles.inputDark]}
         />
 
-        <View style={[styles.switchWrap, darkMode && styles.switchWrapDark]}>
-          <Pressable onPress={() => onChangeType('income')} style={[styles.switchOption, selectedType === 'income' && styles.switchOptionActive]}>
-            <Text style={[styles.switchText, selectedType === 'income' && styles.switchTextActive]}>Income</Text>
-          </Pressable>
-          <Pressable onPress={() => onChangeType('expense')} style={[styles.switchOption, selectedType === 'expense' && styles.switchOptionActive]}>
-            <Text style={[styles.switchText, selectedType === 'expense' && styles.switchTextActive]}>Expense</Text>
-          </Pressable>
-        </View>
+        <Pressable
+          style={[styles.categoryButton, darkMode && styles.inputDark]}
+          onPress={() => setTypeModalOpen(true)}
+        >
+          <Text style={[styles.categoryButtonValue, darkMode && styles.textDark]}>
+            {selectedType === 'income' ? 'Income' : 'Expense'}
+          </Text>
+        </Pressable>
 
         <Pressable
           style={[styles.categoryButton, darkMode && styles.inputDark]}
@@ -145,6 +146,38 @@ export function AddTransactionScreen({
           <Text style={styles.saveBtnText}>{isSaving ? 'Saving…' : 'Save transaction'}</Text>
         </Pressable>
       </View>
+
+      <Modal
+        visible={typeModalOpen}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setTypeModalOpen(false)}
+      >
+        <Pressable style={styles.modalBackdrop} onPress={() => setTypeModalOpen(false)}>
+          <Pressable style={[styles.modalCard, darkMode && styles.formAreaDark]} onPress={() => {}}>
+            <Text style={[styles.modalTitle, darkMode && styles.textDark]}>Select type</Text>
+            <View style={styles.tileWrap}>
+              {(['expense', 'income'] as const).map((type) => {
+                const selected = type === selectedType;
+                return (
+                  <Pressable
+                    key={type}
+                    style={[styles.categoryTile, selected && styles.categoryTileSelected]}
+                    onPress={() => {
+                      onChangeType(type);
+                      setTypeModalOpen(false);
+                    }}
+                  >
+                    <Text style={[styles.categoryTileText, selected && styles.categoryTileTextSelected]}>
+                      {type === 'income' ? 'Income' : 'Expense'}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       <Modal
         visible={categoryModalOpen}
@@ -199,12 +232,6 @@ const styles = StyleSheet.create({
   textDark: { color: '#d6f5df' },
   input: { backgroundColor: 'white', borderWidth: 1, borderColor: '#86d89d', color: '#14532d', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, fontSize: 18, fontWeight: '600' },
   inputDark: { backgroundColor: '#0f1a14', borderColor: '#2e4d3b', color: '#d6f5df' },
-  switchWrap: { flexDirection: 'row', backgroundColor: '#e8f8ee', borderRadius: 12, padding: 4, borderWidth: 1, borderColor: '#b6e9c3', gap: 4 },
-  switchWrapDark: { backgroundColor: '#1a2d22', borderColor: '#2e4d3b' },
-  switchOption: { flex: 1, borderRadius: 9, paddingVertical: 10, alignItems: 'center' },
-  switchOptionActive: { backgroundColor: '#16a34a' },
-  switchText: { color: '#1e6e37', fontWeight: '700', fontSize: 16 },
-  switchTextActive: { color: 'white' },
   label: { color: '#166534', fontWeight: '700', fontSize: 16 },
   categoryButton: {
     minHeight: 52,
