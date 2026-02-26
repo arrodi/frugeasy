@@ -1,5 +1,18 @@
 import { useState } from 'react';
-import { Alert, InputAccessoryView, Keyboard, LayoutAnimation, Platform, Pressable, StyleSheet, Text, TextInput, UIManager, View } from 'react-native';
+import {
+  Alert,
+  InputAccessoryView,
+  Keyboard,
+  LayoutAnimation,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  UIManager,
+  View,
+} from 'react-native';
 import { TransactionCategory, TransactionType } from '../domain/types';
 
 type Props = {
@@ -17,11 +30,24 @@ type Props = {
   onCreateRecurring: (input: { frequency: 'weekly' | 'monthly'; label: string }) => Promise<void>;
 };
 
-export function AddTransactionScreen({ darkMode, nameInput, amountInput, selectedType, selectedCategory, categoryOptions, onChangeName, onChangeAmount, onChangeType, onChangeCategory, onSave, onCreateRecurring }: Props) {
-  const [categoryOpen, setCategoryOpen] = useState(false);
+export function AddTransactionScreen({
+  darkMode,
+  nameInput,
+  amountInput,
+  selectedType,
+  selectedCategory,
+  categoryOptions,
+  onChangeName,
+  onChangeAmount,
+  onChangeType,
+  onChangeCategory,
+  onSave,
+  onCreateRecurring,
+}: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [advanced, setAdvanced] = useState(false);
   const [freq, setFreq] = useState<'none' | 'weekly' | 'monthly'>('none');
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const amountAccessoryId = 'amountKeyboardAccessory';
 
   if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -40,36 +66,48 @@ export function AddTransactionScreen({ darkMode, nameInput, amountInput, selecte
       if (ok && advanced && freq !== 'none') {
         await onCreateRecurring({ frequency: freq, label: nameInput.trim() || `${selectedCategory} recurring` });
       }
-    } finally { setIsSaving(false); }
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
     <View style={styles.screenContainer}>
-      <View style={styles.heroWrap}><Text style={[styles.sectionTitle, darkMode && styles.textDark]}>Transact!</Text></View>
+      <View style={styles.heroWrap}>
+        <Text style={[styles.sectionTitle, darkMode && styles.textDark]}>Transact!</Text>
+      </View>
+
       <View style={[styles.formArea, darkMode && styles.formAreaDark]}>
-        <TextInput value={amountInput} onChangeText={onChangeAmount} keyboardType="decimal-pad" returnKeyType="done" blurOnSubmit onSubmitEditing={() => Keyboard.dismiss()} inputAccessoryViewID={Platform.OS === 'ios' ? amountAccessoryId : undefined} placeholder="Amount" placeholderTextColor={darkMode ? '#86a893' : '#3e5f47'} style={[styles.input, darkMode && styles.inputDark]} />
+        <TextInput
+          value={amountInput}
+          onChangeText={onChangeAmount}
+          keyboardType="decimal-pad"
+          returnKeyType="done"
+          blurOnSubmit
+          onSubmitEditing={() => Keyboard.dismiss()}
+          inputAccessoryViewID={Platform.OS === 'ios' ? amountAccessoryId : undefined}
+          placeholder="Amount"
+          placeholderTextColor={darkMode ? '#86a893' : '#3e5f47'}
+          style={[styles.input, darkMode && styles.inputDark]}
+        />
 
         <View style={[styles.switchWrap, darkMode && styles.switchWrapDark]}>
-          <Pressable onPress={() => onChangeType('income')} style={[styles.switchOption, selectedType === 'income' && styles.switchOptionActive]}><Text style={[styles.switchText, selectedType === 'income' && styles.switchTextActive]}>Income</Text></Pressable>
-          <Pressable onPress={() => onChangeType('expense')} style={[styles.switchOption, selectedType === 'expense' && styles.switchOptionActive]}><Text style={[styles.switchText, selectedType === 'expense' && styles.switchTextActive]}>Expense</Text></Pressable>
+          <Pressable onPress={() => onChangeType('income')} style={[styles.switchOption, selectedType === 'income' && styles.switchOptionActive]}>
+            <Text style={[styles.switchText, selectedType === 'income' && styles.switchTextActive]}>Income</Text>
+          </Pressable>
+          <Pressable onPress={() => onChangeType('expense')} style={[styles.switchOption, selectedType === 'expense' && styles.switchOptionActive]}>
+            <Text style={[styles.switchText, selectedType === 'expense' && styles.switchTextActive]}>Expense</Text>
+          </Pressable>
         </View>
 
         <Text style={[styles.label, darkMode && styles.textDark]}>Category</Text>
-        <View>
-          <Pressable style={[styles.dropdownTrigger, darkMode && styles.inputDark]} onPress={() => setCategoryOpen((p) => !p)}>
-            <Text style={[styles.dropdownTriggerText, darkMode && styles.textDark]}>{selectedCategory}</Text>
-            <Text style={styles.dropdownChevron}>{categoryOpen ? '▴' : '▾'}</Text>
-          </Pressable>
-          {categoryOpen ? (
-            <View style={[styles.dropdownMenu, darkMode && styles.formAreaDark]}>
-              {categoryOptions.map((category) => (
-                <Pressable key={category} onPress={() => { onChangeCategory(category); setCategoryOpen(false); }} style={[styles.dropdownOption, category === selectedCategory && styles.dropdownOptionActive]}>
-                  <Text style={[styles.dropdownOptionText, darkMode && styles.textDark]}>{category}</Text>
-                </Pressable>
-              ))}
-            </View>
-          ) : null}
-        </View>
+        <Pressable
+          style={[styles.categoryButton, darkMode && styles.inputDark]}
+          onPress={() => setCategoryModalOpen(true)}
+        >
+          <Text style={[styles.categoryButtonLabel, darkMode && styles.textDark]}>Category</Text>
+          <Text style={[styles.categoryButtonValue, darkMode && styles.textDark]}>{selectedCategory}</Text>
+        </Pressable>
 
         <Pressable
           style={[styles.advancedBtn, darkMode && styles.inputDark]}
@@ -84,19 +122,67 @@ export function AddTransactionScreen({ darkMode, nameInput, amountInput, selecte
         {advanced ? (
           <>
             <Text style={[styles.label, darkMode && styles.textDark]}>Name (optional)</Text>
-            <TextInput value={nameInput} onChangeText={onChangeName} placeholder="e.g. Lunch, Salary" placeholderTextColor={darkMode ? '#86a893' : '#3e5f47'} style={[styles.input, darkMode && styles.inputDark]} />
+            <TextInput
+              value={nameInput}
+              onChangeText={onChangeName}
+              placeholder="e.g. Lunch, Salary"
+              placeholderTextColor={darkMode ? '#86a893' : '#3e5f47'}
+              style={[styles.input, darkMode && styles.inputDark]}
+            />
             <Text style={[styles.label, darkMode && styles.textDark]}>Recurrence</Text>
             <View style={styles.rowGap}>
-              {(['none','weekly','monthly'] as const).map((f)=><Pressable key={f} style={[styles.pill, freq===f&&styles.pillActive]} onPress={()=>setFreq(f)}><Text style={[styles.pillText, freq===f&&styles.pillTextActive]}>{f}</Text></Pressable>)}
+              {(['none', 'weekly', 'monthly'] as const).map((f) => (
+                <Pressable key={f} style={[styles.pill, freq === f && styles.pillActive]} onPress={() => setFreq(f)}>
+                  <Text style={[styles.pillText, freq === f && styles.pillTextActive]}>{f}</Text>
+                </Pressable>
+              ))}
             </View>
           </>
         ) : null}
 
-        <Pressable style={styles.saveBtn} onPress={onPressSave}><Text style={styles.saveBtnText}>{isSaving ? 'Saving…' : 'Save transaction'}</Text></Pressable>
+        <Pressable style={styles.saveBtn} onPress={onPressSave}>
+          <Text style={styles.saveBtnText}>{isSaving ? 'Saving…' : 'Save transaction'}</Text>
+        </Pressable>
       </View>
 
+      <Modal
+        visible={categoryModalOpen}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setCategoryModalOpen(false)}
+      >
+        <Pressable style={styles.modalBackdrop} onPress={() => setCategoryModalOpen(false)}>
+          <Pressable style={[styles.modalCard, darkMode && styles.formAreaDark]} onPress={() => {}}>
+            <Text style={[styles.modalTitle, darkMode && styles.textDark]}>Select category</Text>
+            <View style={styles.tileWrap}>
+              {categoryOptions.map((category) => {
+                const selected = category === selectedCategory;
+                return (
+                  <Pressable
+                    key={category}
+                    style={[styles.categoryTile, selected && styles.categoryTileSelected]}
+                    onPress={() => {
+                      onChangeCategory(category);
+                      setCategoryModalOpen(false);
+                    }}
+                  >
+                    <Text style={[styles.categoryTileText, selected && styles.categoryTileTextSelected]}>{category}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       {Platform.OS === 'ios' ? (
-        <InputAccessoryView nativeID={amountAccessoryId}><View style={styles.accessoryBar}><Pressable onPress={() => Keyboard.dismiss()} style={styles.doneTypingButton}><Text style={styles.doneTypingText}>Done</Text></Pressable></View></InputAccessoryView>
+        <InputAccessoryView nativeID={amountAccessoryId}>
+          <View style={styles.accessoryBar}>
+            <Pressable onPress={() => Keyboard.dismiss()} style={styles.doneTypingButton}>
+              <Text style={styles.doneTypingText}>Done</Text>
+            </Pressable>
+          </View>
+        </InputAccessoryView>
       ) : null}
     </View>
   );
@@ -118,18 +204,60 @@ const styles = StyleSheet.create({
   switchText: { color: '#1e6e37', fontWeight: '700', fontSize: 16 },
   switchTextActive: { color: 'white' },
   label: { color: '#166534', fontWeight: '700', fontSize: 16 },
-  dropdownTrigger: { minHeight: 52, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: '#9dddad', backgroundColor: 'white', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  dropdownTriggerText: { color: '#14532d', fontWeight: '600', fontSize: 18 },
-  dropdownChevron: { color: '#2b7a42', fontSize: 16 },
-  dropdownMenu: { marginTop: 6, borderRadius: 12, borderWidth: 1, borderColor: '#b0e8be', overflow: 'hidden', backgroundColor: 'white' },
-  dropdownOption: { paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#e3f6e8' },
-  dropdownOptionActive: { backgroundColor: '#e4fce9' },
-  dropdownOptionText: { color: '#1e6e37', fontWeight: '600', fontSize: 16 },
-  advancedBtn:{borderWidth:1,borderColor:'#9dddad',borderRadius:10,paddingVertical:10,alignItems:'center',backgroundColor:'#ecfff1'}, advancedText:{color:'#166534',fontWeight:'700'},
-  rowGap:{flexDirection:'row',gap:8,flexWrap:'wrap'},
-  pill:{paddingHorizontal:10,paddingVertical:7,borderRadius:999,borderWidth:1,borderColor:'#a9e6b7',backgroundColor:'#f0fff4'}, pillActive:{backgroundColor:'#14b85a',borderColor:'#14b85a'}, pillText:{color:'#1e6e37',fontWeight:'600'}, pillTextActive:{color:'white'},
+  categoryButton: {
+    minHeight: 52,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#9dddad',
+    backgroundColor: 'white',
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  categoryButtonLabel: { color: '#2b7a42', fontWeight: '700' },
+  categoryButtonValue: { color: '#14532d', fontWeight: '700', fontSize: 16 },
+  advancedBtn: { borderWidth: 1, borderColor: '#9dddad', borderRadius: 10, paddingVertical: 10, alignItems: 'center', backgroundColor: '#ecfff1' },
+  advancedText: { color: '#166534', fontWeight: '700' },
+  rowGap: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  pill: { paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: '#a9e6b7', backgroundColor: '#f0fff4' },
+  pillActive: { backgroundColor: '#14b85a', borderColor: '#14b85a' },
+  pillText: { color: '#1e6e37', fontWeight: '600' },
+  pillTextActive: { color: 'white' },
   saveBtn: { marginTop: 'auto', backgroundColor: '#16a34a', borderWidth: 1, borderColor: '#15803d', borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
   saveBtnText: { color: 'white', fontWeight: '800', fontSize: 18 },
+
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 520,
+    backgroundColor: '#f3fff6',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#b8efc4',
+    padding: 14,
+    gap: 12,
+  },
+  modalTitle: { fontSize: 18, fontWeight: '800', color: '#166534' },
+  tileWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  categoryTile: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#9dddad',
+    backgroundColor: 'white',
+  },
+  categoryTileSelected: { backgroundColor: '#16a34a', borderColor: '#16a34a' },
+  categoryTileText: { color: '#14532d', fontWeight: '700' },
+  categoryTileTextSelected: { color: 'white' },
+
   accessoryBar: { backgroundColor: '#e5faeb', borderTopWidth: 1, borderTopColor: '#b9ebc7', paddingHorizontal: 12, paddingVertical: 8, alignItems: 'flex-end' },
   doneTypingButton: { backgroundColor: '#d2f5dc', borderWidth: 1, borderColor: '#98dda9', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 },
   doneTypingText: { color: '#14632f', fontWeight: '700' },
