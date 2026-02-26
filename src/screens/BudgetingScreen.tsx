@@ -16,7 +16,7 @@ type Props = {
 };
 
 export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetProgressRows, transactions, onSaveBudget, categoryOptions }: Props) {
-  const [expandedBudgetId, setExpandedBudgetId] = useState<string | null>(null);
+  const [expandedBudgetKey, setExpandedBudgetKey] = useState<string | null>(null);
   const [showAddBudget, setShowAddBudget] = useState(false);
   const [budgetCategory, setBudgetCategory] = useState<TransactionCategory>('Food');
   const [budgetAmount, setBudgetAmount] = useState('');
@@ -123,8 +123,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
         <View>
           {displayedBudgetRows.length === 0 ? <Text style={[styles.ruleText, darkMode && styles.textDark]}>No budgets set yet.</Text> : null}
           {displayedBudgetRows.map((row) => {
-            const budget = budgets.find((b) => b.category === row.category);
-            const expanded = budget?.id === expandedBudgetId;
+            const expanded = row.category === expandedBudgetKey;
             const recent = transactions
               .filter((t) => t.type === 'expense' && t.category === row.category)
               .sort((a, b) => +new Date(b.date) - +new Date(a.date))
@@ -135,9 +134,8 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
                 key={`b-${row.category}`}
                 style={[styles.budgetItem, darkMode && styles.budgetItemDark]}
                 onPress={() => {
-                  if (!budget) return;
                   LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                  setExpandedBudgetId(expanded ? null : budget.id);
+                  setExpandedBudgetKey(expanded ? null : row.category);
                 }}
               >
                 <View style={styles.budgetHeader}>
@@ -219,7 +217,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
 const styles = StyleSheet.create({
   screenContainer: { flex: 1 },
   screenDark: { backgroundColor: '#0f1a14' },
-  contentContainer: { paddingHorizontal: 16, gap: 10, paddingTop: 8, paddingBottom: 24 },
+  contentContainer: { paddingHorizontal: 16, gap: 10, paddingTop: 8, paddingBottom: 120 },
   title: { fontSize: 17, fontWeight: '700', color: '#156530' },
   panelTitle: { fontSize: 14, fontWeight: '700', color: '#14532d', marginBottom: 6 },
   textDark: { color: '#d6f5df' },
