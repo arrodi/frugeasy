@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
   },
   formArea: { width: '100%', maxWidth: 520, backgroundColor: '#f3fff6', borderWidth: 1, borderColor: '#b8efc4', borderRadius: 18, padding: 16, gap: 14 },
   formAreaDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
-  sectionTitle: { fontSize: 24, fontWeight: '800', color: '#166534' },
+  sectionTitle: { fontSize: 44, fontWeight: '900', color: '#166534', letterSpacing: 0.4 },
   textDark: { color: '#d6f5df' },
   input: { backgroundColor: 'white', borderWidth: 1, borderColor: '#86d89d', color: '#14532d', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, fontSize: 18, fontWeight: '600' },
   inputDark: { backgroundColor: '#0f1a14', borderColor: '#2e4d3b', color: '#d6f5df' },
