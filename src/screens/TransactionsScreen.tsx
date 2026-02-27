@@ -14,6 +14,7 @@ type Props = {
   categoryFilter: 'all' | TransactionCategory;
   onCategoryFilterChange: (value: 'all' | TransactionCategory) => void;
   categoryOptions: TransactionCategory[];
+  budgetCategoryOptions: TransactionCategory[];
   searchQuery: string;
   onSearchQueryChange: (value: string) => void;
   onDeleteTransaction: (id: string) => Promise<void>;
@@ -104,6 +105,7 @@ export function TransactionsScreen(props: Props) {
     categoryFilter,
     onCategoryFilterChange,
     categoryOptions,
+    budgetCategoryOptions,
     searchQuery,
     onSearchQueryChange,
     onDeleteTransaction,
@@ -296,7 +298,7 @@ export function TransactionsScreen(props: Props) {
             </Pressable>
             {budgetCategoryOpen ? (
               <View style={[styles.dropdownMenu, darkMode && styles.panelDark]}>
-                {categoryOptions.map((cat) => (
+                {budgetCategoryOptions.map((cat) => (
                   <Pressable key={cat} style={styles.dropdownOption} onPress={() => { setBudgetCategory(cat); setBudgetCategoryOpen(false); }}>
                     <Text style={[styles.dropdownText, darkMode && styles.textDark]}>{cat}</Text>
                   </Pressable>

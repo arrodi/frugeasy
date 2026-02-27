@@ -388,6 +388,7 @@ export default function App() {
             categoryFilter={categoryFilter}
             onCategoryFilterChange={setCategoryFilter}
             categoryOptions={categoryOptions}
+            budgetCategoryOptions={expenseCategoryOptions}
             searchQuery={searchQuery}
             onSearchQueryChange={setSearchQuery}
             onDeleteTransaction={handleDeleteTransaction}
