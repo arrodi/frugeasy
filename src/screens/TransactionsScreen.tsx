@@ -50,7 +50,7 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
 
   return (
     <Pressable style={styles.transactionShell} onPress={() => setActiveId(opened ? null : item.id)}>
-      <View style={styles.tapActionsBg} pointerEvents="box-none">
+      <View style={[styles.tapActionsBg, styles.transactionActionsBg]} pointerEvents="box-none">
         <Animated.View style={[styles.tapActionsRight, { width: reveal, opacity: actionOpacity }]}> 
           <Pressable
             style={[styles.updateFlatBtn, darkMode && styles.updateFlatBtnDark]}
@@ -476,6 +476,7 @@ const styles = StyleSheet.create({
   swipeShell: { position: 'relative', marginBottom: 8, borderRadius: 14, borderWidth: 1, borderColor: '#9ee5ab', backgroundColor: '#ecfff1', overflow: 'hidden' },
   swipeShellDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
   tapActionsBg: { position: 'absolute', inset: 0, justifyContent: 'center', alignItems: 'flex-end' },
+  transactionActionsBg: { top: 10, bottom: 10 },
   tapActionsRight: { flexDirection: 'row', height: '100%', overflow: 'hidden' },
   updateFlatBtn: { backgroundColor: '#14b85a', justifyContent: 'center', alignItems: 'center', width: 66 },
   updateFlatBtnDark: { backgroundColor: '#14b85a' },
