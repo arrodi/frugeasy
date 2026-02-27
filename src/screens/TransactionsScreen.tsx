@@ -40,6 +40,7 @@ type TransactionTapRowProps = {
 function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, onDeleteTransaction, onUpdateTransaction }: TransactionTapRowProps) {
   const reveal = useRef(new Animated.Value(0)).current;
   const opened = activeId === item.id;
+  const dateLabel = new Date(item.date).toLocaleDateString();
 
   useEffect(() => {
     Animated.timing(reveal, { toValue: opened ? 132 : 0, duration: 180, useNativeDriver: false }).start();
@@ -88,7 +89,10 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
             <Text style={[styles.name, darkMode && styles.textDark]}>{item.name?.trim() ? item.name : '—'}</Text>
             <Text style={[styles.meta, darkMode && styles.metaDark]}>{item.category}</Text>
           </View>
-          <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(item.amount, currency)}</Text>
+          <View style={styles.rightRow}>
+            <Text style={[styles.meta, darkMode && styles.metaDark]}>{dateLabel}</Text>
+            <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(item.amount, currency)}</Text>
+          </View>
         </View>
       </Animated.View>
     </Pressable>
@@ -274,6 +278,10 @@ export function TransactionsScreen(props: Props) {
               indicatorStyle={darkMode ? 'white' : 'black'}
               scrollIndicatorInsets={{ right: 1 }}
             >
+              <View style={[styles.tableHeaderRow, darkMode && styles.tableHeaderRowDark]}>
+                <Text style={[styles.tableHeaderText, darkMode && styles.metaDark]}>Name / Category</Text>
+                <Text style={[styles.tableHeaderText, darkMode && styles.metaDark]}>Date / Amount</Text>
+              </View>
               {shownTransactions.map((item) => (
                 <TransactionTapRow
                   key={item.id}
@@ -425,6 +433,9 @@ const styles = StyleSheet.create({
   reviewAddBudgetText: { color: 'white', fontWeight: '800', fontSize: 16 },
   transactionsListScroll: { flex: 1 },
   transactionsListContent: { paddingBottom: 18 },
+  tableHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 6, paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: '#d4eadb', marginBottom: 6 },
+  tableHeaderRowDark: { borderBottomColor: '#2e4d3b' },
+  tableHeaderText: { color: '#3e7b52', fontSize: 11, fontWeight: '700' },
 
   reviewBottomTab: { flex: 1, alignItems: 'center', gap: 4, paddingTop: 2 },
   reviewBottomDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#79d992' },
