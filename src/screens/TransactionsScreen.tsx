@@ -49,38 +49,40 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
   return (
     <Pressable style={styles.transactionShell} onPress={() => setActiveId(opened ? null : item.id)}>
       <View style={styles.tapActionsBg} pointerEvents="box-none">
-        <View style={styles.tapActionsRight}>
-          <Pressable
-            style={styles.updateFlatBtn}
-            onPress={(e) => {
-              e.stopPropagation?.();
-              Alert.prompt(
-                'Update transaction amount',
-                `${item.category} • ${item.name || '—'}`,
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  {
-                    text: 'Save',
-                    onPress: async (value?: string) => {
-                      const amount = Number((value ?? '').replace(',', '.'));
-                      if (!Number.isFinite(amount) || amount <= 0) return;
-                      await onUpdateTransaction({ id: item.id, amount, type: item.type, category: item.category, name: item.name, date: item.date });
-                      setActiveId(null);
+        {opened ? (
+          <View style={styles.tapActionsRight}>
+            <Pressable
+              style={styles.updateFlatBtn}
+              onPress={(e) => {
+                e.stopPropagation?.();
+                Alert.prompt(
+                  'Update transaction amount',
+                  `${item.category} • ${item.name || '—'}`,
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                      text: 'Save',
+                      onPress: async (value?: string) => {
+                        const amount = Number((value ?? '').replace(',', '.'));
+                        if (!Number.isFinite(amount) || amount <= 0) return;
+                        await onUpdateTransaction({ id: item.id, amount, type: item.type, category: item.category, name: item.name, date: item.date });
+                        setActiveId(null);
+                      },
                     },
-                  },
-                ],
-                'plain-text',
-                String(item.amount),
-                'decimal-pad'
-              );
-            }}
-          >
-            <Text style={styles.flatBtnText}>Update</Text>
-          </Pressable>
-          <Pressable style={styles.deleteFlatBtn} onPress={(e) => { e.stopPropagation?.(); onDeleteTransaction(item.id); }}>
-            <Text style={styles.flatBtnText}>Delete</Text>
-          </Pressable>
-        </View>
+                  ],
+                  'plain-text',
+                  String(item.amount),
+                  'decimal-pad'
+                );
+              }}
+            >
+              <Text style={styles.flatBtnText}>Update</Text>
+            </Pressable>
+            <Pressable style={styles.deleteFlatBtn} onPress={(e) => { e.stopPropagation?.(); onDeleteTransaction(item.id); }}>
+              <Text style={styles.flatBtnText}>Delete</Text>
+            </Pressable>
+          </View>
+        ) : null}
       </View>
 
       <Animated.View style={[styles.transactionRow, { marginRight: reveal }]}> 
