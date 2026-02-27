@@ -56,7 +56,13 @@ function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudg
                   {
                     text: 'Save',
                     onPress: async (value?: string) => {
-                      const amount = Number((value ?? '').replace(',', '.'));
+                      const raw = (value ?? '').trim();
+                      if (!raw) return;
+                      if (!/^\d+(?:[.,]\d+)?$/.test(raw)) {
+                        Alert.alert('Invalid amount', 'Use numbers only (e.g. 120 or 120.50).');
+                        return;
+                      }
+                      const amount = Number(raw.replace(',', '.'));
                       if (!Number.isFinite(amount) || amount <= 0) return;
                       await onSaveBudget(budget.category, amount);
                       setActiveSwipeBudgetId(null);
