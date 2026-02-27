@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Animated, Easing, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Alert, Animated, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg';
 import { Budget, CurrencyCode, Transaction, TransactionCategory, TransactionType } from '../domain/types';
 import { formatCurrency } from '../ui/format';
@@ -43,16 +42,11 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
   const opened = activeId === item.id;
 
   useEffect(() => {
-    Animated.timing(reveal, {
-      toValue: opened ? 132 : 0,
-      duration: 240,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: false,
-    }).start();
+    Animated.timing(reveal, { toValue: opened ? 132 : 0, duration: 180, useNativeDriver: false }).start();
   }, [opened]);
 
   return (
-    <Pressable style={styles.transactionShell} onPress={() => setActiveId(opened ? null : item.id)}>
+    <Pressable style={[styles.swipeShell, darkMode && styles.swipeShellDark]} onPress={() => setActiveId(opened ? null : item.id)}>
       <View style={styles.tapActionsBg} pointerEvents="box-none">
         {opened ? (
           <View style={styles.tapActionsRight}>
@@ -90,7 +84,7 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
         ) : null}
       </View>
 
-      <Animated.View style={[styles.transactionRow, { marginRight: reveal }]}> 
+      <Animated.View style={[styles.listRow, styles.listRowInner, darkMode && styles.listRowDark, { marginRight: reveal }]}>
         <View style={styles.topRow}>
           <View>
             <Text style={[styles.name, darkMode && styles.textDark]}>{item.name?.trim() ? item.name : '—'}</Text>
@@ -98,13 +92,6 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
           </View>
           <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(item.amount, currency)}</Text>
         </View>
-        <LinearGradient
-          pointerEvents="none"
-          colors={['transparent', darkMode ? 'rgba(214,245,223,0.20)' : 'rgba(20,99,47,0.16)', 'transparent']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.rowSeparator}
-        />
       </Animated.View>
     </Pressable>
   );
@@ -434,9 +421,6 @@ const styles = StyleSheet.create({
   reviewAddBudgetText: { color: 'white', fontWeight: '800', fontSize: 16 },
   transactionsListScroll: { flex: 1 },
   transactionsListContent: { paddingBottom: 18 },
-  transactionShell: { position: 'relative' },
-  transactionRow: { backgroundColor: 'transparent', paddingHorizontal: 6, paddingTop: 10, paddingBottom: 8 },
-  rowSeparator: { height: 1, marginTop: 10 },
 
   reviewBottomTab: { flex: 1, alignItems: 'center', gap: 4, paddingTop: 2 },
   reviewBottomDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#79d992' },
