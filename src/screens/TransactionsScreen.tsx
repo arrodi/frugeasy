@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { LayoutAnimation, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { Animated, NativeScrollEvent, NativeSyntheticEvent, PanResponder, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg';
 import { Budget, CurrencyCode, Transaction, TransactionCategory, TransactionType } from '../domain/types';
 import { formatCurrency } from '../ui/format';
@@ -23,6 +23,82 @@ type Props = {
   onSwipeBeyondLeft: () => void;
   onSwipeBeyondRight: () => void;
 };
+
+type BudgetSwipeRowProps = {
+  budget: Budget;
+  currency: CurrencyCode;
+  darkMode?: boolean;
+  onSaveBudget: (category: TransactionCategory, amount: number) => Promise<void>;
+  onDeleteBudget: (id: string) => Promise<void>;
+};
+
+function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudget }: BudgetSwipeRowProps) {
+  const translateX = useRef(new Animated.Value(0)).current;
+  const [editing, setEditing] = useState(false);
+  const [draftAmount, setDraftAmount] = useState(String(budget.amount));
+
+  const snapTo = (x: number) => Animated.spring(translateX, { toValue: x, useNativeDriver: true, bounciness: 0 }).start();
+
+  const panResponder = useMemo(
+    () => PanResponder.create({
+      onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 12 && Math.abs(g.dx) > Math.abs(g.dy),
+      onPanResponderMove: (_, g) => translateX.setValue(Math.max(-92, Math.min(92, g.dx))),
+      onPanResponderRelease: (_, g) => {
+        if (g.dx > 36) snapTo(84);
+        else if (g.dx < -36) snapTo(-84);
+        else snapTo(0);
+      },
+      onPanResponderTerminate: () => snapTo(0),
+    }),
+    []
+  );
+
+  return (
+    <View style={styles.swipeRowWrap}>
+      <View style={styles.swipeActionsBg} pointerEvents="box-none">
+        <Pressable style={[styles.swipeActionLeft, darkMode && styles.listRowDark]} onPress={() => setEditing(true)}>
+          <Text style={styles.actionBtnText}>Edit</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.swipeActionRight, darkMode && styles.listRowDark]}
+          onPress={async () => {
+            if (!editing) {
+              setEditing(true);
+              return;
+            }
+            const amount = Number(draftAmount.replace(',', '.'));
+            if (!Number.isFinite(amount) || amount <= 0) return;
+            await onSaveBudget(budget.category, amount);
+            setEditing(false);
+            snapTo(0);
+          }}
+        >
+          <Text style={styles.actionBtnText}>{editing ? 'Submit' : 'Update'}</Text>
+        </Pressable>
+      </View>
+
+      <Animated.View style={[styles.listRow, darkMode && styles.listRowDark, { transform: [{ translateX }] }]} {...panResponder.panHandlers}>
+        <View style={styles.topRow}>
+          <Text style={[styles.name, darkMode && styles.textDark]}>{budget.category}</Text>
+          {!editing ? (
+            <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(budget.amount, currency)}</Text>
+          ) : (
+            <TextInput
+              value={draftAmount}
+              onChangeText={setDraftAmount}
+              style={[styles.smallInput, darkMode && styles.inputDark, styles.budgetInlineInput]}
+              keyboardType="decimal-pad"
+              placeholder="New amount"
+            />
+          )}
+        </View>
+        <View style={styles.inlineRow}>
+          <Pressable style={styles.deleteBtn} onPress={() => onDeleteBudget(budget.id)}><Text style={styles.deleteBtnText}>Delete</Text></Pressable>
+        </View>
+      </Animated.View>
+    </View>
+  );
+}
 
 export function TransactionsScreen(props: Props) {
   const {
@@ -55,8 +131,6 @@ export function TransactionsScreen(props: Props) {
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'amountDesc' | 'amountAsc'>('newest');
 
-  const [expandedBudgetId, setExpandedBudgetId] = useState<string | null>(null);
-  const [expandedBudgetAmount, setExpandedBudgetAmount] = useState('');
   const reviewPagerRef = useRef<ScrollView>(null);
   const { width } = useWindowDimensions();
 
@@ -162,13 +236,7 @@ export function TransactionsScreen(props: Props) {
 
         <View style={{ width }}>
           <ScrollView contentContainerStyle={styles.contentContainer}>
-            <Pressable
-              style={[styles.panel, darkMode && styles.panelDark]}
-              onPress={() => {
-                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                setExpandedBudgetId(null);
-              }}
-            >
+            <View style={[styles.panel, darkMode && styles.panelDark]}>
               {(() => {
                 const total = budgets.reduce((s,b)=>s+b.amount,0);
                 const size=160; const r=58; const c=2*Math.PI*r;
@@ -189,58 +257,17 @@ export function TransactionsScreen(props: Props) {
                 );
               })()}
 
-              {budgets.map((b) => {
-                const expanded = expandedBudgetId === b.id;
-                return (
-                  <Pressable
-                    key={b.id}
-                    style={[styles.listRow, darkMode && styles.listRowDark]}
-                    onPress={(e) => {
-                      e.stopPropagation?.();
-                      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                      setExpandedBudgetId(expanded ? null : b.id);
-                      setExpandedBudgetAmount(String(b.amount));
-                    }}
-                  >
-                    {!expanded ? (
-                      <View style={styles.topRow}>
-                        <Text style={[styles.name, darkMode && styles.textDark]}>{b.category}</Text>
-                        <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(b.amount, currency)}</Text>
-                      </View>
-                    ) : (
-                      <View style={styles.budgetExpandedWrap}>
-                        <View style={styles.inlineRow}>
-                          <Text style={[styles.name, darkMode && styles.textDark, styles.nameCol]}>{b.category}</Text>
-                          <TextInput
-                            value={expandedBudgetAmount}
-                            onChangeText={setExpandedBudgetAmount}
-                            style={[styles.smallInput, darkMode && styles.inputDark, styles.inputCol]}
-                            keyboardType="decimal-pad"
-                            placeholder="New amount"
-                          />
-                        </View>
-                        <View style={styles.equalButtonRow}>
-                          <Pressable style={[styles.deleteBtn, styles.equalButton]} onPress={() => onDeleteBudget(b.id)}>
-                            <Text style={styles.deleteBtnText}>Delete</Text>
-                          </Pressable>
-                          <Pressable
-                            style={[styles.actionBtn, styles.equalButton]}
-                            onPress={async () => {
-                              const amount = Number(expandedBudgetAmount.replace(',', '.'));
-                              if (!Number.isFinite(amount) || amount <= 0) return;
-                              await onSaveBudget(b.category, amount);
-                              setExpandedBudgetId(null);
-                            }}
-                          >
-                            <Text style={styles.actionBtnText}>Update</Text>
-                          </Pressable>
-                        </View>
-                      </View>
-                    )}
-                  </Pressable>
-                );
-              })}
-            </Pressable>
+              {budgets.map((b) => (
+                <BudgetSwipeRow
+                  key={b.id}
+                  budget={b}
+                  currency={currency}
+                  darkMode={darkMode}
+                  onSaveBudget={onSaveBudget}
+                  onDeleteBudget={onDeleteBudget}
+                />
+              ))}
+            </View>
           </ScrollView>
         </View>
       </ScrollView>
@@ -300,12 +327,17 @@ const styles = StyleSheet.create({
   dropdownOption: { paddingVertical: 6 },
   section: { fontSize: 12, color: '#2f7a43', fontWeight: '700' },
   smallInput: { backgroundColor: 'white', borderWidth: 1, borderColor: '#b7ebc3', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, color: '#156530' },
+  budgetInlineInput: { minWidth: 120, textAlign: 'right' },
   inlineRow: { flexDirection: 'row', gap: 8, alignItems: 'center', marginTop: 8 },
   filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   filterChip: { paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: '#a9e6b7', backgroundColor: '#f0fff4' },
   filterChipActive: { backgroundColor: '#14b85a', borderColor: '#14b85a' },
   filterChipText: { color: '#1e6e37', fontWeight: '600', textTransform: 'capitalize' },
   filterChipTextActive: { color: 'white' },
+  swipeRowWrap: { position: 'relative', marginBottom: 8 },
+  swipeActionsBg: { position: 'absolute', inset: 0, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  swipeActionLeft: { marginLeft: 8, backgroundColor: '#e6f8ec', borderWidth: 1, borderColor: '#a9e6b7', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8 },
+  swipeActionRight: { marginRight: 8, backgroundColor: '#e6f8ec', borderWidth: 1, borderColor: '#a9e6b7', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8 },
   listRow: { backgroundColor: '#ecfff1', borderRadius: 14, padding: 11, borderWidth: 1, borderColor: '#9ee5ab' },
   listRowDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
   rightRow: { alignItems: 'flex-end', gap: 6 },
