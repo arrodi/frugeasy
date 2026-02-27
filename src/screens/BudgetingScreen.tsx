@@ -23,6 +23,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
   const [budgetAmount, setBudgetAmount] = useState('');
   const [budgetCategoryOpen, setBudgetCategoryOpen] = useState(false);
   const [showTopFade, setShowTopFade] = useState(false);
+  const [showBottomFade, setShowBottomFade] = useState(true);
 
 
   const displayedBudgetRows = (() => {
@@ -130,7 +131,13 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
             contentContainerStyle={styles.entriesScrollContent}
             showsVerticalScrollIndicator={false}
             scrollEventThrottle={16}
-            onScroll={(e) => setShowTopFade(e.nativeEvent.contentOffset.y > 4)}
+            onScroll={(e) => {
+              const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+              const y = contentOffset.y;
+              setShowTopFade(y > 4);
+              const distanceFromBottom = contentSize.height - (y + layoutMeasurement.height);
+              setShowBottomFade(distanceFromBottom > 4);
+            }}
           >
             {displayedBudgetRows.length === 0 ? <Text style={[styles.ruleText, darkMode && styles.textDark]}>No budgets set yet.</Text> : null}
             {displayedBudgetRows.map((row) => {
@@ -193,11 +200,13 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
               style={[styles.edgeFade, styles.edgeFadeTop]}
             />
           ) : null}
-          <LinearGradient
-            pointerEvents="none"
-            colors={['transparent', fadeColor]}
-            style={[styles.edgeFade, styles.edgeFadeBottom]}
-          />
+          {showBottomFade ? (
+            <LinearGradient
+              pointerEvents="none"
+              colors={['transparent', fadeColor]}
+              style={[styles.edgeFade, styles.edgeFadeBottom]}
+            />
+          ) : null}
         </View>
 
         {showAddBudget ? (
