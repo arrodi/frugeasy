@@ -42,10 +42,10 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
   const reveal = useRef(new Animated.Value(0)).current;
   const opened = activeId === item.id;
   const dateLabel = new Date(item.date).toLocaleDateString();
-  const actionOpacity = reveal.interpolate({ inputRange: [0, 30, 132], outputRange: [0, 0.2, 1] });
+  const actionOpacity = reveal.interpolate({ inputRange: [0, 24, 120], outputRange: [0, 0.2, 1] });
 
   useEffect(() => {
-    Animated.timing(reveal, { toValue: opened ? 132 : 0, duration: 180, useNativeDriver: false }).start();
+    Animated.timing(reveal, { toValue: opened ? 120 : 0, duration: 180, useNativeDriver: false }).start();
   }, [opened]);
 
   return (
@@ -478,9 +478,9 @@ const styles = StyleSheet.create({
   tapActionsBg: { position: 'absolute', inset: 0, justifyContent: 'center', alignItems: 'flex-end' },
   transactionActionsBg: { top: 10, bottom: 10 },
   tapActionsRight: { flexDirection: 'row', height: '100%', overflow: 'hidden' },
-  updateFlatBtn: { backgroundColor: '#14b85a', justifyContent: 'center', alignItems: 'center', width: 66 },
+  updateFlatBtn: { backgroundColor: '#14b85a', justifyContent: 'center', alignItems: 'center', width: 60 },
   updateFlatBtnDark: { backgroundColor: '#14b85a' },
-  deleteFlatBtn: { backgroundColor: '#dc2626', justifyContent: 'center', alignItems: 'center', width: 66 },
+  deleteFlatBtn: { backgroundColor: '#dc2626', justifyContent: 'center', alignItems: 'center', width: 60 },
   deleteFlatBtnDark: { backgroundColor: '#dc2626' },
   flatBtnText: { color: '#ffffff', fontWeight: '700', fontSize: 11 },
   flatBtnTextDark: { color: '#ffffff' },
