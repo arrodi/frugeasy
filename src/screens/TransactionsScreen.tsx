@@ -34,7 +34,9 @@ function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudg
 
   const snap = (v: number) => Animated.spring(tx, { toValue: v, useNativeDriver: true, bounciness: 0 }).start();
   const pan = useMemo(() => PanResponder.create({
-    onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 10 && Math.abs(g.dx) > Math.abs(g.dy),
+    onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 8 && Math.abs(g.dx) > Math.abs(g.dy),
+    onMoveShouldSetPanResponderCapture: (_, g) => Math.abs(g.dx) > 8 && Math.abs(g.dx) > Math.abs(g.dy),
+    onPanResponderTerminationRequest: () => false,
     onPanResponderGrant: () => { onSwipeActiveChange(true); onEntrySwipeActiveChange(true); },
     onPanResponderMove: (_, g) => tx.setValue(Math.max(-88, Math.min(88, g.dx))),
     onPanResponderRelease: (_, g) => {
