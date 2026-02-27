@@ -114,7 +114,6 @@ function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudg
   const reveal = useRef(new Animated.Value(0)).current;
 
   const opened = activeSwipeBudgetId === budget.id;
-  const actionOpacity = reveal.interpolate({ inputRange: [0, 30, 132], outputRange: [0, 0.2, 1] });
 
   const animateTo = (v: number) => Animated.timing(reveal, { toValue: v, duration: 180, useNativeDriver: false }).start();
 
@@ -128,12 +127,11 @@ function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudg
       onPress={() => setActiveSwipeBudgetId(opened ? null : budget.id)}
     >
       <View style={styles.tapActionsBg} pointerEvents="box-none">
-        <Animated.View style={[styles.tapActionsRight, { width: reveal, opacity: actionOpacity }]}> 
+        <View style={styles.tapActionsRight}>
           <Pressable
             style={[styles.updateFlatBtn, darkMode && styles.updateFlatBtnDark]}
             onPress={(e) => {
               e.stopPropagation?.();
-              if (!opened) return;
               Alert.prompt(
                 'Update budget',
                 budget.category,
@@ -163,17 +161,10 @@ function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudg
           >
             <Text style={[styles.flatBtnText, darkMode && styles.flatBtnTextDark]}>Update</Text>
           </Pressable>
-          <Pressable
-            style={[styles.deleteFlatBtn, darkMode && styles.deleteFlatBtnDark]}
-            onPress={(e) => {
-              e.stopPropagation?.();
-              if (!opened) return;
-              onDeleteBudget(budget.id);
-            }}
-          >
+          <Pressable style={[styles.deleteFlatBtn, darkMode && styles.deleteFlatBtnDark]} onPress={(e) => { e.stopPropagation?.(); onDeleteBudget(budget.id); }}>
             <Text style={[styles.flatBtnText, darkMode && styles.flatBtnTextDark]}>Delete</Text>
           </Pressable>
-        </Animated.View>
+        </View>
       </View>
 
       <Animated.View style={[styles.listRow, styles.listRowInner, darkMode && styles.listRowDark, { marginRight: reveal }]}>
@@ -486,13 +477,13 @@ const styles = StyleSheet.create({
   swipeShellDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
   tapActionsBg: { position: 'absolute', inset: 0, justifyContent: 'center', alignItems: 'flex-end' },
   tapActionsRight: { flexDirection: 'row', height: '100%', overflow: 'hidden' },
-  updateFlatBtn: { backgroundColor: '#14b85a', justifyContent: 'center', alignItems: 'center', width: 66, height: '100%' },
+  updateFlatBtn: { backgroundColor: '#14b85a', justifyContent: 'center', alignItems: 'center', width: 66 },
   updateFlatBtnDark: { backgroundColor: '#14b85a' },
-  deleteFlatBtn: { backgroundColor: '#dc2626', justifyContent: 'center', alignItems: 'center', width: 66, height: '100%' },
+  deleteFlatBtn: { backgroundColor: '#dc2626', justifyContent: 'center', alignItems: 'center', width: 66 },
   deleteFlatBtnDark: { backgroundColor: '#dc2626' },
   flatBtnText: { color: '#ffffff', fontWeight: '700', fontSize: 11 },
   flatBtnTextDark: { color: '#ffffff' },
-  listRow: { backgroundColor: '#ecfff1', borderRadius: 14, padding: 11, minHeight: 58, borderWidth: 1, borderColor: '#9ee5ab' },
+  listRow: { backgroundColor: '#ecfff1', borderRadius: 14, padding: 11, borderWidth: 1, borderColor: '#9ee5ab' },
   listRowInner: { marginBottom: 0, borderWidth: 0, borderRadius: 0 },
   listRowDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
   transactionRow: { backgroundColor: 'transparent', paddingHorizontal: 6, paddingTop: 10, paddingBottom: 8 },
