@@ -145,6 +145,12 @@ export function TransactionsScreen(props: Props) {
     reviewPagerRef.current?.scrollTo({ x: (reviewTab === 'transactions' ? 0 : 1) * width, animated: true });
   }, [reviewTab, width]);
 
+  const onReviewScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const next = Math.round(event.nativeEvent.contentOffset.x / width);
+    const nextTab = next === 0 ? 'transactions' : 'budgets';
+    if (nextTab !== reviewTab) setReviewTab(nextTab);
+  };
+
   const onReviewPagerEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const next = Math.round(event.nativeEvent.contentOffset.x / width);
     setReviewTab(next === 0 ? 'transactions' : 'budgets');
@@ -167,6 +173,8 @@ export function TransactionsScreen(props: Props) {
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={onReviewScroll}
         onMomentumScrollEnd={onReviewPagerEnd}
         onScrollEndDrag={onReviewEndDrag}
       >
