@@ -22,6 +22,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
   const [budgetCategory, setBudgetCategory] = useState<TransactionCategory>('Food');
   const [budgetAmount, setBudgetAmount] = useState('');
   const [budgetCategoryOpen, setBudgetCategoryOpen] = useState(false);
+  const [showTopFade, setShowTopFade] = useState(false);
 
 
   const displayedBudgetRows = (() => {
@@ -41,6 +42,8 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
       return b.spent - a.spent;
     });
   })();
+
+  const fadeColor = darkMode ? '#0f1a14' : '#f6fff8';
 
   return (
     <View style={[styles.screenContainer, darkMode && styles.screenDark]}>
@@ -122,7 +125,13 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
         })()}
 
         <View style={styles.entriesScrollWrap}>
-          <ScrollView style={styles.entriesScroll} contentContainerStyle={styles.entriesScrollContent} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.entriesScroll}
+            contentContainerStyle={styles.entriesScrollContent}
+            showsVerticalScrollIndicator={false}
+            scrollEventThrottle={16}
+            onScroll={(e) => setShowTopFade(e.nativeEvent.contentOffset.y > 4)}
+          >
             {displayedBudgetRows.length === 0 ? <Text style={[styles.ruleText, darkMode && styles.textDark]}>No budgets set yet.</Text> : null}
             {displayedBudgetRows.map((row) => {
             const expanded = row.category === expandedBudgetKey;
@@ -177,14 +186,16 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
             );
           })}
           </ScrollView>
+          {showTopFade ? (
+            <LinearGradient
+              pointerEvents="none"
+              colors={[fadeColor, 'transparent']}
+              style={[styles.edgeFade, styles.edgeFadeTop]}
+            />
+          ) : null}
           <LinearGradient
             pointerEvents="none"
-            colors={[darkMode ? '#0f1a14' : '#ffffff', 'transparent']}
-            style={[styles.edgeFade, styles.edgeFadeTop]}
-          />
-          <LinearGradient
-            pointerEvents="none"
-            colors={['transparent', darkMode ? '#0f1a14' : '#ffffff']}
+            colors={['transparent', fadeColor]}
             style={[styles.edgeFade, styles.edgeFadeBottom]}
           />
         </View>
