@@ -104,7 +104,7 @@ export function AddTransactionScreen({
   return (
     <View style={styles.screenContainer}>
       <View style={styles.heroWrap}>
-        <Text style={[styles.sectionTitle, darkMode && styles.textDark]}>Transact!</Text>
+        <Text style={[styles.sectionTitle, darkMode && styles.textDark]}>Tap 2 Budget</Text>
       </View>
 
       <View style={[styles.formArea, darkMode && styles.formAreaDark]}>

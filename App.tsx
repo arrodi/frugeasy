@@ -412,7 +412,7 @@ export default function App() {
       </ScrollView>
 
       <View style={styles.tabDots}>
-        {['Tap 2 Budget', 'Budget', 'Review', 'Settings'].map((label, idx) => (
+        {['Transact', 'Budget', 'Review', 'Settings'].map((label, idx) => (
           <Pressable
             key={label}
             style={styles.tabDotWrap}
