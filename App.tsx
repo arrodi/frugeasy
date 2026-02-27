@@ -330,6 +330,7 @@ export default function App() {
         ref={pagerRef}
         horizontal
         pagingEnabled
+        scrollEnabled={activeTab !== 2}
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={onPagerEnd}
       >

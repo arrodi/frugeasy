@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { LayoutAnimation, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { LayoutAnimation, PanResponder, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg';
 import { Budget, CurrencyCode, Transaction, TransactionCategory, TransactionType } from '../domain/types';
 import { formatCurrency } from '../ui/format';
@@ -54,6 +54,18 @@ export function TransactionsScreen(props: Props) {
   const [expandedBudgetId, setExpandedBudgetId] = useState<string | null>(null);
   const [expandedBudgetAmount, setExpandedBudgetAmount] = useState('');
 
+  const swipeResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 20 && Math.abs(g.dx) > Math.abs(g.dy),
+        onPanResponderRelease: (_, g) => {
+          if (g.dx < -40) setReviewTab('budgets');
+          if (g.dx > 40) setReviewTab('transactions');
+        },
+      }),
+    []
+  );
+
   const shownTransactions = useMemo(() => {
     const arr = [...transactions];
     if (sortBy === 'newest') arr.sort((a, b) => +new Date(b.date) - +new Date(a.date));
@@ -64,7 +76,7 @@ export function TransactionsScreen(props: Props) {
   }, [transactions, sortBy]);
 
   return (
-    <View style={[styles.screenContainer, darkMode && styles.screenDark]}>
+    <View style={[styles.screenContainer, darkMode && styles.screenDark]} {...swipeResponder.panHandlers}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
       {reviewTab === 'transactions' ? (
         <>
