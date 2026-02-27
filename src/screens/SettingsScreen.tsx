@@ -6,9 +6,10 @@ type Props = {
   onCurrencyChange: (currency: CurrencyCode) => Promise<void>;
   darkMode: boolean;
   onDarkModeChange: (enabled: boolean) => Promise<void>;
+  onExportCsv: () => Promise<void>;
 };
 
-export function SettingsScreen({ currency, onCurrencyChange, darkMode, onDarkModeChange }: Props) {
+export function SettingsScreen({ currency, onCurrencyChange, darkMode, onDarkModeChange, onExportCsv }: Props) {
   return (
     <ScrollView style={[styles.container, darkMode && styles.containerDark]} contentContainerStyle={styles.content}>
       <Text style={[styles.title, darkMode && styles.textDark]}>Settings</Text>
@@ -29,6 +30,9 @@ export function SettingsScreen({ currency, onCurrencyChange, darkMode, onDarkMod
           ))}
         </View>
       </View>
+      <Pressable style={styles.exportBtn} onPress={onExportCsv}>
+        <Text style={styles.exportBtnText}>Export CSV</Text>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -49,4 +53,6 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: '#14b85a', borderColor: '#14b85a' },
   chipText: { color: '#1e6e37', fontWeight: '600' },
   chipTextActive: { color: 'white' },
+  exportBtn: { backgroundColor: '#14b85a', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 12, alignItems: 'center' },
+  exportBtnText: { color: 'white', fontWeight: '700' },
 });

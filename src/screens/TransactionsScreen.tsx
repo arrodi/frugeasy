@@ -17,7 +17,6 @@ type Props = {
   searchQuery: string;
   onSearchQueryChange: (value: string) => void;
   onDeleteTransaction: (id: string) => Promise<void>;
-  onExportCsv: () => Promise<void>;
   onUpdateTransaction: (input: { id: string; amount: number; type: TransactionType; category: TransactionCategory; name: string; date: string }) => Promise<void>;
   onSaveBudget: (category: TransactionCategory, amount: number) => Promise<void>;
   onDeleteBudget: (id: string) => Promise<void>;
@@ -37,7 +36,6 @@ export function TransactionsScreen(props: Props) {
     searchQuery,
     onSearchQueryChange,
     onDeleteTransaction,
-    onExportCsv,
     onUpdateTransaction,
     onSaveBudget,
     onDeleteBudget,
@@ -67,13 +65,6 @@ export function TransactionsScreen(props: Props) {
 
   return (
     <ScrollView style={[styles.screenContainer, darkMode && styles.screenDark]} contentContainerStyle={styles.contentContainer}>
-      <View style={styles.topRow}>
-        <Text style={[styles.title, darkMode && styles.textDark]}>Review</Text>
-        <Pressable style={styles.exportBtn} onPress={onExportCsv}>
-          <Text style={styles.exportBtnText}>Export CSV</Text>
-        </Pressable>
-      </View>
-
       <View style={[styles.reviewSwitchWrap, darkMode && styles.reviewSwitchWrapDark]}>
         <Pressable style={[styles.reviewSwitchOption, darkMode && styles.reviewSwitchOptionDark, reviewTab === 'transactions' && styles.reviewSwitchOptionActive]} onPress={() => setReviewTab('transactions')}>
           <Text style={[styles.reviewSwitchText, darkMode && styles.textDark, reviewTab === 'transactions' && styles.reviewSwitchTextActive]}>Transactions</Text>
@@ -238,8 +229,8 @@ const styles = StyleSheet.create({
   textDark: { color: '#d6f5df' },
   exportBtn: { backgroundColor: '#14b85a', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8 },
   exportBtnText: { color: 'white', fontWeight: '700', fontSize: 12 },
-  reviewSwitchWrap: { flexDirection: 'row', backgroundColor: '#e8f8ee', borderRadius: 12, padding: 4, borderWidth: 1, borderColor: '#b6e9c3', gap: 4 },
-  reviewSwitchWrapDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
+  reviewSwitchWrap: { flexDirection: 'row', backgroundColor: '#e8f8ee', borderRadius: 12, padding: 4, gap: 4 },
+  reviewSwitchWrapDark: { backgroundColor: '#15251c' },
   reviewSwitchOption: { flex: 1, borderRadius: 9, paddingVertical: 10, alignItems: 'center' },
   reviewSwitchOptionDark: { backgroundColor: '#1a2d22' },
   reviewSwitchOptionActive: { backgroundColor: '#14b85a' },

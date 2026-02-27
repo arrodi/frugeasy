@@ -386,7 +386,6 @@ export default function App() {
             searchQuery={searchQuery}
             onSearchQueryChange={setSearchQuery}
             onDeleteTransaction={handleDeleteTransaction}
-            onExportCsv={handleExportCsv}
             onUpdateTransaction={handleUpdateTransaction}
             budgets={budgets}
             onSaveBudget={handleSaveBudget}
@@ -400,6 +399,7 @@ export default function App() {
             onCurrencyChange={handleCurrencyChange}
             darkMode={darkMode}
             onDarkModeChange={handleDarkModeChange}
+            onExportCsv={handleExportCsv}
           />
         </View>
       </ScrollView>

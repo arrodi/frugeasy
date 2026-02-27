@@ -49,7 +49,6 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
   return (
     <View style={[styles.screenContainer, darkMode && styles.screenDark]}>
       <View style={styles.contentContainer}>
-        <Text style={[styles.title, darkMode && styles.textDark]}>Budgeting</Text>
 
         <View style={styles.overviewRowHorizontal}>
           <View style={[styles.card, styles.cardHorizontal, darkMode && styles.cardDark]}>
