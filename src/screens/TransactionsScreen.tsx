@@ -267,7 +267,13 @@ export function TransactionsScreen(props: Props) {
               </View>
             </View>
 
-            <ScrollView style={styles.transactionsListScroll} contentContainerStyle={styles.transactionsListContent} showsVerticalScrollIndicator={false}>
+            <ScrollView
+              style={styles.transactionsListScroll}
+              contentContainerStyle={styles.transactionsListContent}
+              showsVerticalScrollIndicator
+              indicatorStyle={darkMode ? 'white' : 'black'}
+              scrollIndicatorInsets={{ right: 1 }}
+            >
               {shownTransactions.map((item) => (
                 <TransactionTapRow
                   key={item.id}
