@@ -40,7 +40,8 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
     });
   })();
 
-  const fadeColor = darkMode ? '#0f1a14' : '#eaffef';
+  const fadeSolid = darkMode ? 'rgba(15,26,20,1)' : 'rgba(234,255,239,1)';
+  const fadeTransparent = darkMode ? 'rgba(15,26,20,0)' : 'rgba(234,255,239,0)';
 
   return (
     <View style={[styles.screenContainer, darkMode && styles.screenDark]}>
@@ -191,10 +192,10 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
           })}
           </ScrollView>
           {showTopFade ? (
-            <LinearGradient pointerEvents="none" colors={[fadeColor, 'transparent']} style={[styles.edgeFade, styles.edgeFadeTop]} />
+            <LinearGradient pointerEvents="none" colors={[fadeSolid, fadeTransparent]} style={[styles.edgeFade, styles.edgeFadeTop]} />
           ) : null}
           {showBottomFade ? (
-            <LinearGradient pointerEvents="none" colors={['transparent', fadeColor]} style={[styles.edgeFade, styles.edgeFadeBottom]} />
+            <LinearGradient pointerEvents="none" colors={[fadeTransparent, fadeSolid]} style={[styles.edgeFade, styles.edgeFadeBottom]} />
           ) : null}
         </View>
 
@@ -211,7 +212,7 @@ const styles = StyleSheet.create({
   entriesScrollWrap: { flex: 1, position: 'relative' },
   entriesScroll: { flex: 1 },
   entriesScrollContent: { paddingBottom: 8 },
-  edgeFade: { position: 'absolute', left: 0, right: 0, height: 16 },
+  edgeFade: { position: 'absolute', left: 0, right: 0, height: 22 },
   edgeFadeTop: { top: 0 },
   edgeFadeBottom: { bottom: 0 },
 
