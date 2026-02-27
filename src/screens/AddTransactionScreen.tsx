@@ -106,7 +106,7 @@ export function AddTransactionScreen({
     <View style={styles.screenContainer}>
       <View style={styles.heroWrap}>
         <View style={styles.wordmarkCrop}>
-          <Image source={require('../../assets/tap2budget-wordmark-source.jpg')} style={styles.wordmarkImage} resizeMode="cover" />
+          <Image source={require('../../assets/tap2budget-wordmark.png')} style={styles.wordmarkImage} resizeMode="contain" />
         </View>
       </View>
 
@@ -256,9 +256,9 @@ export function AddTransactionScreen({
 
 const styles = StyleSheet.create({
   screenContainer: { flex: 1, paddingHorizontal: 14, justifyContent: 'center', alignItems: 'center' },
-  heroWrap: { width: '100%', maxWidth: 520, height: 94, alignItems: 'center', justifyContent: 'center' },
-  wordmarkCrop: { width: 210, height: 84, overflow: 'hidden', borderRadius: 8 },
-  wordmarkImage: { width: 210, height: 210, marginTop: -118 },
+  heroWrap: { width: '100%', maxWidth: 520, height: 98, alignItems: 'center', justifyContent: 'center' },
+  wordmarkCrop: { width: 250, height: 90, overflow: 'hidden', borderRadius: 8 },
+  wordmarkImage: { width: 250, height: 90 },
   formArea: { width: '100%', maxWidth: 520, backgroundColor: '#f3fff6', borderWidth: 1, borderColor: '#b8efc4', borderRadius: 18, padding: 16, gap: 14 },
   formAreaDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
   sectionTitle: { fontSize: 44, fontWeight: '900', color: '#166534', letterSpacing: 0.4 },
