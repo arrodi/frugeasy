@@ -3,6 +3,7 @@ import { Text, View } from 'react-native';
 import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg';
 import { Budget, CurrencyCode } from '../../domain/types';
 import { formatCurrency } from '../../ui/format';
+import { colors } from '../../ui/themeTokens';
 
 type Props = {
   budgets: Budget[];
@@ -52,7 +53,7 @@ function BudgetDonutChartImpl({ budgets, currency, darkMode, styles }: Props) {
                 acc += frac;
                 return <Circle key={b.id} cx={center} cy={center} r={r} fill="none" stroke={CHART_COLORS[i % CHART_COLORS.length]} strokeWidth={20} strokeDasharray={dash} strokeDashoffset={off} strokeLinecap="butt" />;
               })
-              : <Circle cx={center} cy={center} r={r} fill="none" stroke={darkMode ? '#2e4d3b' : '#d1fae5'} strokeWidth={20} />}
+              : <Circle cx={center} cy={center} r={r} fill="none" stroke={darkMode ? colors.borderDark : colors.chartEmptyLight} strokeWidth={20} />}
           </G>
           {slices.map(({ b, i, frac, mid }) => {
             const angle = mid * Math.PI * 2 - Math.PI / 2;
@@ -69,7 +70,7 @@ function BudgetDonutChartImpl({ budgets, currency, darkMode, styles }: Props) {
               <G key={`callout-${b.id}`}>
                 <Line x1={x1} y1={y1} x2={x2} y2={y2} stroke={CHART_COLORS[i % CHART_COLORS.length]} strokeWidth={1.5} />
                 <Line x1={x2} y1={y2} x2={x3} y2={y2} stroke={CHART_COLORS[i % CHART_COLORS.length]} strokeWidth={1.5} />
-                <SvgText x={x3 + (right ? 4 : -4)} y={y2 + 4} fontSize={10} fill={darkMode ? '#d6f5df' : '#14532d'} textAnchor={right ? 'start' : 'end'}>
+                <SvgText x={x3 + (right ? 4 : -4)} y={y2 + 4} fontSize={10} fill={darkMode ? colors.textDark : colors.textStrongAlt} textAnchor={right ? 'start' : 'end'}>
                   {label}
                 </SvgText>
               </G>

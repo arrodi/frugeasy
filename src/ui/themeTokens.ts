@@ -1,0 +1,31 @@
+export const colors = {
+  white: '#ffffff',
+  danger: '#dc2626',
+  screenDark: '#0f1a14',
+  panelDark: '#15251c',
+  borderDark: '#2e4d3b',
+  textDark: '#d6f5df',
+  panelLight: '#ecfff1',
+  borderLight: '#9ee5ab',
+  borderInput: '#b7ebc3',
+  accentGreen: '#14b85a',
+  textPrimary: '#1e6e37',
+  textStrong: '#14632f',
+  textStrongAlt: '#14532d',
+  textSecondary: '#3e7b52',
+  separatorLight: '#cfe5d6',
+  tableBorderLight: '#d4eadb',
+  tabDotIdle: '#79d992',
+  chipBorder: '#a9e6b7',
+  chipBg: '#f0fff4',
+  placeholder: '#4f7a59',
+  chartEmptyLight: '#d1fae5',
+};
+
+export const spacing = {
+  xs: 4,
+  sm: 8,
+  md: 10,
+  lg: 12,
+  xl: 16,
+};
