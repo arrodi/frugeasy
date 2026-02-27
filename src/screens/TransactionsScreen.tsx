@@ -64,16 +64,8 @@ export function TransactionsScreen(props: Props) {
   }, [transactions, sortBy]);
 
   return (
-    <ScrollView style={[styles.screenContainer, darkMode && styles.screenDark]} contentContainerStyle={styles.contentContainer}>
-      <View style={[styles.reviewSwitchWrap, darkMode && styles.reviewSwitchWrapDark]}>
-        <Pressable style={[styles.reviewSwitchOption, darkMode && styles.reviewSwitchOptionDark, reviewTab === 'transactions' && styles.reviewSwitchOptionActive]} onPress={() => setReviewTab('transactions')}>
-          <Text style={[styles.reviewSwitchText, darkMode && styles.textDark, reviewTab === 'transactions' && styles.reviewSwitchTextActive]}>Transactions</Text>
-        </Pressable>
-        <Pressable style={[styles.reviewSwitchOption, darkMode && styles.reviewSwitchOptionDark, reviewTab === 'budgets' && styles.reviewSwitchOptionActive]} onPress={() => setReviewTab('budgets')}>
-          <Text style={[styles.reviewSwitchText, darkMode && styles.textDark, reviewTab === 'budgets' && styles.reviewSwitchTextActive]}>Budgets</Text>
-        </Pressable>
-      </View>
-
+    <View style={[styles.screenContainer, darkMode && styles.screenDark]}>
+      <ScrollView contentContainerStyle={styles.contentContainer}>
       {reviewTab === 'transactions' ? (
         <>
           <TextInput value={searchQuery} onChangeText={onSearchQueryChange} placeholder="Search by category, name or amount" placeholderTextColor="#4f7a59" style={[styles.searchInput, darkMode && styles.inputDark]} />
@@ -215,7 +207,21 @@ export function TransactionsScreen(props: Props) {
           })}
         </Pressable>
       )}
-    </ScrollView>
+      </ScrollView>
+
+      <View style={[styles.reviewBottomTabs, darkMode && styles.reviewBottomTabsDark]}>
+        {(['transactions', 'budgets'] as const).map((tab) => {
+          const active = reviewTab === tab;
+          const label = tab === 'transactions' ? 'Transactions' : 'Budgets';
+          return (
+            <Pressable key={tab} style={styles.reviewBottomTab} onPress={() => setReviewTab(tab)}>
+              <View style={[styles.reviewBottomDot, active && styles.reviewBottomDotActive]} />
+              <Text style={[styles.reviewBottomLabel, darkMode && styles.textDark, active && styles.reviewBottomLabelActive]}>{label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
   );
 }
 
@@ -223,19 +229,30 @@ const styles = StyleSheet.create({
   screenContainer: { flex: 1 },
   screenDark: { backgroundColor: '#0f1a14' },
   panelDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
-  contentContainer: { paddingHorizontal: 16, gap: 10, paddingTop: 8, paddingBottom: 24 },
+  contentContainer: { paddingHorizontal: 16, gap: 10, paddingTop: 8, paddingBottom: 88 },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: 17, fontWeight: '700', color: '#156530' },
   textDark: { color: '#d6f5df' },
   exportBtn: { backgroundColor: '#14b85a', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8 },
   exportBtnText: { color: 'white', fontWeight: '700', fontSize: 12 },
-  reviewSwitchWrap: { flexDirection: 'row', backgroundColor: '#e8f8ee', borderRadius: 12, padding: 4, gap: 4 },
-  reviewSwitchWrapDark: { backgroundColor: '#15251c' },
-  reviewSwitchOption: { flex: 1, borderRadius: 9, paddingVertical: 10, alignItems: 'center' },
-  reviewSwitchOptionDark: { backgroundColor: '#1a2d22' },
-  reviewSwitchOptionActive: { backgroundColor: '#14b85a' },
-  reviewSwitchText: { color: '#1e6e37', fontWeight: '700' },
-  reviewSwitchTextActive: { color: 'white' },
+  reviewBottomTabs: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: '#eaffef',
+  },
+  reviewBottomTabsDark: { backgroundColor: '#0f1a14' },
+  reviewBottomTab: { flex: 1, alignItems: 'center', gap: 4 },
+  reviewBottomDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#79d992' },
+  reviewBottomDotActive: { backgroundColor: '#14b85a', width: 22 },
+  reviewBottomLabel: { color: '#3e7b52', fontSize: 12 },
+  reviewBottomLabelActive: { color: '#14632f', fontWeight: '800' },
   searchInput: { backgroundColor: 'white', borderWidth: 1, borderColor: '#b7ebc3', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, color: '#156530' },
   inputDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b', color: '#d6f5df' },
   row: { flexDirection: 'row', gap: 8, alignItems: 'flex-start' },
