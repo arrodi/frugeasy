@@ -307,13 +307,11 @@ export function TransactionsScreen(props: Props) {
           </ScrollView>
         </View>
       </ScrollView>
-      {reviewTab === 'budgets' ? (
-        <View style={styles.reviewAddBudgetWrap}>
-          <Pressable style={styles.reviewAddBudgetBtn} onPress={() => setShowAddBudget((v) => !v)}>
-            <Text style={styles.reviewAddBudgetText}>Add New Budget</Text>
-          </Pressable>
-        </View>
-      ) : null}
+      <View style={styles.reviewAddBudgetWrap}>
+        <Pressable style={styles.reviewAddBudgetBtn} onPress={() => setShowAddBudget((v) => !v)}>
+          <Text style={styles.reviewAddBudgetText}>Add New Budget</Text>
+        </Pressable>
+      </View>
       <View style={[styles.reviewBottomTabs, darkMode && styles.reviewBottomTabsDark]}>
         {(['transactions', 'budgets'] as const).map((tab) => {
           const active = reviewTab === tab;
