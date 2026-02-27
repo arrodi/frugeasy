@@ -93,10 +93,10 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
         </Animated.View>
       </View>
 
-      <Animated.View style={[styles.transactionRow, darkMode && styles.transactionRowDark, { marginRight: reveal }]}> 
+      <Animated.View style={[styles.transactionRow, darkMode && styles.transactionRowDark, { marginRight: reveal }]}>
         <View style={styles.topRow}>
           <View>
-            <Text style={[styles.name, darkMode && styles.textDark]}>{item.name?.trim() ? item.name : '—'}</Text>
+            <Text style={[styles.name, darkMode && styles.textDark]}>{item.name?.trim() ? item.name : '-'}</Text>
             <Text style={[styles.meta, darkMode && styles.metaDark]}>{item.category}</Text>
           </View>
           <View style={styles.rightRow}>
@@ -125,7 +125,7 @@ function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudg
   return (
     <Pressable style={styles.transactionShell} onPress={() => setActiveSwipeBudgetId(opened ? null : budget.id)}>
       <View style={[styles.tapActionsBg, styles.transactionActionsBg]} pointerEvents="box-none">
-        <Animated.View style={[styles.tapActionsRight, styles.transactionActionsRail, { width: reveal, opacity: actionOpacity }]}> 
+        <Animated.View style={[styles.tapActionsRight, styles.transactionActionsRail, { width: reveal, opacity: actionOpacity }]}>
           <Pressable
             style={[styles.updateFlatBtn, styles.transactionActionBtnCompact, darkMode && styles.updateFlatBtnDark]}
             onPress={(e) => {
@@ -218,6 +218,12 @@ export function TransactionsScreen(props: Props) {
 
   const reviewPagerRef = useRef<ScrollView>(null);
   const [activeSwipeBudgetId, setActiveSwipeBudgetId] = useState<string | null>(null);
+  const [txOffsetY, setTxOffsetY] = useState(0);
+  const [txViewportH, setTxViewportH] = useState(0);
+  const [txContentH, setTxContentH] = useState(0);
+  const [budgetOffsetY, setBudgetOffsetY] = useState(0);
+  const [budgetViewportH, setBudgetViewportH] = useState(0);
+  const [budgetContentH, setBudgetContentH] = useState(0);
   const { width } = useWindowDimensions();
 
   const shownTransactions = useMemo(() => {
@@ -247,6 +253,11 @@ export function TransactionsScreen(props: Props) {
     if (reviewTab === 'transactions' && atStart && fastEnough) onSwipeBeyondLeft();
     if (reviewTab === 'budgets' && atEnd && fastEnough) onSwipeBeyondRight();
   };
+
+  const txHasTop = txOffsetY > 4;
+  const txHasBottom = txContentH - (txOffsetY + txViewportH) > 4;
+  const budgetHasTop = budgetOffsetY > 4;
+  const budgetHasBottom = budgetContentH - (budgetOffsetY + budgetViewportH) > 4;
 
   return (
     <View style={[styles.screenContainer, darkMode && styles.screenDark]}>
@@ -289,36 +300,50 @@ export function TransactionsScreen(props: Props) {
               </View>
             </View>
 
-            <ScrollView
-              style={styles.transactionsListScroll}
-              contentContainerStyle={styles.transactionsListContent}
-              showsVerticalScrollIndicator
-              indicatorStyle={darkMode ? 'white' : 'black'}
-              scrollIndicatorInsets={{ right: 1 }}
-            >
-              <View style={[styles.tableHeaderRow, darkMode && styles.tableHeaderRowDark]}>
-                <Text style={[styles.tableHeaderText, darkMode && styles.metaDark]}>Name / Category</Text>
-                <Text style={[styles.tableHeaderText, darkMode && styles.metaDark]}>Date / Amount</Text>
-              </View>
-              {shownTransactions.map((item, index) => (
-                <TransactionTapRow
-                  key={item.id}
-                  item={item}
-                  currency={currency}
-                  darkMode={darkMode}
-                  activeId={activeTransactionId}
-                  setActiveId={setActiveTransactionId}
-                  onDeleteTransaction={onDeleteTransaction}
-                  onUpdateTransaction={onUpdateTransaction}
-                  showSeparator={index < shownTransactions.length - 1}
-                />
-              ))}
-            </ScrollView>
+            <View style={styles.tableWrap}>
+              <ScrollView
+                style={styles.transactionsListScroll}
+                contentContainerStyle={styles.transactionsListContent}
+                showsVerticalScrollIndicator={false}
+                onScroll={(e) => setTxOffsetY(e.nativeEvent.contentOffset.y)}
+                onLayout={(e) => setTxViewportH(e.nativeEvent.layout.height)}
+                onContentSizeChange={(_, h) => setTxContentH(h)}
+                scrollEventThrottle={16}
+              >
+                <View style={[styles.tableHeaderRow, darkMode && styles.tableHeaderRowDark]}>
+                  <Text style={[styles.tableHeaderText, darkMode && styles.metaDark]}>Name / Category</Text>
+                  <Text style={[styles.tableHeaderText, darkMode && styles.metaDark]}>Date / Amount</Text>
+                </View>
+                {shownTransactions.map((item, index) => (
+                  <TransactionTapRow
+                    key={item.id}
+                    item={item}
+                    currency={currency}
+                    darkMode={darkMode}
+                    activeId={activeTransactionId}
+                    setActiveId={setActiveTransactionId}
+                    onDeleteTransaction={onDeleteTransaction}
+                    onUpdateTransaction={onUpdateTransaction}
+                    showSeparator={index < shownTransactions.length - 1}
+                  />
+                ))}
+              </ScrollView>
+              {txHasTop ? <Text style={[styles.scrollHint, darkMode && styles.scrollHintDark, styles.scrollHintTop]}>▲</Text> : null}
+              {txHasBottom ? <Text style={[styles.scrollHint, darkMode && styles.scrollHintDark, styles.scrollHintBottom]}>▼</Text> : null}
+            </View>
           </View>
         </View>
 
-        <View style={[styles.reviewBudgetsPage, { width }]}>
-          <ScrollView contentContainerStyle={styles.contentContainer}>
+        <View style={[styles.reviewBudgetsPage, { width }]}> 
+          <View style={styles.tableWrap}>
+            <ScrollView
+              contentContainerStyle={styles.contentContainer}
+              showsVerticalScrollIndicator={false}
+              onScroll={(e) => setBudgetOffsetY(e.nativeEvent.contentOffset.y)}
+              onLayout={(e) => setBudgetViewportH(e.nativeEvent.layout.height)}
+              onContentSizeChange={(_, h) => setBudgetContentH(h)}
+              scrollEventThrottle={16}
+            >
             <View style={[styles.panel, darkMode && styles.panelDark]}>
               {(() => {
                 const total = budgets.reduce((s,b)=>s+b.amount,0);
@@ -359,7 +384,10 @@ export function TransactionsScreen(props: Props) {
               ))}
 
             </View>
-          </ScrollView>
+            </ScrollView>
+            {budgetHasTop ? <Text style={[styles.scrollHint, darkMode && styles.scrollHintDark, styles.scrollHintTop]}>▲</Text> : null}
+            {budgetHasBottom ? <Text style={[styles.scrollHint, darkMode && styles.scrollHintDark, styles.scrollHintBottom]}>▼</Text> : null}
+          </View>
           <View style={styles.reviewAddBudgetWrapInPage}>
             <Pressable style={styles.reviewAddBudgetBtn} onPress={() => setShowAddBudget((v) => !v)}>
               <Text style={styles.reviewAddBudgetText}>Add New Budget</Text>
@@ -455,8 +483,13 @@ const styles = StyleSheet.create({
   modalCard: { backgroundColor: '#ecfff1', borderWidth: 1, borderColor: '#9ee5ab', borderRadius: 14, padding: 12, gap: 10 },
   reviewAddBudgetBtn: { backgroundColor: '#14b85a', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
   reviewAddBudgetText: { color: 'white', fontWeight: '800', fontSize: 16 },
+  tableWrap: { flex: 1, position: 'relative' },
   transactionsListScroll: { flex: 1 },
   transactionsListContent: { paddingBottom: 18 },
+  scrollHint: { position: 'absolute', right: 4, color: '#2f7a43', fontSize: 10, fontWeight: '700', backgroundColor: 'rgba(234,255,239,0.85)', borderRadius: 8, paddingHorizontal: 4, paddingVertical: 1 },
+  scrollHintDark: { color: '#b5dec1', backgroundColor: 'rgba(15,26,20,0.85)' },
+  scrollHintTop: { top: 4 },
+  scrollHintBottom: { bottom: 4 },
   tableHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 6, paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: '#d4eadb', marginBottom: 6 },
   tableHeaderRowDark: { borderBottomColor: '#2e4d3b' },
   tableHeaderText: { color: '#3e7b52', fontSize: 11, fontWeight: '700' },
