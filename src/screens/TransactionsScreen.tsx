@@ -24,9 +24,9 @@ type Props = {
   onSwipeBeyondRight: () => void;
 };
 
-type BudgetSwipeRowProps = { budget: Budget; currency: CurrencyCode; darkMode?: boolean; onSaveBudget: (category: TransactionCategory, amount: number) => Promise<void>; onDeleteBudget: (id: string) => Promise<void> };
+type BudgetSwipeRowProps = { budget: Budget; currency: CurrencyCode; darkMode?: boolean; onSaveBudget: (category: TransactionCategory, amount: number) => Promise<void>; onDeleteBudget: (id: string) => Promise<void>; onSwipeActiveChange: (active: boolean) => void };
 
-function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudget }: BudgetSwipeRowProps) {
+function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudget, onSwipeActiveChange }: BudgetSwipeRowProps) {
   const tx = useRef(new Animated.Value(0)).current;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(budget.amount));
@@ -34,10 +34,16 @@ function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudg
   const snap = (v: number) => Animated.spring(tx, { toValue: v, useNativeDriver: true, bounciness: 0 }).start();
   const pan = useMemo(() => PanResponder.create({
     onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 10 && Math.abs(g.dx) > Math.abs(g.dy),
+    onPanResponderGrant: () => onSwipeActiveChange(true),
     onPanResponderMove: (_, g) => tx.setValue(Math.max(-88, Math.min(88, g.dx))),
-    onPanResponderRelease: (_, g) => { if (g.dx > 36) snap(80); else if (g.dx < -36) snap(-80); else snap(0); },
-    onPanResponderTerminate: () => snap(0),
-  }), []);
+    onPanResponderRelease: (_, g) => {
+      if (g.dx > 36) snap(80);
+      else if (g.dx < -36) snap(-80);
+      else snap(0);
+      onSwipeActiveChange(false);
+    },
+    onPanResponderTerminate: () => { snap(0); onSwipeActiveChange(false); },
+  }), [onSwipeActiveChange]);
 
   return (
     <View style={styles.swipeWrap}>
@@ -101,6 +107,7 @@ export function TransactionsScreen(props: Props) {
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'amountDesc' | 'amountAsc'>('newest');
 
   const reviewPagerRef = useRef<ScrollView>(null);
+  const [lockReviewPager, setLockReviewPager] = useState(false);
   const { width } = useWindowDimensions();
 
   const shownTransactions = useMemo(() => {
@@ -137,6 +144,7 @@ export function TransactionsScreen(props: Props) {
         ref={reviewPagerRef}
         horizontal
         pagingEnabled
+        scrollEnabled={!lockReviewPager}
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={onReviewPagerEnd}
         onScrollEndDrag={onReviewEndDrag}
@@ -227,7 +235,15 @@ export function TransactionsScreen(props: Props) {
               })()}
 
               {budgets.map((b) => (
-                <BudgetSwipeRow key={b.id} budget={b} currency={currency} darkMode={darkMode} onSaveBudget={onSaveBudget} onDeleteBudget={onDeleteBudget} />
+                <BudgetSwipeRow
+                  key={b.id}
+                  budget={b}
+                  currency={currency}
+                  darkMode={darkMode}
+                  onSaveBudget={onSaveBudget}
+                  onDeleteBudget={onDeleteBudget}
+                  onSwipeActiveChange={setLockReviewPager}
+                />
               ))}
             </View>
           </ScrollView>
