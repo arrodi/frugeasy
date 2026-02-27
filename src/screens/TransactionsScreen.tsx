@@ -145,12 +145,6 @@ export function TransactionsScreen(props: Props) {
     reviewPagerRef.current?.scrollTo({ x: (reviewTab === 'transactions' ? 0 : 1) * width, animated: true });
   }, [reviewTab, width]);
 
-  const onReviewScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const next = Math.round(event.nativeEvent.contentOffset.x / width);
-    const nextTab = next === 0 ? 'transactions' : 'budgets';
-    if (nextTab !== reviewTab) setReviewTab(nextTab);
-  };
-
   const onReviewPagerEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const next = Math.round(event.nativeEvent.contentOffset.x / width);
     setReviewTab(next === 0 ? 'transactions' : 'budgets');
@@ -173,8 +167,6 @@ export function TransactionsScreen(props: Props) {
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        scrollEventThrottle={16}
-        onScroll={onReviewScroll}
         onMomentumScrollEnd={onReviewPagerEnd}
         onScrollEndDrag={onReviewEndDrag}
       >
@@ -276,33 +268,6 @@ export function TransactionsScreen(props: Props) {
                 />
               ))}
 
-              {showAddBudget ? (
-                <View style={[styles.panel, darkMode && styles.panelDark]}>
-                  <Pressable style={[styles.dropdown, darkMode && styles.inputDark]} onPress={() => setBudgetCategoryOpen((p) => !p)}>
-                    <Text style={[styles.dropdownText, darkMode && styles.textDark]}>{budgetCategory}</Text>
-                    <Text>▾</Text>
-                  </Pressable>
-                  {budgetCategoryOpen ? (
-                    <View style={[styles.dropdownMenu, darkMode && styles.panelDark]}>
-                      {categoryOptions.map((cat) => (
-                        <Pressable key={cat} style={styles.dropdownOption} onPress={() => { setBudgetCategory(cat); setBudgetCategoryOpen(false); }}>
-                          <Text style={[styles.dropdownText, darkMode && styles.textDark]}>{cat}</Text>
-                        </Pressable>
-                      ))}
-                    </View>
-                  ) : null}
-                  <TextInput value={budgetAmount} onChangeText={setBudgetAmount} style={[styles.smallInput, darkMode && styles.inputDark]} placeholder="Budget amount" keyboardType="decimal-pad" />
-                  <Pressable style={styles.reviewAddBudgetBtn} onPress={async () => {
-                    const amount = Number(budgetAmount.replace(',', '.'));
-                    if (!Number.isFinite(amount) || amount <= 0) return;
-                    await onSaveBudget(budgetCategory, amount);
-                    setBudgetAmount('');
-                    setShowAddBudget(false);
-                  }}>
-                    <Text style={styles.reviewAddBudgetText}>Save</Text>
-                  </Pressable>
-                </View>
-              ) : null}
             </View>
           </ScrollView>
           <View style={styles.reviewAddBudgetWrapInPage}>
@@ -312,6 +277,46 @@ export function TransactionsScreen(props: Props) {
           </View>
         </View>
       </ScrollView>
+
+      {showAddBudget ? (
+        <View style={styles.modalBackdrop}>
+          <Pressable style={styles.modalScrim} onPress={() => { setShowAddBudget(false); setBudgetCategoryOpen(false); }} />
+          <View style={[styles.modalCard, darkMode && styles.panelDark]}>
+            <Text style={[styles.name, darkMode && styles.textDark]}>Add New Budget</Text>
+            <TextInput
+              value={budgetAmount}
+              onChangeText={setBudgetAmount}
+              style={[styles.smallInput, darkMode && styles.inputDark]}
+              placeholder="Budget amount"
+              keyboardType="decimal-pad"
+            />
+            <Pressable style={[styles.dropdown, darkMode && styles.inputDark]} onPress={() => setBudgetCategoryOpen((p) => !p)}>
+              <Text style={[styles.dropdownText, darkMode && styles.textDark]}>{budgetCategory}</Text>
+              <Text>▾</Text>
+            </Pressable>
+            {budgetCategoryOpen ? (
+              <View style={[styles.dropdownMenu, darkMode && styles.panelDark]}>
+                {categoryOptions.map((cat) => (
+                  <Pressable key={cat} style={styles.dropdownOption} onPress={() => { setBudgetCategory(cat); setBudgetCategoryOpen(false); }}>
+                    <Text style={[styles.dropdownText, darkMode && styles.textDark]}>{cat}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
+            <Pressable style={styles.reviewAddBudgetBtn} onPress={async () => {
+              const amount = Number(budgetAmount.replace(',', '.'));
+              if (!Number.isFinite(amount) || amount <= 0) return;
+              await onSaveBudget(budgetCategory, amount);
+              setBudgetAmount('');
+              setShowAddBudget(false);
+              setBudgetCategoryOpen(false);
+            }}>
+              <Text style={styles.reviewAddBudgetText}>Save</Text>
+            </Pressable>
+          </View>
+        </View>
+      ) : null}
+
       <View style={[styles.reviewBottomTabs, darkMode && styles.reviewBottomTabsDark]}>
         {(['transactions', 'budgets'] as const).map((tab) => {
           const active = reviewTab === tab;
@@ -353,6 +358,9 @@ const styles = StyleSheet.create({
   reviewBottomTabsDark: { backgroundColor: '#0f1a14' },
   reviewBudgetsPage: { flex: 1 },
   reviewAddBudgetWrapInPage: { position: 'absolute', left: 16, right: 16, bottom: 56 },
+  modalBackdrop: { ...StyleSheet.absoluteFillObject, justifyContent: 'center', paddingHorizontal: 20, zIndex: 30 },
+  modalScrim: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.35)' },
+  modalCard: { backgroundColor: '#ecfff1', borderWidth: 1, borderColor: '#9ee5ab', borderRadius: 14, padding: 12, gap: 10 },
   reviewAddBudgetBtn: { backgroundColor: '#14b85a', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
   reviewAddBudgetText: { color: 'white', fontWeight: '800', fontSize: 16 },
   reviewBottomTab: { flex: 1, alignItems: 'center', gap: 4, paddingTop: 2 },
