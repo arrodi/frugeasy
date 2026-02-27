@@ -38,14 +38,6 @@ type TransactionTapRowProps = {
   showSeparator: boolean;
 };
 
-function ScrollChevron({ up = false, darkMode }: { up?: boolean; darkMode?: boolean }) {
-  return (
-    <View style={styles.scrollHint}>
-      <View style={[styles.chevArm, styles.chevLeft, up && styles.chevLeftUp, darkMode && styles.chevArmDark]} />
-      <View style={[styles.chevArm, styles.chevRight, up && styles.chevRightUp, darkMode && styles.chevArmDark]} />
-    </View>
-  );
-}
 
 function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, onDeleteTransaction, onUpdateTransaction, showSeparator }: TransactionTapRowProps) {
   const reveal = useRef(new Animated.Value(0)).current;
@@ -227,12 +219,6 @@ export function TransactionsScreen(props: Props) {
 
   const reviewPagerRef = useRef<ScrollView>(null);
   const [activeSwipeBudgetId, setActiveSwipeBudgetId] = useState<string | null>(null);
-  const [txOffsetY, setTxOffsetY] = useState(0);
-  const [txViewportH, setTxViewportH] = useState(0);
-  const [txContentH, setTxContentH] = useState(0);
-  const [budgetOffsetY, setBudgetOffsetY] = useState(0);
-  const [budgetViewportH, setBudgetViewportH] = useState(0);
-  const [budgetContentH, setBudgetContentH] = useState(0);
   const { width } = useWindowDimensions();
 
   const shownTransactions = useMemo(() => {
@@ -262,11 +248,6 @@ export function TransactionsScreen(props: Props) {
     if (reviewTab === 'transactions' && atStart && fastEnough) onSwipeBeyondLeft();
     if (reviewTab === 'budgets' && atEnd && fastEnough) onSwipeBeyondRight();
   };
-
-  const txHasTop = txOffsetY > 4;
-  const txHasBottom = txContentH - (txOffsetY + txViewportH) > 4;
-  const budgetHasTop = budgetOffsetY > 4;
-  const budgetHasBottom = budgetContentH - (budgetOffsetY + budgetViewportH) > 4;
 
   return (
     <View style={[styles.screenContainer, darkMode && styles.screenDark]}>
@@ -309,16 +290,12 @@ export function TransactionsScreen(props: Props) {
               </View>
             </View>
 
-            {txHasTop ? <View style={styles.scrollHintTop}><ScrollChevron up darkMode={darkMode} /></View> : null}
             <View style={styles.tableWrap}>
               <ScrollView
                 style={styles.transactionsListScroll}
                 contentContainerStyle={styles.transactionsListContent}
                 showsVerticalScrollIndicator={false}
-                onScroll={(e) => setTxOffsetY(e.nativeEvent.contentOffset.y)}
-                onLayout={(e) => setTxViewportH(e.nativeEvent.layout.height)}
-                onContentSizeChange={(_, h) => setTxContentH(h)}
-                scrollEventThrottle={16}
+
               >
                 <View style={[styles.tableHeaderRow, darkMode && styles.tableHeaderRowDark]}>
                   <Text style={[styles.tableHeaderText, darkMode && styles.metaDark]}>Name / Category</Text>
@@ -339,20 +316,15 @@ export function TransactionsScreen(props: Props) {
                 ))}
               </ScrollView>
             </View>
-            {txHasBottom ? <View style={styles.scrollHintBottom}><ScrollChevron darkMode={darkMode} /></View> : null}
           </View>
         </View>
 
         <View style={[styles.reviewBudgetsPage, { width }]}> 
-          {budgetHasTop ? <View style={styles.scrollHintTop}><ScrollChevron up darkMode={darkMode} /></View> : null}
           <View style={styles.tableWrap}>
             <ScrollView
               contentContainerStyle={styles.contentContainer}
               showsVerticalScrollIndicator={false}
-              onScroll={(e) => setBudgetOffsetY(e.nativeEvent.contentOffset.y)}
-              onLayout={(e) => setBudgetViewportH(e.nativeEvent.layout.height)}
-              onContentSizeChange={(_, h) => setBudgetContentH(h)}
-              scrollEventThrottle={16}
+
             >
             <View style={[styles.panel, darkMode && styles.panelDark]}>
               {(() => {
@@ -396,7 +368,6 @@ export function TransactionsScreen(props: Props) {
             </View>
             </ScrollView>
           </View>
-          {budgetHasBottom ? <View style={styles.scrollHintBottom}><ScrollChevron darkMode={darkMode} /></View> : null}
           <View style={styles.reviewAddBudgetWrapInPage}>
             <Pressable style={styles.reviewAddBudgetBtn} onPress={() => setShowAddBudget((v) => !v)}>
               <Text style={styles.reviewAddBudgetText}>Add New Budget</Text>
@@ -495,15 +466,7 @@ const styles = StyleSheet.create({
   tableWrap: { flex: 1, position: 'relative' },
   transactionsListScroll: { flex: 1 },
   transactionsListContent: { paddingBottom: 18 },
-  scrollHint: { width: '50%', height: 10, alignSelf: 'center', position: 'relative' },
-  chevArm: { position: 'absolute', top: 4, width: '54%', height: 2, borderRadius: 1, backgroundColor: '#14b85a' },
-  chevArmDark: { backgroundColor: '#79d992' },
-  chevLeft: { left: -2, transform: [{ rotate: '24deg' }] },
-  chevRight: { right: -2, transform: [{ rotate: '-24deg' }] },
-  chevLeftUp: { transform: [{ rotate: '-24deg' }] },
-  chevRightUp: { transform: [{ rotate: '24deg' }] },
-  scrollHintTop: { width: '100%', marginBottom: 2 },
-  scrollHintBottom: { width: '100%', marginTop: 2 },
+
   tableHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 6, paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: '#d4eadb', marginBottom: 6 },
   tableHeaderRowDark: { borderBottomColor: '#2e4d3b' },
   tableHeaderText: { color: '#3e7b52', fontSize: 11, fontWeight: '700' },
