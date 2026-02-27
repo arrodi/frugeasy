@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { LayoutAnimation, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg';
 import { Budget, CurrencyCode, Transaction, TransactionCategory } from '../domain/types';
 import { formatCurrency } from '../ui/format';
@@ -17,8 +18,8 @@ type Props = {
 
 export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetProgressRows, transactions, onSaveBudget, categoryOptions }: Props) {
   const [expandedBudgetKey, setExpandedBudgetKey] = useState<string | null>(null);
-  const [scrollY, setScrollY] = useState(0);
-  const [listHeight, setListHeight] = useState(0);
+  const [showTopFade, setShowTopFade] = useState(false);
+  const [showBottomFade, setShowBottomFade] = useState(false);
 
 
   const displayedBudgetRows = (() => {
@@ -39,17 +40,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
     });
   })();
 
-  const rowOpacity = (index: number, expanded: boolean) => {
-    if (!listHeight) return 1;
-    const rowHeight = expanded ? 170 : 84;
-    const rowTop = index * 94;
-    const y = rowTop - scrollY;
-    const fadeZone = 56;
-    const topFactor = y < fadeZone ? Math.max(0, y / fadeZone) : 1;
-    const bottomDistance = listHeight - (y + rowHeight);
-    const bottomFactor = bottomDistance < fadeZone ? Math.max(0, bottomDistance / fadeZone) : 1;
-    return Math.max(0.35, Math.min(1, Math.min(topFactor, bottomFactor)));
-  };
+  const fadeColor = darkMode ? '#0f1a14' : '#eaffef';
 
   return (
     <View style={[styles.screenContainer, darkMode && styles.screenDark]}>
@@ -129,16 +120,22 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
           );
         })()}
 
-        <View style={styles.entriesScrollWrap} onLayout={(e) => setListHeight(e.nativeEvent.layout.height)}>
+        <View style={styles.entriesScrollWrap}>
           <ScrollView
             style={styles.entriesScroll}
             contentContainerStyle={styles.entriesScrollContent}
             showsVerticalScrollIndicator={false}
             scrollEventThrottle={16}
-            onScroll={(e) => setScrollY(e.nativeEvent.contentOffset.y)}
+            onScroll={(e) => {
+              const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+              const y = contentOffset.y;
+              setShowTopFade(y > 4);
+              const distanceFromBottom = contentSize.height - (y + layoutMeasurement.height);
+              setShowBottomFade(y > 4 && distanceFromBottom > 4);
+            }}
           >
             {displayedBudgetRows.length === 0 ? <Text style={[styles.ruleText, darkMode && styles.textDark]}>No budgets set yet.</Text> : null}
-            {displayedBudgetRows.map((row, index) => {
+            {displayedBudgetRows.map((row) => {
             const expanded = row.category === expandedBudgetKey;
             const recent = transactions
               .filter((t) => t.type === 'expense' && t.category === row.category)
@@ -148,7 +145,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
             return (
               <Pressable
                 key={`b-${row.category}`}
-                style={[styles.budgetItem, darkMode && styles.budgetItemDark, { opacity: rowOpacity(index, expanded) }]}
+                style={[styles.budgetItem, darkMode && styles.budgetItemDark]}
                 onPress={() => {
                   LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                   setExpandedBudgetKey(expanded ? null : row.category);
@@ -193,6 +190,12 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
             );
           })}
           </ScrollView>
+          {showTopFade ? (
+            <LinearGradient pointerEvents="none" colors={[fadeColor, 'transparent']} style={[styles.edgeFade, styles.edgeFadeTop]} />
+          ) : null}
+          {showBottomFade ? (
+            <LinearGradient pointerEvents="none" colors={['transparent', fadeColor]} style={[styles.edgeFade, styles.edgeFadeBottom]} />
+          ) : null}
         </View>
 
       </View>
@@ -208,6 +211,9 @@ const styles = StyleSheet.create({
   entriesScrollWrap: { flex: 1, position: 'relative' },
   entriesScroll: { flex: 1 },
   entriesScrollContent: { paddingBottom: 8 },
+  edgeFade: { position: 'absolute', left: 0, right: 0, height: 16 },
+  edgeFadeTop: { top: 0 },
+  edgeFadeBottom: { bottom: 0 },
 
   title: { fontSize: 17, fontWeight: '700', color: '#156530' },
   panelTitle: { fontSize: 14, fontWeight: '700', color: '#14532d', marginBottom: 6 },
