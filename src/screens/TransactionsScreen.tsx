@@ -38,6 +38,15 @@ type TransactionTapRowProps = {
   showSeparator: boolean;
 };
 
+function ScrollChevron({ up = false, darkMode }: { up?: boolean; darkMode?: boolean }) {
+  return (
+    <View style={styles.scrollHint}>
+      <View style={[styles.chevArm, styles.chevLeft, up && styles.chevLeftUp, darkMode && styles.chevArmDark]} />
+      <View style={[styles.chevArm, styles.chevRight, up && styles.chevRightUp, darkMode && styles.chevArmDark]} />
+    </View>
+  );
+}
+
 function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, onDeleteTransaction, onUpdateTransaction, showSeparator }: TransactionTapRowProps) {
   const reveal = useRef(new Animated.Value(0)).current;
   const opened = activeId === item.id;
@@ -328,8 +337,8 @@ export function TransactionsScreen(props: Props) {
                   />
                 ))}
               </ScrollView>
-              {txHasTop ? <Text style={[styles.scrollHint, darkMode && styles.scrollHintDark, styles.scrollHintTop]}>▴</Text> : null}
-              {txHasBottom ? <Text style={[styles.scrollHint, darkMode && styles.scrollHintDark, styles.scrollHintBottom]}>▾</Text> : null}
+              {txHasTop ? <View style={styles.scrollHintTop}><ScrollChevron up darkMode={darkMode} /></View> : null}
+              {txHasBottom ? <View style={styles.scrollHintBottom}><ScrollChevron darkMode={darkMode} /></View> : null}
             </View>
           </View>
         </View>
@@ -385,8 +394,8 @@ export function TransactionsScreen(props: Props) {
 
             </View>
             </ScrollView>
-            {budgetHasTop ? <Text style={[styles.scrollHint, darkMode && styles.scrollHintDark, styles.scrollHintTop]}>▴</Text> : null}
-            {budgetHasBottom ? <Text style={[styles.scrollHint, darkMode && styles.scrollHintDark, styles.scrollHintBottom]}>▾</Text> : null}
+            {budgetHasTop ? <View style={styles.scrollHintTop}><ScrollChevron up darkMode={darkMode} /></View> : null}
+            {budgetHasBottom ? <View style={styles.scrollHintBottom}><ScrollChevron darkMode={darkMode} /></View> : null}
           </View>
           <View style={styles.reviewAddBudgetWrapInPage}>
             <Pressable style={styles.reviewAddBudgetBtn} onPress={() => setShowAddBudget((v) => !v)}>
@@ -486,10 +495,15 @@ const styles = StyleSheet.create({
   tableWrap: { flex: 1, position: 'relative' },
   transactionsListScroll: { flex: 1 },
   transactionsListContent: { paddingBottom: 18 },
-  scrollHint: { position: 'absolute', left: '25%', width: '50%', textAlign: 'center', color: '#2f7a43', fontSize: 11, fontWeight: '700', lineHeight: 11, backgroundColor: 'rgba(234,255,239,0.85)', borderRadius: 10, paddingVertical: 1 },
-  scrollHintDark: { color: '#b5dec1', backgroundColor: 'rgba(15,26,20,0.85)' },
-  scrollHintTop: { top: 4 },
-  scrollHintBottom: { bottom: 4 },
+  scrollHint: { width: '50%', height: 14, alignSelf: 'center', position: 'relative' },
+  chevArm: { position: 'absolute', top: 5, width: '54%', height: 3, borderRadius: 2, backgroundColor: '#375273' },
+  chevArmDark: { backgroundColor: '#8fa8c2' },
+  chevLeft: { left: -2, transform: [{ rotate: '26deg' }] },
+  chevRight: { right: -2, transform: [{ rotate: '-26deg' }] },
+  chevLeftUp: { transform: [{ rotate: '-26deg' }] },
+  chevRightUp: { transform: [{ rotate: '26deg' }] },
+  scrollHintTop: { position: 'absolute', top: 4, left: '25%', width: '50%' },
+  scrollHintBottom: { position: 'absolute', bottom: 4, left: '25%', width: '50%' },
   tableHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 6, paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: '#d4eadb', marginBottom: 6 },
   tableHeaderRowDark: { borderBottomColor: '#2e4d3b' },
   tableHeaderText: { color: '#3e7b52', fontSize: 11, fontWeight: '700' },
