@@ -35,9 +35,10 @@ type TransactionTapRowProps = {
   setActiveId: (id: string | null) => void;
   onDeleteTransaction: (id: string) => Promise<void>;
   onUpdateTransaction: (input: { id: string; amount: number; type: TransactionType; category: TransactionCategory; name: string; date: string }) => Promise<void>;
+  showSeparator: boolean;
 };
 
-function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, onDeleteTransaction, onUpdateTransaction }: TransactionTapRowProps) {
+function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, onDeleteTransaction, onUpdateTransaction, showSeparator }: TransactionTapRowProps) {
   const reveal = useRef(new Animated.Value(0)).current;
   const opened = activeId === item.id;
   const dateLabel = new Date(item.date).toLocaleDateString();
@@ -83,7 +84,7 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
         </View>
       </View>
 
-      <Animated.View style={[styles.listRow, styles.listRowInner, darkMode && styles.listRowDark, { marginRight: reveal }]}>
+      <Animated.View style={[styles.transactionRow, darkMode && styles.transactionRowDark, { marginRight: reveal }]}>
         <View style={styles.topRow}>
           <View>
             <Text style={[styles.name, darkMode && styles.textDark]}>{item.name?.trim() ? item.name : '—'}</Text>
@@ -94,6 +95,7 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
             <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(item.amount, currency)}</Text>
           </View>
         </View>
+        {showSeparator ? <View style={[styles.recordSeparator, darkMode && styles.recordSeparatorDark]} /> : null}
       </Animated.View>
     </Pressable>
   );
@@ -282,7 +284,7 @@ export function TransactionsScreen(props: Props) {
                 <Text style={[styles.tableHeaderText, darkMode && styles.metaDark]}>Name / Category</Text>
                 <Text style={[styles.tableHeaderText, darkMode && styles.metaDark]}>Date / Amount</Text>
               </View>
-              {shownTransactions.map((item) => (
+              {shownTransactions.map((item, index) => (
                 <TransactionTapRow
                   key={item.id}
                   item={item}
@@ -292,6 +294,7 @@ export function TransactionsScreen(props: Props) {
                   setActiveId={setActiveTransactionId}
                   onDeleteTransaction={onDeleteTransaction}
                   onUpdateTransaction={onUpdateTransaction}
+                  showSeparator={index < shownTransactions.length - 1}
                 />
               ))}
             </ScrollView>
@@ -473,6 +476,10 @@ const styles = StyleSheet.create({
   listRow: { backgroundColor: '#ecfff1', borderRadius: 14, padding: 11, borderWidth: 1, borderColor: '#9ee5ab' },
   listRowInner: { marginBottom: 0, borderWidth: 0, borderRadius: 0 },
   listRowDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
+  transactionRow: { backgroundColor: 'transparent', paddingHorizontal: 6, paddingTop: 10, paddingBottom: 8 },
+  transactionRowDark: { backgroundColor: 'transparent' },
+  recordSeparator: { marginTop: 10, height: StyleSheet.hairlineWidth, backgroundColor: '#cfe5d6' },
+  recordSeparatorDark: { backgroundColor: '#2e4d3b' },
   rightRow: { alignItems: 'flex-end', gap: 6 },
   name: { fontWeight: '700', color: '#1e6e37' },
   meta: { color: '#3e7b52', fontSize: 12, marginTop: 2 },
