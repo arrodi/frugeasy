@@ -48,7 +48,7 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
   }, [opened]);
 
   return (
-    <Pressable style={[styles.swipeShell, darkMode && styles.swipeShellDark]} onPress={() => setActiveId(opened ? null : item.id)}>
+    <Pressable style={styles.transactionShell} onPress={() => setActiveId(opened ? null : item.id)}>
       <View style={styles.tapActionsBg} pointerEvents="box-none">
         <View style={styles.tapActionsRight}>
           <Pressable
@@ -463,6 +463,7 @@ const styles = StyleSheet.create({
   filterChipActive: { backgroundColor: '#14b85a', borderColor: '#14b85a' },
   filterChipText: { color: '#1e6e37', fontWeight: '600', textTransform: 'capitalize' },
   filterChipTextActive: { color: 'white' },
+  transactionShell: { position: 'relative', overflow: 'hidden' },
   swipeShell: { position: 'relative', marginBottom: 8, borderRadius: 14, borderWidth: 1, borderColor: '#9ee5ab', backgroundColor: '#ecfff1', overflow: 'hidden' },
   swipeShellDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
   tapActionsBg: { position: 'absolute', inset: 0, justifyContent: 'center', alignItems: 'flex-end' },
