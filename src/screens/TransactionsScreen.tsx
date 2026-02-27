@@ -27,6 +27,74 @@ type Props = {
 
 type BudgetSwipeRowProps = { budget: Budget; currency: CurrencyCode; darkMode?: boolean; onSaveBudget: (category: TransactionCategory, amount: number) => Promise<void>; onDeleteBudget: (id: string) => Promise<void>; activeSwipeBudgetId: string | null; setActiveSwipeBudgetId: (id: string | null) => void };
 
+type TransactionTapRowProps = {
+  item: Transaction;
+  currency: CurrencyCode;
+  darkMode?: boolean;
+  activeId: string | null;
+  setActiveId: (id: string | null) => void;
+  onDeleteTransaction: (id: string) => Promise<void>;
+  onUpdateTransaction: (input: { id: string; amount: number; type: TransactionType; category: TransactionCategory; name: string; date: string }) => Promise<void>;
+};
+
+function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, onDeleteTransaction, onUpdateTransaction }: TransactionTapRowProps) {
+  const reveal = useRef(new Animated.Value(0)).current;
+  const opened = activeId === item.id;
+
+  useEffect(() => {
+    Animated.timing(reveal, { toValue: opened ? 132 : 0, duration: 170, useNativeDriver: false }).start();
+  }, [opened]);
+
+  return (
+    <Pressable style={[styles.swipeShell, darkMode && styles.swipeShellDark]} onPress={() => setActiveId(opened ? null : item.id)}>
+      <View style={styles.tapActionsBg} pointerEvents="box-none">
+        <View style={styles.tapActionsRight}>
+          <Pressable
+            style={styles.updateFlatBtn}
+            onPress={(e) => {
+              e.stopPropagation?.();
+              Alert.prompt(
+                'Update transaction amount',
+                `${item.category} • ${item.name || '—'}`,
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Save',
+                    onPress: async (value?: string) => {
+                      const amount = Number((value ?? '').replace(',', '.'));
+                      if (!Number.isFinite(amount) || amount <= 0) return;
+                      await onUpdateTransaction({ id: item.id, amount, type: item.type, category: item.category, name: item.name, date: item.date });
+                      setActiveId(null);
+                    },
+                  },
+                ],
+                'plain-text',
+                String(item.amount),
+                'decimal-pad'
+              );
+            }}
+          >
+            <Text style={styles.flatBtnText}>Update</Text>
+          </Pressable>
+          <Pressable style={styles.deleteFlatBtn} onPress={(e) => { e.stopPropagation?.(); onDeleteTransaction(item.id); }}>
+            <Text style={styles.flatBtnText}>Delete</Text>
+          </Pressable>
+        </View>
+      </View>
+
+      <Animated.View style={[styles.listRow, styles.listRowInner, darkMode && styles.listRowDark, { marginRight: reveal }]}>
+        <View style={styles.topRow}>
+          <View>
+            <Text style={[styles.name, darkMode && styles.textDark]}>{item.name?.trim() ? item.name : '—'}</Text>
+            <Text style={styles.meta}>{item.category}</Text>
+          </View>
+          <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(item.amount, currency)}</Text>
+        </View>
+      </Animated.View>
+    </Pressable>
+  );
+}
+
 function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudget, activeSwipeBudgetId, setActiveSwipeBudgetId }: BudgetSwipeRowProps) {
   const reveal = useRef(new Animated.Value(0)).current;
 
@@ -117,11 +185,7 @@ export function TransactionsScreen(props: Props) {
   } = props;
 
   const [reviewTab, setReviewTab] = useState<'transactions' | 'budgets'>('transactions');
-  const [editId, setEditId] = useState<string | null>(null);
-  const [editAmount, setEditAmount] = useState('');
-  const [editType, setEditType] = useState<TransactionType>('expense');
-  const [editCategory, setEditCategory] = useState<TransactionCategory>('Other');
-  const [editName, setEditName] = useState('');
+  const [activeTransactionId, setActiveTransactionId] = useState<string | null>(null);
   const [sortOpen, setSortOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'amountDesc' | 'amountAsc'>('newest');
@@ -174,7 +238,7 @@ export function TransactionsScreen(props: Props) {
       >
         <View style={{ width }}>
           <ScrollView contentContainerStyle={styles.contentContainer}>
-            <TextInput value={searchQuery} onChangeText={onSearchQueryChange} placeholder="Search by category, name or amount" placeholderTextColor="#4f7a59" style={[styles.searchInput, darkMode && styles.inputDark]} />
+            <TextInput value={searchQuery} onChangeText={onSearchQueryChange} placeholder="Search categories" placeholderTextColor="#4f7a59" style={[styles.searchInput, darkMode && styles.inputDark]} />
 
             <View style={styles.row}>
               <View style={styles.flex1}>
@@ -203,34 +267,18 @@ export function TransactionsScreen(props: Props) {
               </View>
             </View>
 
-            {shownTransactions.map((item) => {
-              const editing = editId === item.id;
-              return (
-                <View key={item.id} style={[styles.listRow, darkMode && styles.listRowDark]}>
-                  {!editing ? (
-                    <>
-                      <View>
-                        <Text style={[styles.name, darkMode && styles.textDark]}>{item.name?.trim() ? item.name : "—"}</Text>
-                        <Text style={styles.meta}>{item.category} • {new Date(item.date).toLocaleString()}</Text>
-                      </View>
-                      <View style={styles.rightRow}>
-                        <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(item.amount, currency)}</Text>
-                        <View style={styles.inlineRow}>
-                          <Pressable style={styles.actionBtn} onPress={() => { setEditId(item.id); setEditAmount(String(item.amount)); setEditType(item.type); setEditCategory(item.category); setEditName(item.name); }}><Text style={styles.actionBtnText}>Edit</Text></Pressable>
-                          <Pressable style={styles.actionBtn} onPress={() => onDeleteTransaction(item.id)}><Text style={styles.actionBtnText}>Delete</Text></Pressable>
-                        </View>
-                      </View>
-                    </>
-                  ) : (
-                    <View style={{ width: '100%', gap: 8 }}>
-                      <TextInput value={editName} onChangeText={setEditName} style={[styles.smallInput, darkMode && styles.inputDark]} placeholder="Name" />
-                      <View style={styles.inlineRow}><TextInput value={editAmount} onChangeText={setEditAmount} style={[styles.smallInput, darkMode && styles.inputDark]} keyboardType="decimal-pad" placeholder="Amount" /><TextInput value={editCategory} onChangeText={(v) => setEditCategory(v as TransactionCategory)} style={[styles.smallInput, darkMode && styles.inputDark]} placeholder="Category" /></View>
-                      <View style={styles.inlineRow}><Pressable style={[styles.filterChip, editType === 'income' && styles.filterChipActive]} onPress={() => setEditType('income')}><Text style={[styles.filterChipText, editType === 'income' && styles.filterChipTextActive]}>income</Text></Pressable><Pressable style={[styles.filterChip, editType === 'expense' && styles.filterChipActive]} onPress={() => setEditType('expense')}><Text style={[styles.filterChipText, editType === 'expense' && styles.filterChipTextActive]}>expense</Text></Pressable><Pressable style={styles.actionBtn} onPress={async () => { const amount = Number(editAmount.replace(',', '.')); if (!Number.isFinite(amount) || amount <= 0) return; await onUpdateTransaction({ id: item.id, amount, type: editType, category: editCategory, name: editName.trim() || 'Untitled', date: item.date }); setEditId(null); }}><Text style={styles.actionBtnText}>Save</Text></Pressable></View>
-                    </View>
-                  )}
-                </View>
-              );
-            })}
+            {shownTransactions.map((item) => (
+              <TransactionTapRow
+                key={item.id}
+                item={item}
+                currency={currency}
+                darkMode={darkMode}
+                activeId={activeTransactionId}
+                setActiveId={setActiveTransactionId}
+                onDeleteTransaction={onDeleteTransaction}
+                onUpdateTransaction={onUpdateTransaction}
+              />
+            ))}
           </ScrollView>
         </View>
 

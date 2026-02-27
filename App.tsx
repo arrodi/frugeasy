@@ -149,8 +149,7 @@ export default function App() {
       if (categoryFilter !== 'all' && t.category !== categoryFilter) return false;
       if (searchQuery.trim()) {
         const q = searchQuery.trim().toLowerCase();
-        const hay = `${t.category} ${t.type} ${t.amount}`.toLowerCase();
-        if (!hay.includes(q)) return false;
+        if (!t.category.toLowerCase().includes(q)) return false;
       }
       return true;
     });
@@ -183,11 +182,12 @@ export default function App() {
     const nowIso = input?.dateIso ?? new Date().toISOString();
 
     try {
+      const categoryCount = transactions.filter((t) => t.category === selectedCategory).length + 1;
       const tx = await insertTransaction({
         amount,
         type: selectedType,
         category: selectedCategory,
-        name: nameInput.trim() || 'Untitled',
+        name: nameInput.trim() || `${selectedCategory} ${categoryCount}`,
         date: nowIso,
         createdAt: nowIso,
       });
