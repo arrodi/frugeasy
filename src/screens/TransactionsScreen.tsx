@@ -32,7 +32,8 @@ function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudg
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(budget.amount));
 
-  const snap = (v: number) => Animated.spring(tx, { toValue: v, useNativeDriver: true, bounciness: 0 }).start();
+  const snap = (v: number, onDone?: () => void) =>
+    Animated.spring(tx, { toValue: v, useNativeDriver: true, bounciness: 0 }).start(() => onDone?.());
   const pan = useMemo(() => PanResponder.create({
     onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 8 && Math.abs(g.dx) > Math.abs(g.dy),
     onMoveShouldSetPanResponderCapture: (_, g) => Math.abs(g.dx) > 8 && Math.abs(g.dx) > Math.abs(g.dy),
@@ -40,13 +41,20 @@ function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudg
     onPanResponderGrant: () => { onSwipeActiveChange(true); onEntrySwipeActiveChange(true); },
     onPanResponderMove: (_, g) => tx.setValue(Math.max(-88, Math.min(88, g.dx))),
     onPanResponderRelease: (_, g) => {
-      if (g.dx > 36) snap(80);
-      else if (g.dx < -36) snap(-80);
-      else snap(0);
-      onSwipeActiveChange(false);
-      onEntrySwipeActiveChange(false);
+      const unlock = () => {
+        onSwipeActiveChange(false);
+        onEntrySwipeActiveChange(false);
+      };
+      if (g.dx > 36) snap(80, unlock);
+      else if (g.dx < -36) snap(-80, unlock);
+      else snap(0, unlock);
     },
-    onPanResponderTerminate: () => { snap(0); onSwipeActiveChange(false); onEntrySwipeActiveChange(false); },
+    onPanResponderTerminate: () => {
+      snap(0, () => {
+        onSwipeActiveChange(false);
+        onEntrySwipeActiveChange(false);
+      });
+    },
   }), [onSwipeActiveChange, onEntrySwipeActiveChange]);
 
   return (
