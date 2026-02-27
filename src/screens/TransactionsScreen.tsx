@@ -124,44 +124,6 @@ export function TransactionsScreen(props: Props) {
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'amountDesc' | 'amountAsc'>('newest');
 
-  const handleQuickAddBudget = () => {
-    Alert.prompt(
-      'New budget',
-      'Category',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Next',
-          onPress: (categoryInput?: string) => {
-            const category = (categoryInput ?? '').trim() || 'Other';
-            Alert.prompt(
-              'New budget',
-              category,
-              [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                  text: 'Save',
-                  onPress: async (amountInput?: string) => {
-                    const raw = (amountInput ?? '').trim();
-                    if (!/^\d+(?:[.,]\d+)?$/.test(raw)) return;
-                    const amount = Number(raw.replace(',', '.'));
-                    if (!Number.isFinite(amount) || amount <= 0) return;
-                    await onSaveBudget(category as TransactionCategory, amount);
-                  },
-                },
-              ],
-              'plain-text',
-              '',
-              'decimal-pad'
-            );
-          },
-        },
-      ],
-      'plain-text',
-      'Other'
-    );
-  };
-
   const reviewPagerRef = useRef<ScrollView>(null);
   const [activeSwipeBudgetId, setActiveSwipeBudgetId] = useState<string | null>(null);
   const { width } = useWindowDimensions();
@@ -305,13 +267,6 @@ export function TransactionsScreen(props: Props) {
           </ScrollView>
         </View>
       </ScrollView>
-      {reviewTab === 'budgets' ? (
-        <View style={styles.reviewAddBudgetWrap}>
-          <Pressable style={styles.reviewAddBudgetBtn} onPress={handleQuickAddBudget}>
-            <Text style={styles.reviewAddBudgetText}>Add New Budget</Text>
-          </Pressable>
-        </View>
-      ) : null}
       <View style={[styles.reviewBottomTabs, darkMode && styles.reviewBottomTabsDark]}>
         {(['transactions', 'budgets'] as const).map((tab) => {
           const active = reviewTab === tab;
@@ -351,9 +306,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#eaffef',
   },
   reviewBottomTabsDark: { backgroundColor: '#0f1a14' },
-  reviewAddBudgetWrap: { position: 'absolute', left: 16, right: 16, bottom: 56 },
-  reviewAddBudgetBtn: { backgroundColor: '#14b85a', borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
-  reviewAddBudgetText: { color: 'white', fontWeight: '800' },
   reviewBottomTab: { flex: 1, alignItems: 'center', gap: 4, paddingTop: 2 },
   reviewBottomDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#79d992' },
   reviewBottomDotActive: { backgroundColor: '#14b85a', width: 22 },
