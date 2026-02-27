@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import { Text, View } from 'react-native';
 import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg';
 import { Budget, CurrencyCode } from '../../domain/types';
@@ -12,22 +13,27 @@ type Props = {
 
 const CHART_COLORS = ['#ff6b6b', '#f59e0b', '#facc15', '#22c55e', '#14b8a6', '#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#f97316', '#84cc16', '#06b6d4'];
 
-export function BudgetDonutChart({ budgets, currency, darkMode, styles }: Props) {
-  const total = budgets.reduce((s, b) => s + b.amount, 0);
+function BudgetDonutChartImpl({ budgets, currency, darkMode, styles }: Props) {
   const size = 160;
   const r = 58;
   const c = 2 * Math.PI * r;
   const center = size / 2;
-  let cumulative = 0;
-  const slices = total > 0
-    ? budgets.map((b, i) => {
-      const frac = b.amount / total;
-      const start = cumulative;
-      const mid = start + frac / 2;
-      cumulative += frac;
-      return { b, i, frac, mid };
-    })
-    : [];
+
+  const { total, slices } = useMemo(() => {
+    const nextTotal = budgets.reduce((s, b) => s + b.amount, 0);
+    let cumulative = 0;
+    const nextSlices = nextTotal > 0
+      ? budgets.map((b, i) => {
+        const frac = b.amount / nextTotal;
+        const start = cumulative;
+        const mid = start + frac / 2;
+        cumulative += frac;
+        return { b, i, frac, mid };
+      })
+      : [];
+
+    return { total: nextTotal, slices: nextSlices };
+  }, [budgets]);
 
   let acc = 0;
 
@@ -74,3 +80,5 @@ export function BudgetDonutChart({ budgets, currency, darkMode, styles }: Props)
     </View>
   );
 }
+
+export const BudgetDonutChart = memo(BudgetDonutChartImpl);

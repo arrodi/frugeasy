@@ -1,3 +1,4 @@
+import { memo, useCallback } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { Budget, CurrencyCode, TransactionCategory } from '../../domain/types';
 import { formatCurrency } from '../../ui/format';
@@ -14,8 +15,44 @@ type Props = {
   styles: any;
 };
 
-export function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudget, activeSwipeBudgetId, setActiveSwipeBudgetId, styles }: Props) {
+function BudgetSwipeRowImpl({ budget, currency, darkMode, onSaveBudget, onDeleteBudget, activeSwipeBudgetId, setActiveSwipeBudgetId, styles }: Props) {
   const opened = activeSwipeBudgetId === budget.id;
+
+  const onPressUpdate = useCallback((e: any) => {
+    e.stopPropagation?.();
+    if (!opened) return;
+    Alert.prompt(
+      'Update budget',
+      budget.category,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Save',
+          onPress: async (value?: string) => {
+            const raw = (value ?? '').trim();
+            if (!raw) return;
+            if (!/^\d+(?:[.,]\d+)?$/.test(raw)) {
+              Alert.alert('Invalid amount', 'Use numbers only (e.g. 120 or 120.50).');
+              return;
+            }
+            const amount = Number(raw.replace(',', '.'));
+            if (!Number.isFinite(amount) || amount <= 0) return;
+            await onSaveBudget(budget.category, amount);
+            setActiveSwipeBudgetId(null);
+          },
+        },
+      ],
+      'plain-text',
+      String(budget.amount),
+      'decimal-pad'
+    );
+  }, [budget.amount, budget.category, onSaveBudget, opened, setActiveSwipeBudgetId]);
+
+  const onPressDelete = useCallback((e: any) => {
+    e.stopPropagation?.();
+    if (!opened) return;
+    onDeleteBudget(budget.id);
+  }, [budget.id, onDeleteBudget, opened]);
 
   return (
     <SwipeRevealRow
@@ -30,45 +67,13 @@ export function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDel
         <>
           <Pressable
             style={[styles.updateFlatBtn, styles.transactionActionBtnCompact, darkMode && styles.updateFlatBtnDark]}
-            onPress={(e) => {
-              e.stopPropagation?.();
-              if (!opened) return;
-              Alert.prompt(
-                'Update budget',
-                budget.category,
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  {
-                    text: 'Save',
-                    onPress: async (value?: string) => {
-                      const raw = (value ?? '').trim();
-                      if (!raw) return;
-                      if (!/^\d+(?:[.,]\d+)?$/.test(raw)) {
-                        Alert.alert('Invalid amount', 'Use numbers only (e.g. 120 or 120.50).');
-                        return;
-                      }
-                      const amount = Number(raw.replace(',', '.'));
-                      if (!Number.isFinite(amount) || amount <= 0) return;
-                      await onSaveBudget(budget.category, amount);
-                      setActiveSwipeBudgetId(null);
-                    },
-                  },
-                ],
-                'plain-text',
-                String(budget.amount),
-                'decimal-pad'
-              );
-            }}
+            onPress={onPressUpdate}
           >
             <Text style={[styles.flatBtnText, darkMode && styles.flatBtnTextDark]}>Update</Text>
           </Pressable>
           <Pressable
             style={[styles.deleteFlatBtn, styles.transactionActionBtnCompact, darkMode && styles.deleteFlatBtnDark]}
-            onPress={(e) => {
-              e.stopPropagation?.();
-              if (!opened) return;
-              onDeleteBudget(budget.id);
-            }}
+            onPress={onPressDelete}
           >
             <Text style={[styles.flatBtnText, darkMode && styles.flatBtnTextDark]}>Delete</Text>
           </Pressable>
@@ -83,3 +88,5 @@ export function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDel
     </SwipeRevealRow>
   );
 }
+
+export const BudgetSwipeRow = memo(BudgetSwipeRowImpl);

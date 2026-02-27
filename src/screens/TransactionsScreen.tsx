@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { Budget, CurrencyCode, Transaction, TransactionCategory, TransactionType } from '../domain/types';
 import { BudgetDonutChart } from './transactions/BudgetDonutChart';
@@ -62,6 +62,10 @@ export function TransactionsScreen(props: Props) {
   const [activeSwipeBudgetId, setActiveSwipeBudgetId] = useState<string | null>(null);
   const { width } = useWindowDimensions();
 
+  const sortOptions = useMemo(() => ['newest', 'oldest', 'amountDesc', 'amountAsc'] as const, []);
+  const typeOptions = useMemo(() => ['all', 'income', 'expense'] as const, []);
+  const categoryFilterOptions = useMemo(() => ['all', ...categoryOptions] as const, [categoryOptions]);
+
   const shownTransactions = useMemo(() => {
     const arr = [...transactions];
     if (sortBy === 'newest') arr.sort((a, b) => +new Date(b.date) - +new Date(a.date));
@@ -75,12 +79,12 @@ export function TransactionsScreen(props: Props) {
     reviewPagerRef.current?.scrollTo({ x: (reviewTab === 'transactions' ? 0 : 1) * width, animated: true });
   }, [reviewTab, width]);
 
-  const onReviewPagerEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const onReviewPagerEnd = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const next = Math.round(event.nativeEvent.contentOffset.x / width);
     setReviewTab(next === 0 ? 'transactions' : 'budgets');
-  };
+  }, [width]);
 
-  const onReviewEndDrag = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const onReviewEndDrag = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { contentOffset, contentSize, layoutMeasurement, velocity } = event.nativeEvent;
     const atStart = contentOffset.x <= 1;
     const atEnd = contentOffset.x >= contentSize.width - layoutMeasurement.width - 1;
@@ -88,7 +92,7 @@ export function TransactionsScreen(props: Props) {
 
     if (reviewTab === 'transactions' && atStart && fastEnough) onSwipeBeyondLeft();
     if (reviewTab === 'budgets' && atEnd && fastEnough) onSwipeBeyondRight();
-  };
+  }, [onSwipeBeyondLeft, onSwipeBeyondRight, reviewTab]);
 
   return (
     <View style={[styles.screenContainer, darkMode && styles.screenDark]}>
@@ -109,7 +113,7 @@ export function TransactionsScreen(props: Props) {
                 <Pressable style={[styles.dropdown, darkMode && styles.inputDark]} onPress={() => setSortOpen((p) => !p)}><Text style={[styles.dropdownText, darkMode && styles.textDark]}>Sort by: {sortBy}</Text><Text>▾</Text></Pressable>
                 {sortOpen ? (
                   <View style={[styles.dropdownMenu, darkMode && styles.panelDark]}>
-                    {(['newest', 'oldest', 'amountDesc', 'amountAsc'] as const).map((o) => (
+                    {sortOptions.map((o) => (
                       <Pressable key={o} style={styles.dropdownOption} onPress={() => { setSortBy(o); setSortOpen(false); }}>
                         <Text style={[styles.dropdownText, darkMode && styles.textDark]}>{o}</Text>
                       </Pressable>
@@ -123,9 +127,9 @@ export function TransactionsScreen(props: Props) {
                 {filterOpen ? (
                   <View style={[styles.dropdownMenu, darkMode && styles.panelDark]}>
                     <Text style={styles.section}>Type</Text>
-                    <View style={styles.filterRow}>{(['all', 'income', 'expense'] as const).map((t) => <Pressable key={t} style={[styles.filterChip, typeFilter === t && styles.filterChipActive]} onPress={() => onTypeFilterChange(t)}><Text style={[styles.filterChipText, typeFilter === t && styles.filterChipTextActive]}>{t}</Text></Pressable>)}</View>
+                    <View style={styles.filterRow}>{typeOptions.map((t) => <Pressable key={t} style={[styles.filterChip, typeFilter === t && styles.filterChipActive]} onPress={() => onTypeFilterChange(t)}><Text style={[styles.filterChipText, typeFilter === t && styles.filterChipTextActive]}>{t}</Text></Pressable>)}</View>
                     <Text style={styles.section}>Category</Text>
-                    <View style={styles.filterRow}>{(['all', ...categoryOptions] as const).map((cat) => <Pressable key={cat} style={[styles.filterChip, categoryFilter === cat && styles.filterChipActive]} onPress={() => onCategoryFilterChange(cat)}><Text style={[styles.filterChipText, categoryFilter === cat && styles.filterChipTextActive]}>{cat}</Text></Pressable>)}</View>
+                    <View style={styles.filterRow}>{categoryFilterOptions.map((cat) => <Pressable key={cat} style={[styles.filterChip, categoryFilter === cat && styles.filterChipActive]} onPress={() => onCategoryFilterChange(cat)}><Text style={[styles.filterChipText, categoryFilter === cat && styles.filterChipTextActive]}>{cat}</Text></Pressable>)}</View>
                   </View>
                 ) : null}
               </View>

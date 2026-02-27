@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef } from 'react';
+import { ReactNode, memo, useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleProp, View, ViewStyle } from 'react-native';
 
 type SwipeRevealRowProps = {
@@ -14,7 +14,7 @@ type SwipeRevealRowProps = {
   children: ReactNode;
 };
 
-export function SwipeRevealRow({
+function SwipeRevealRowImpl({
   id,
   activeId,
   setActiveId,
@@ -43,3 +43,5 @@ export function SwipeRevealRow({
     </Pressable>
   );
 }
+
+export const SwipeRevealRow = memo(SwipeRevealRowImpl);
