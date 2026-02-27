@@ -266,7 +266,7 @@ export function TransactionsScreen(props: Props) {
 
         <View style={{ width }}>
           <ScrollView contentContainerStyle={styles.contentContainer}>
-            <Pressable style={[styles.panel, darkMode && styles.panelDark]} onPress={() => setActiveSwipeBudgetId(null)}>
+            <View style={[styles.panel, darkMode && styles.panelDark]} onTouchEnd={() => setActiveSwipeBudgetId(null)}>
               {(() => {
                 const total = budgets.reduce((s,b)=>s+b.amount,0);
                 const size=160; const r=58; const c=2*Math.PI*r;
@@ -301,7 +301,7 @@ export function TransactionsScreen(props: Props) {
                   setActiveSwipeBudgetId={setActiveSwipeBudgetId}
                 />
               ))}
-            </Pressable>
+            </View>
           </ScrollView>
         </View>
       </ScrollView>
