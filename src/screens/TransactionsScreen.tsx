@@ -309,6 +309,7 @@ export function TransactionsScreen(props: Props) {
               </View>
             </View>
 
+            {txHasTop ? <View style={styles.scrollHintTop}><ScrollChevron up darkMode={darkMode} /></View> : null}
             <View style={styles.tableWrap}>
               <ScrollView
                 style={styles.transactionsListScroll}
@@ -337,13 +338,13 @@ export function TransactionsScreen(props: Props) {
                   />
                 ))}
               </ScrollView>
-              {txHasTop ? <View style={styles.scrollHintTop}><ScrollChevron up darkMode={darkMode} /></View> : null}
-              {txHasBottom ? <View style={styles.scrollHintBottom}><ScrollChevron darkMode={darkMode} /></View> : null}
             </View>
+            {txHasBottom ? <View style={styles.scrollHintBottom}><ScrollChevron darkMode={darkMode} /></View> : null}
           </View>
         </View>
 
         <View style={[styles.reviewBudgetsPage, { width }]}> 
+          {budgetHasTop ? <View style={styles.scrollHintTop}><ScrollChevron up darkMode={darkMode} /></View> : null}
           <View style={styles.tableWrap}>
             <ScrollView
               contentContainerStyle={styles.contentContainer}
@@ -394,9 +395,8 @@ export function TransactionsScreen(props: Props) {
 
             </View>
             </ScrollView>
-            {budgetHasTop ? <View style={styles.scrollHintTop}><ScrollChevron up darkMode={darkMode} /></View> : null}
-            {budgetHasBottom ? <View style={styles.scrollHintBottom}><ScrollChevron darkMode={darkMode} /></View> : null}
           </View>
+          {budgetHasBottom ? <View style={styles.scrollHintBottom}><ScrollChevron darkMode={darkMode} /></View> : null}
           <View style={styles.reviewAddBudgetWrapInPage}>
             <Pressable style={styles.reviewAddBudgetBtn} onPress={() => setShowAddBudget((v) => !v)}>
               <Text style={styles.reviewAddBudgetText}>Add New Budget</Text>
@@ -495,15 +495,15 @@ const styles = StyleSheet.create({
   tableWrap: { flex: 1, position: 'relative' },
   transactionsListScroll: { flex: 1 },
   transactionsListContent: { paddingBottom: 18 },
-  scrollHint: { width: '50%', height: 14, alignSelf: 'center', position: 'relative' },
-  chevArm: { position: 'absolute', top: 5, width: '54%', height: 3, borderRadius: 2, backgroundColor: '#375273' },
-  chevArmDark: { backgroundColor: '#8fa8c2' },
-  chevLeft: { left: -2, transform: [{ rotate: '26deg' }] },
-  chevRight: { right: -2, transform: [{ rotate: '-26deg' }] },
-  chevLeftUp: { transform: [{ rotate: '-26deg' }] },
-  chevRightUp: { transform: [{ rotate: '26deg' }] },
-  scrollHintTop: { position: 'absolute', top: 4, left: '25%', width: '50%' },
-  scrollHintBottom: { position: 'absolute', bottom: 4, left: '25%', width: '50%' },
+  scrollHint: { width: '50%', height: 10, alignSelf: 'center', position: 'relative' },
+  chevArm: { position: 'absolute', top: 4, width: '54%', height: 2, borderRadius: 1, backgroundColor: '#14b85a' },
+  chevArmDark: { backgroundColor: '#79d992' },
+  chevLeft: { left: -2, transform: [{ rotate: '24deg' }] },
+  chevRight: { right: -2, transform: [{ rotate: '-24deg' }] },
+  chevLeftUp: { transform: [{ rotate: '-24deg' }] },
+  chevRightUp: { transform: [{ rotate: '24deg' }] },
+  scrollHintTop: { width: '100%', marginBottom: 2 },
+  scrollHintBottom: { width: '100%', marginTop: 2 },
   tableHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 6, paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: '#d4eadb', marginBottom: 6 },
   tableHeaderRowDark: { borderBottomColor: '#2e4d3b' },
   tableHeaderText: { color: '#3e7b52', fontSize: 11, fontWeight: '700' },
