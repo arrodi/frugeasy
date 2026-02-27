@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, NativeScrollEvent, NativeSyntheticEvent, PanResponder, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { Animated, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg';
 import { Budget, CurrencyCode, Transaction, TransactionCategory, TransactionType } from '../domain/types';
 import { formatCurrency } from '../ui/format';
@@ -22,106 +22,64 @@ type Props = {
   onDeleteBudget: (id: string) => Promise<void>;
   onSwipeBeyondLeft: () => void;
   onSwipeBeyondRight: () => void;
-  onEntrySwipeActiveChange: (active: boolean) => void;
 };
 
-type BudgetSwipeRowProps = { budget: Budget; currency: CurrencyCode; darkMode?: boolean; onSaveBudget: (category: TransactionCategory, amount: number) => Promise<void>; onDeleteBudget: (id: string) => Promise<void>; onSwipeActiveChange: (active: boolean) => void; onEntrySwipeActiveChange: (active: boolean) => void; activeSwipeBudgetId: string | null; setActiveSwipeBudgetId: (id: string | null) => void };
+type BudgetSwipeRowProps = { budget: Budget; currency: CurrencyCode; darkMode?: boolean; onSaveBudget: (category: TransactionCategory, amount: number) => Promise<void>; onDeleteBudget: (id: string) => Promise<void>; activeSwipeBudgetId: string | null; setActiveSwipeBudgetId: (id: string | null) => void };
 
-function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudget, onSwipeActiveChange, onEntrySwipeActiveChange, activeSwipeBudgetId, setActiveSwipeBudgetId }: BudgetSwipeRowProps) {
+function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudget, activeSwipeBudgetId, setActiveSwipeBudgetId }: BudgetSwipeRowProps) {
   const reveal = useRef(new Animated.Value(0)).current;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(budget.amount));
+  const opened = activeSwipeBudgetId === budget.id;
 
-  const snap = (v: number, onDone?: () => void) =>
-    Animated.spring(reveal, { toValue: v, useNativeDriver: false, bounciness: 0 }).start(() => onDone?.());
+  const animateTo = (v: number) => Animated.timing(reveal, { toValue: v, duration: 180, useNativeDriver: false }).start();
 
   useEffect(() => {
-    if (activeSwipeBudgetId !== budget.id) snap(0);
-  }, [activeSwipeBudgetId, budget.id]);
-
-  const pan = useMemo(() => PanResponder.create({
-    onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 8 && Math.abs(g.dx) > Math.abs(g.dy),
-    onMoveShouldSetPanResponderCapture: (_, g) => Math.abs(g.dx) > 8 && Math.abs(g.dx) > Math.abs(g.dy),
-    onPanResponderTerminationRequest: () => false,
-    onPanResponderGrant: () => { onSwipeActiveChange(true); onEntrySwipeActiveChange(true); },
-    onPanResponderMove: (_, g) => reveal.setValue(Math.max(-88, Math.min(88, g.dx))),
-    onPanResponderRelease: (_, g) => {
-      const unlock = () => {
-        onSwipeActiveChange(false);
-        onEntrySwipeActiveChange(false);
-      };
-      if (g.dx > 36) {
-        setActiveSwipeBudgetId(budget.id);
-        snap(80, unlock);
-      } else if (g.dx < -36) {
-        setActiveSwipeBudgetId(budget.id);
-        snap(-80, unlock);
-      } else {
-        setActiveSwipeBudgetId(null);
-        snap(0, unlock);
-      }
-    },
-    onPanResponderTerminate: () => {
-      setActiveSwipeBudgetId(null);
-      snap(0, () => {
-        onSwipeActiveChange(false);
-        onEntrySwipeActiveChange(false);
-      });
-    },
-  }), [onSwipeActiveChange, onEntrySwipeActiveChange]);
-
-  const leftInset = reveal.interpolate({ inputRange: [-88, 0, 88], outputRange: [0, 0, 76] });
-  const rightInset = reveal.interpolate({ inputRange: [-88, 0, 88], outputRange: [76, 0, 0] });
+    animateTo(opened ? 132 : 0);
+    if (!opened) setEditing(false);
+  }, [opened]);
 
   return (
-    <View style={[styles.swipeShell, darkMode && styles.swipeShellDark]}>
-      <View style={styles.swipeBg} pointerEvents="box-none">
-        <Pressable style={[styles.deleteBtn, styles.swipeActionLeft]} onPress={() => onDeleteBudget(budget.id)}>
-          <Text style={styles.deleteBtnText}>Delete</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.actionBtn, styles.swipeActionRight]}
-          onPress={async () => {
-            if (!editing) {
-              setEditing(true);
-              return;
-            }
-            const amount = Number(draft.replace(',', '.'));
-            if (!Number.isFinite(amount) || amount <= 0) return;
-            await onSaveBudget(budget.category, amount);
-            setEditing(false);
-            snap(0);
-          }}
-        >
-          <Text style={styles.actionBtnText}>{editing ? 'Submit' : 'Update'}</Text>
-        </Pressable>
+    <Pressable
+      style={[styles.swipeShell, darkMode && styles.swipeShellDark]}
+      onPress={() => setActiveSwipeBudgetId(opened ? null : budget.id)}
+    >
+      <View style={styles.tapActionsBg} pointerEvents="box-none">
+        <View style={styles.tapActionsRight}>
+          <Pressable
+            style={styles.updateFlatBtn}
+            onPress={async (e) => {
+              e.stopPropagation?.();
+              if (!editing) {
+                setEditing(true);
+                return;
+              }
+              const amount = Number(draft.replace(',', '.'));
+              if (!Number.isFinite(amount) || amount <= 0) return;
+              await onSaveBudget(budget.category, amount);
+              setEditing(false);
+              setActiveSwipeBudgetId(null);
+            }}
+          >
+            <Text style={styles.flatBtnText}>{editing ? 'Submit' : 'Update'}</Text>
+          </Pressable>
+          <Pressable style={styles.deleteFlatBtn} onPress={(e) => { e.stopPropagation?.(); onDeleteBudget(budget.id); }}>
+            <Text style={styles.flatBtnText}>Delete</Text>
+          </Pressable>
+        </View>
       </View>
 
-      <Animated.View
-        style={[
-          styles.listRow,
-          styles.listRowInner,
-          darkMode && styles.listRowDark,
-          { marginLeft: leftInset, marginRight: rightInset },
-        ]}
-        {...pan.panHandlers}
-      >
+      <Animated.View style={[styles.listRow, styles.listRowInner, darkMode && styles.listRowDark, { marginRight: reveal }]}>
         <View style={styles.topRow}>
           <Text style={[styles.name, darkMode && styles.textDark]}>{budget.category}</Text>
           {editing ? (
-            <TextInput
-              value={draft}
-              onChangeText={setDraft}
-              style={[styles.smallInput, darkMode && styles.inputDark, styles.budgetInput]}
-              keyboardType="decimal-pad"
-              placeholder="Amount"
-            />
+            <TextInput value={draft} onChangeText={setDraft} style={[styles.smallInput, darkMode && styles.inputDark, styles.budgetInput]} keyboardType="decimal-pad" placeholder="Amount" />
           ) : (
             <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(budget.amount, currency)}</Text>
           )}
         </View>
       </Animated.View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -144,7 +102,6 @@ export function TransactionsScreen(props: Props) {
     onDeleteBudget,
     onSwipeBeyondLeft,
     onSwipeBeyondRight,
-    onEntrySwipeActiveChange,
   } = props;
 
   const [reviewTab, setReviewTab] = useState<'transactions' | 'budgets'>('transactions');
@@ -158,7 +115,6 @@ export function TransactionsScreen(props: Props) {
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'amountDesc' | 'amountAsc'>('newest');
 
   const reviewPagerRef = useRef<ScrollView>(null);
-  const [lockReviewPager, setLockReviewPager] = useState(false);
   const [activeSwipeBudgetId, setActiveSwipeBudgetId] = useState<string | null>(null);
   const { width } = useWindowDimensions();
 
@@ -181,7 +137,6 @@ export function TransactionsScreen(props: Props) {
   };
 
   const onReviewEndDrag = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    if (lockReviewPager) return;
     const { contentOffset, contentSize, layoutMeasurement, velocity } = event.nativeEvent;
     const atStart = contentOffset.x <= 1;
     const atEnd = contentOffset.x >= contentSize.width - layoutMeasurement.width - 1;
@@ -197,7 +152,6 @@ export function TransactionsScreen(props: Props) {
         ref={reviewPagerRef}
         horizontal
         pagingEnabled
-        scrollEnabled={!lockReviewPager}
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={onReviewPagerEnd}
         onScrollEndDrag={onReviewEndDrag}
@@ -295,8 +249,6 @@ export function TransactionsScreen(props: Props) {
                   darkMode={darkMode}
                   onSaveBudget={onSaveBudget}
                   onDeleteBudget={onDeleteBudget}
-                  onSwipeActiveChange={setLockReviewPager}
-                  onEntrySwipeActiveChange={onEntrySwipeActiveChange}
                   activeSwipeBudgetId={activeSwipeBudgetId}
                   setActiveSwipeBudgetId={setActiveSwipeBudgetId}
                 />
@@ -369,9 +321,11 @@ const styles = StyleSheet.create({
   filterChipTextActive: { color: 'white' },
   swipeShell: { position: 'relative', marginBottom: 8, borderRadius: 14, borderWidth: 1, borderColor: '#9ee5ab', backgroundColor: '#ecfff1', overflow: 'hidden' },
   swipeShellDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
-  swipeBg: { position: 'absolute', inset: 0, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  swipeActionLeft: { marginLeft: 8 },
-  swipeActionRight: { marginRight: 8 },
+  tapActionsBg: { position: 'absolute', inset: 0, justifyContent: 'center', alignItems: 'flex-end' },
+  tapActionsRight: { flexDirection: 'row', height: '100%' },
+  updateFlatBtn: { backgroundColor: '#14b85a', justifyContent: 'center', alignItems: 'center', width: 66 },
+  deleteFlatBtn: { backgroundColor: '#dc2626', justifyContent: 'center', alignItems: 'center', width: 66 },
+  flatBtnText: { color: 'white', fontWeight: '700', fontSize: 12 },
   budgetInput: { minWidth: 110, textAlign: 'right' },
   listRow: { backgroundColor: '#ecfff1', borderRadius: 14, padding: 11, borderWidth: 1, borderColor: '#9ee5ab' },
   listRowInner: { marginBottom: 0, borderWidth: 0, borderRadius: 0 },
