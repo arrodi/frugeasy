@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { LayoutAnimation, PanResponder, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { LayoutAnimation, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg';
 import { Budget, CurrencyCode, Transaction, TransactionCategory, TransactionType } from '../domain/types';
 import { formatCurrency } from '../ui/format';
@@ -57,24 +57,8 @@ export function TransactionsScreen(props: Props) {
 
   const [expandedBudgetId, setExpandedBudgetId] = useState<string | null>(null);
   const [expandedBudgetAmount, setExpandedBudgetAmount] = useState('');
-
-  const swipeResponder = useMemo(
-    () =>
-      PanResponder.create({
-        onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 20 && Math.abs(g.dx) > Math.abs(g.dy),
-        onPanResponderRelease: (_, g) => {
-          if (g.dx < -40) {
-            if (reviewTab === 'budgets') onSwipeBeyondRight();
-            else setReviewTab('budgets');
-          }
-          if (g.dx > 40) {
-            if (reviewTab === 'transactions') onSwipeBeyondLeft();
-            else setReviewTab('transactions');
-          }
-        },
-      }),
-    [reviewTab, onSwipeBeyondLeft, onSwipeBeyondRight]
-  );
+  const reviewPagerRef = useRef<ScrollView>(null);
+  const { width } = useWindowDimensions();
 
   const shownTransactions = useMemo(() => {
     const arr = [...transactions];
@@ -85,152 +69,179 @@ export function TransactionsScreen(props: Props) {
     return arr;
   }, [transactions, sortBy]);
 
+  useEffect(() => {
+    reviewPagerRef.current?.scrollTo({ x: (reviewTab === 'transactions' ? 0 : 1) * width, animated: true });
+  }, [reviewTab, width]);
+
+  const onReviewPagerEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const next = Math.round(event.nativeEvent.contentOffset.x / width);
+    setReviewTab(next === 0 ? 'transactions' : 'budgets');
+  };
+
+  const onReviewEndDrag = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { contentOffset, contentSize, layoutMeasurement, velocity } = event.nativeEvent;
+    const atStart = contentOffset.x <= 0;
+    const atEnd = contentOffset.x >= contentSize.width - layoutMeasurement.width - 1;
+    if (atStart && (velocity?.x ?? 0) > 0.35) onSwipeBeyondLeft();
+    if (atEnd && (velocity?.x ?? 0) < -0.35) onSwipeBeyondRight();
+  };
+
   return (
-    <View style={[styles.screenContainer, darkMode && styles.screenDark]} {...swipeResponder.panHandlers}>
-      <ScrollView contentContainerStyle={styles.contentContainer}>
-      {reviewTab === 'transactions' ? (
-        <>
-          <TextInput value={searchQuery} onChangeText={onSearchQueryChange} placeholder="Search by category, name or amount" placeholderTextColor="#4f7a59" style={[styles.searchInput, darkMode && styles.inputDark]} />
+    <View style={[styles.screenContainer, darkMode && styles.screenDark]}>
+      <ScrollView
+        ref={reviewPagerRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={onReviewPagerEnd}
+        onScrollEndDrag={onReviewEndDrag}
+      >
+        <View style={{ width }}>
+          <ScrollView contentContainerStyle={styles.contentContainer}>
+            <TextInput value={searchQuery} onChangeText={onSearchQueryChange} placeholder="Search by category, name or amount" placeholderTextColor="#4f7a59" style={[styles.searchInput, darkMode && styles.inputDark]} />
 
-          <View style={styles.row}>
-            <View style={styles.flex1}>
-              <Pressable style={[styles.dropdown, darkMode && styles.inputDark]} onPress={() => setSortOpen((p) => !p)}><Text style={[styles.dropdownText, darkMode && styles.textDark]}>Sort by: {sortBy}</Text><Text>▾</Text></Pressable>
-              {sortOpen ? (
-                <View style={[styles.dropdownMenu, darkMode && styles.panelDark]}>
-                  {(['newest', 'oldest', 'amountDesc', 'amountAsc'] as const).map((o) => (
-                    <Pressable key={o} style={styles.dropdownOption} onPress={() => { setSortBy(o); setSortOpen(false); }}>
-                      <Text style={[styles.dropdownText, darkMode && styles.textDark]}>{o}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-              ) : null}
+            <View style={styles.row}>
+              <View style={styles.flex1}>
+                <Pressable style={[styles.dropdown, darkMode && styles.inputDark]} onPress={() => setSortOpen((p) => !p)}><Text style={[styles.dropdownText, darkMode && styles.textDark]}>Sort by: {sortBy}</Text><Text>▾</Text></Pressable>
+                {sortOpen ? (
+                  <View style={[styles.dropdownMenu, darkMode && styles.panelDark]}>
+                    {(['newest', 'oldest', 'amountDesc', 'amountAsc'] as const).map((o) => (
+                      <Pressable key={o} style={styles.dropdownOption} onPress={() => { setSortBy(o); setSortOpen(false); }}>
+                        <Text style={[styles.dropdownText, darkMode && styles.textDark]}>{o}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                ) : null}
+              </View>
+
+              <View style={styles.flex1}>
+                <Pressable style={[styles.dropdown, darkMode && styles.inputDark]} onPress={() => setFilterOpen((p) => !p)}><Text style={[styles.dropdownText, darkMode && styles.textDark]}>Filter: {typeFilter}/{categoryFilter}</Text><Text>▾</Text></Pressable>
+                {filterOpen ? (
+                  <View style={[styles.dropdownMenu, darkMode && styles.panelDark]}>
+                    <Text style={styles.section}>Type</Text>
+                    <View style={styles.filterRow}>{(['all', 'income', 'expense'] as const).map((t) => <Pressable key={t} style={[styles.filterChip, typeFilter === t && styles.filterChipActive]} onPress={() => onTypeFilterChange(t)}><Text style={[styles.filterChipText, typeFilter === t && styles.filterChipTextActive]}>{t}</Text></Pressable>)}</View>
+                    <Text style={styles.section}>Category</Text>
+                    <View style={styles.filterRow}>{(['all', ...categoryOptions] as const).map((cat) => <Pressable key={cat} style={[styles.filterChip, categoryFilter === cat && styles.filterChipActive]} onPress={() => onCategoryFilterChange(cat)}><Text style={[styles.filterChipText, categoryFilter === cat && styles.filterChipTextActive]}>{cat}</Text></Pressable>)}</View>
+                  </View>
+                ) : null}
+              </View>
             </View>
 
-            <View style={styles.flex1}>
-              <Pressable style={[styles.dropdown, darkMode && styles.inputDark]} onPress={() => setFilterOpen((p) => !p)}><Text style={[styles.dropdownText, darkMode && styles.textDark]}>Filter: {typeFilter}/{categoryFilter}</Text><Text>▾</Text></Pressable>
-              {filterOpen ? (
-                <View style={[styles.dropdownMenu, darkMode && styles.panelDark]}>
-                  <Text style={styles.section}>Type</Text>
-                  <View style={styles.filterRow}>{(['all', 'income', 'expense'] as const).map((t) => <Pressable key={t} style={[styles.filterChip, typeFilter === t && styles.filterChipActive]} onPress={() => onTypeFilterChange(t)}><Text style={[styles.filterChipText, typeFilter === t && styles.filterChipTextActive]}>{t}</Text></Pressable>)}</View>
-                  <Text style={styles.section}>Category</Text>
-                  <View style={styles.filterRow}>{(['all', ...categoryOptions] as const).map((cat) => <Pressable key={cat} style={[styles.filterChip, categoryFilter === cat && styles.filterChipActive]} onPress={() => onCategoryFilterChange(cat)}><Text style={[styles.filterChipText, categoryFilter === cat && styles.filterChipTextActive]}>{cat}</Text></Pressable>)}</View>
-                </View>
-              ) : null}
-            </View>
-          </View>
-
-          {shownTransactions.map((item) => {
-            const editing = editId === item.id;
-            return (
-              <View key={item.id} style={[styles.listRow, darkMode && styles.listRowDark]}>
-                {!editing ? (
-                  <>
-                    <View>
-                      <Text style={[styles.name, darkMode && styles.textDark]}>{item.name?.trim() ? item.name : "—"}</Text>
-                      <Text style={styles.meta}>{item.category} • {new Date(item.date).toLocaleString()}</Text>
-                    </View>
-                    <View style={styles.rightRow}>
-                      <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(item.amount, currency)}</Text>
-                      <View style={styles.inlineRow}>
-                        <Pressable style={styles.actionBtn} onPress={() => { setEditId(item.id); setEditAmount(String(item.amount)); setEditType(item.type); setEditCategory(item.category); setEditName(item.name); }}><Text style={styles.actionBtnText}>Edit</Text></Pressable>
-                        <Pressable style={styles.actionBtn} onPress={() => onDeleteTransaction(item.id)}><Text style={styles.actionBtnText}>Delete</Text></Pressable>
+            {shownTransactions.map((item) => {
+              const editing = editId === item.id;
+              return (
+                <View key={item.id} style={[styles.listRow, darkMode && styles.listRowDark]}>
+                  {!editing ? (
+                    <>
+                      <View>
+                        <Text style={[styles.name, darkMode && styles.textDark]}>{item.name?.trim() ? item.name : "—"}</Text>
+                        <Text style={styles.meta}>{item.category} • {new Date(item.date).toLocaleString()}</Text>
                       </View>
+                      <View style={styles.rightRow}>
+                        <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(item.amount, currency)}</Text>
+                        <View style={styles.inlineRow}>
+                          <Pressable style={styles.actionBtn} onPress={() => { setEditId(item.id); setEditAmount(String(item.amount)); setEditType(item.type); setEditCategory(item.category); setEditName(item.name); }}><Text style={styles.actionBtnText}>Edit</Text></Pressable>
+                          <Pressable style={styles.actionBtn} onPress={() => onDeleteTransaction(item.id)}><Text style={styles.actionBtnText}>Delete</Text></Pressable>
+                        </View>
+                      </View>
+                    </>
+                  ) : (
+                    <View style={{ width: '100%', gap: 8 }}>
+                      <TextInput value={editName} onChangeText={setEditName} style={[styles.smallInput, darkMode && styles.inputDark]} placeholder="Name" />
+                      <View style={styles.inlineRow}><TextInput value={editAmount} onChangeText={setEditAmount} style={[styles.smallInput, darkMode && styles.inputDark]} keyboardType="decimal-pad" placeholder="Amount" /><TextInput value={editCategory} onChangeText={(v) => setEditCategory(v as TransactionCategory)} style={[styles.smallInput, darkMode && styles.inputDark]} placeholder="Category" /></View>
+                      <View style={styles.inlineRow}><Pressable style={[styles.filterChip, editType === 'income' && styles.filterChipActive]} onPress={() => setEditType('income')}><Text style={[styles.filterChipText, editType === 'income' && styles.filterChipTextActive]}>income</Text></Pressable><Pressable style={[styles.filterChip, editType === 'expense' && styles.filterChipActive]} onPress={() => setEditType('expense')}><Text style={[styles.filterChipText, editType === 'expense' && styles.filterChipTextActive]}>expense</Text></Pressable><Pressable style={styles.actionBtn} onPress={async () => { const amount = Number(editAmount.replace(',', '.')); if (!Number.isFinite(amount) || amount <= 0) return; await onUpdateTransaction({ id: item.id, amount, type: editType, category: editCategory, name: editName.trim() || 'Untitled', date: item.date }); setEditId(null); }}><Text style={styles.actionBtnText}>Save</Text></Pressable></View>
                     </View>
-                  </>
-                ) : (
-                  <View style={{ width: '100%', gap: 8 }}>
-                    <TextInput value={editName} onChangeText={setEditName} style={[styles.smallInput, darkMode && styles.inputDark]} placeholder="Name" />
-                    <View style={styles.inlineRow}><TextInput value={editAmount} onChangeText={setEditAmount} style={[styles.smallInput, darkMode && styles.inputDark]} keyboardType="decimal-pad" placeholder="Amount" /><TextInput value={editCategory} onChangeText={(v) => setEditCategory(v as TransactionCategory)} style={[styles.smallInput, darkMode && styles.inputDark]} placeholder="Category" /></View>
-                    <View style={styles.inlineRow}><Pressable style={[styles.filterChip, editType === 'income' && styles.filterChipActive]} onPress={() => setEditType('income')}><Text style={[styles.filterChipText, editType === 'income' && styles.filterChipTextActive]}>income</Text></Pressable><Pressable style={[styles.filterChip, editType === 'expense' && styles.filterChipActive]} onPress={() => setEditType('expense')}><Text style={[styles.filterChipText, editType === 'expense' && styles.filterChipTextActive]}>expense</Text></Pressable><Pressable style={styles.actionBtn} onPress={async () => { const amount = Number(editAmount.replace(',', '.')); if (!Number.isFinite(amount) || amount <= 0) return; await onUpdateTransaction({ id: item.id, amount, type: editType, category: editCategory, name: editName.trim() || 'Untitled', date: item.date }); setEditId(null); }}><Text style={styles.actionBtnText}>Save</Text></Pressable></View>
-                  </View>
-                )}
-              </View>
-            );
-          })}
-        </>
-      ) : (
-        <Pressable
-          style={[styles.panel, darkMode && styles.panelDark]}
-          onPress={() => {
-            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-            setExpandedBudgetId(null);
-          }}
-        >
-          {(() => {
-            const total = budgets.reduce((s,b)=>s+b.amount,0);
-            const size=160; const r=58; const c=2*Math.PI*r;
-            let acc=0;
-            const colors=['#ff6b6b','#f59e0b','#facc15','#22c55e','#14b8a6','#0ea5e9','#6366f1','#a855f7','#ec4899','#f97316','#84cc16','#06b6d4'];
-            const center=size/2;
-            let cumulative=0;
-            const slices = total > 0 ? budgets.map((b,i)=>{ const frac=b.amount/total; const start=cumulative; const mid=start+frac/2; cumulative+=frac; return { b, i, frac, mid }; }) : [];
-            return (
-              <View style={styles.chartWrap}>
-                <Text style={[styles.totalBudgetText, darkMode && styles.textDark]}>Total Budget: {formatCurrency(total, currency)}</Text>
-                <Svg width={size+220} height={size+80}><G x={110} y={30}><G rotation={-90} origin={`${center}, ${center}`}>
-                  {total>0 ? budgets.map((b,i)=>{ const frac=b.amount/total; const seg=c*frac; const dash=`${seg} ${c-seg}`; const off=-acc*c; acc+=frac; return <Circle key={b.id} cx={center} cy={center} r={r} fill="none" stroke={colors[i%colors.length]} strokeWidth={20} strokeDasharray={dash} strokeDashoffset={off} strokeLinecap="butt"/>; }) : <Circle cx={center} cy={center} r={r} fill="none" stroke={darkMode ? '#2e4d3b' : '#d1fae5'} strokeWidth={20}/>}
-                </G>
-                {slices.map(({ b, i, frac, mid }) => { const angle = mid * Math.PI * 2 - Math.PI/2; const x1 = center + Math.cos(angle) * (r + 10); const y1 = center + Math.sin(angle) * (r + 10); const x2 = center + Math.cos(angle) * (r + 28); const y2 = center + Math.sin(angle) * (r + 28); const right = Math.cos(angle) >= 0; const x3 = x2 + (right ? 24 : -24); const shortCategory = b.category.length > 10 ? `${b.category.slice(0, 10)}…` : b.category; const label = `${shortCategory} ${(frac*100).toFixed(0)}%`; return (<G key={`callout-${b.id}`}><Line x1={x1} y1={y1} x2={x2} y2={y2} stroke={colors[i%colors.length]} strokeWidth={1.5} /><Line x1={x2} y1={y2} x2={x3} y2={y2} stroke={colors[i%colors.length]} strokeWidth={1.5} /><SvgText x={x3 + (right ? 4 : -4)} y={y2 + 4} fontSize={10} fill={darkMode ? '#d6f5df' : '#14532d'} textAnchor={right ? 'start' : 'end'}>{label}</SvgText></G>); })}
-                </G></Svg>
-              </View>
-            );
-          })()}
+                  )}
+                </View>
+              );
+            })}
+          </ScrollView>
+        </View>
 
-          {budgets.map((b) => {
-            const expanded = expandedBudgetId === b.id;
-            return (
-              <Pressable
-                key={b.id}
-                style={[styles.listRow, darkMode && styles.listRowDark]}
-                onPress={(e) => {
-                  e.stopPropagation?.();
-                  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                  setExpandedBudgetId(expanded ? null : b.id);
-                  setExpandedBudgetAmount(String(b.amount));
-                }}
-              >
-                {!expanded ? (
-                  <View style={styles.topRow}>
-                    <Text style={[styles.name, darkMode && styles.textDark]}>{b.category}</Text>
-                    <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(b.amount, currency)}</Text>
+        <View style={{ width }}>
+          <ScrollView contentContainerStyle={styles.contentContainer}>
+            <Pressable
+              style={[styles.panel, darkMode && styles.panelDark]}
+              onPress={() => {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                setExpandedBudgetId(null);
+              }}
+            >
+              {(() => {
+                const total = budgets.reduce((s,b)=>s+b.amount,0);
+                const size=160; const r=58; const c=2*Math.PI*r;
+                let acc=0;
+                const colors=['#ff6b6b','#f59e0b','#facc15','#22c55e','#14b8a6','#0ea5e9','#6366f1','#a855f7','#ec4899','#f97316','#84cc16','#06b6d4'];
+                const center=size/2;
+                let cumulative=0;
+                const slices = total > 0 ? budgets.map((b,i)=>{ const frac=b.amount/total; const start=cumulative; const mid=start+frac/2; cumulative+=frac; return { b, i, frac, mid }; }) : [];
+                return (
+                  <View style={styles.chartWrap}>
+                    <Text style={[styles.totalBudgetText, darkMode && styles.textDark]}>Total Budget: {formatCurrency(total, currency)}</Text>
+                    <Svg width={size+220} height={size+80}><G x={110} y={30}><G rotation={-90} origin={`${center}, ${center}`}>
+                      {total>0 ? budgets.map((b,i)=>{ const frac=b.amount/total; const seg=c*frac; const dash=`${seg} ${c-seg}`; const off=-acc*c; acc+=frac; return <Circle key={b.id} cx={center} cy={center} r={r} fill="none" stroke={colors[i%colors.length]} strokeWidth={20} strokeDasharray={dash} strokeDashoffset={off} strokeLinecap="butt"/>; }) : <Circle cx={center} cy={center} r={r} fill="none" stroke={darkMode ? '#2e4d3b' : '#d1fae5'} strokeWidth={20}/>}
+                    </G>
+                    {slices.map(({ b, i, frac, mid }) => { const angle = mid * Math.PI * 2 - Math.PI/2; const x1 = center + Math.cos(angle) * (r + 10); const y1 = center + Math.sin(angle) * (r + 10); const x2 = center + Math.cos(angle) * (r + 28); const y2 = center + Math.sin(angle) * (r + 28); const right = Math.cos(angle) >= 0; const x3 = x2 + (right ? 24 : -24); const shortCategory = b.category.length > 10 ? `${b.category.slice(0, 10)}…` : b.category; const label = `${shortCategory} ${(frac*100).toFixed(0)}%`; return (<G key={`callout-${b.id}`}><Line x1={x1} y1={y1} x2={x2} y2={y2} stroke={colors[i%colors.length]} strokeWidth={1.5} /><Line x1={x2} y1={y2} x2={x3} y2={y2} stroke={colors[i%colors.length]} strokeWidth={1.5} /><SvgText x={x3 + (right ? 4 : -4)} y={y2 + 4} fontSize={10} fill={darkMode ? '#d6f5df' : '#14532d'} textAnchor={right ? 'start' : 'end'}>{label}</SvgText></G>); })}
+                    </G></Svg>
                   </View>
-                ) : (
-                  <View style={styles.budgetExpandedWrap}>
-                    <View style={styles.inlineRow}>
-                      <Text style={[styles.name, darkMode && styles.textDark, styles.nameCol]}>{b.category}</Text>
-                      <TextInput
-                        value={expandedBudgetAmount}
-                        onChangeText={setExpandedBudgetAmount}
-                        style={[styles.smallInput, darkMode && styles.inputDark, styles.inputCol]}
-                        keyboardType="decimal-pad"
-                        placeholder="New amount"
-                      />
-                    </View>
-                    <View style={styles.equalButtonRow}>
-                      <Pressable style={[styles.deleteBtn, styles.equalButton]} onPress={() => onDeleteBudget(b.id)}>
-                        <Text style={styles.deleteBtnText}>Delete</Text>
-                      </Pressable>
-                      <Pressable
-                        style={[styles.actionBtn, styles.equalButton]}
-                        onPress={async () => {
-                          const amount = Number(expandedBudgetAmount.replace(',', '.'));
-                          if (!Number.isFinite(amount) || amount <= 0) return;
-                          await onSaveBudget(b.category, amount);
-                          setExpandedBudgetId(null);
-                        }}
-                      >
-                        <Text style={styles.actionBtnText}>Update</Text>
-                      </Pressable>
-                    </View>
-                  </View>
-                )}
-              </Pressable>
-            );
-          })}
-        </Pressable>
-      )}
+                );
+              })()}
+
+              {budgets.map((b) => {
+                const expanded = expandedBudgetId === b.id;
+                return (
+                  <Pressable
+                    key={b.id}
+                    style={[styles.listRow, darkMode && styles.listRowDark]}
+                    onPress={(e) => {
+                      e.stopPropagation?.();
+                      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                      setExpandedBudgetId(expanded ? null : b.id);
+                      setExpandedBudgetAmount(String(b.amount));
+                    }}
+                  >
+                    {!expanded ? (
+                      <View style={styles.topRow}>
+                        <Text style={[styles.name, darkMode && styles.textDark]}>{b.category}</Text>
+                        <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(b.amount, currency)}</Text>
+                      </View>
+                    ) : (
+                      <View style={styles.budgetExpandedWrap}>
+                        <View style={styles.inlineRow}>
+                          <Text style={[styles.name, darkMode && styles.textDark, styles.nameCol]}>{b.category}</Text>
+                          <TextInput
+                            value={expandedBudgetAmount}
+                            onChangeText={setExpandedBudgetAmount}
+                            style={[styles.smallInput, darkMode && styles.inputDark, styles.inputCol]}
+                            keyboardType="decimal-pad"
+                            placeholder="New amount"
+                          />
+                        </View>
+                        <View style={styles.equalButtonRow}>
+                          <Pressable style={[styles.deleteBtn, styles.equalButton]} onPress={() => onDeleteBudget(b.id)}>
+                            <Text style={styles.deleteBtnText}>Delete</Text>
+                          </Pressable>
+                          <Pressable
+                            style={[styles.actionBtn, styles.equalButton]}
+                            onPress={async () => {
+                              const amount = Number(expandedBudgetAmount.replace(',', '.'));
+                              if (!Number.isFinite(amount) || amount <= 0) return;
+                              await onSaveBudget(b.category, amount);
+                              setExpandedBudgetId(null);
+                            }}
+                          >
+                            <Text style={styles.actionBtnText}>Update</Text>
+                          </Pressable>
+                        </View>
+                      </View>
+                    )}
+                  </Pressable>
+                );
+              })}
+            </Pressable>
+          </ScrollView>
+        </View>
       </ScrollView>
-
       <View style={[styles.reviewBottomTabs, darkMode && styles.reviewBottomTabsDark]}>
         {(['transactions', 'budgets'] as const).map((tab) => {
           const active = reviewTab === tab;
