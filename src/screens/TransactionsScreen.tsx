@@ -114,24 +114,23 @@ function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudg
   const reveal = useRef(new Animated.Value(0)).current;
 
   const opened = activeSwipeBudgetId === budget.id;
+  const actionOpacity = reveal.interpolate({ inputRange: [0, 24, 120], outputRange: [0, 0.2, 1] });
 
   const animateTo = (v: number) => Animated.timing(reveal, { toValue: v, duration: 180, useNativeDriver: false }).start();
 
   useEffect(() => {
-    animateTo(opened ? 132 : 0);
+    animateTo(opened ? 120 : 0);
   }, [opened]);
 
   return (
-    <Pressable
-      style={[styles.swipeShell, darkMode && styles.swipeShellDark]}
-      onPress={() => setActiveSwipeBudgetId(opened ? null : budget.id)}
-    >
-      <View style={styles.tapActionsBg} pointerEvents="box-none">
-        <View style={styles.tapActionsRight}>
+    <Pressable style={styles.transactionShell} onPress={() => setActiveSwipeBudgetId(opened ? null : budget.id)}>
+      <View style={[styles.tapActionsBg, styles.transactionActionsBg]} pointerEvents="box-none">
+        <Animated.View style={[styles.tapActionsRight, styles.transactionActionsRail, { width: reveal, opacity: actionOpacity }]}> 
           <Pressable
-            style={[styles.updateFlatBtn, darkMode && styles.updateFlatBtnDark]}
+            style={[styles.updateFlatBtn, styles.transactionActionBtnCompact, darkMode && styles.updateFlatBtnDark]}
             onPress={(e) => {
               e.stopPropagation?.();
+              if (!opened) return;
               Alert.prompt(
                 'Update budget',
                 budget.category,
@@ -161,18 +160,26 @@ function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudg
           >
             <Text style={[styles.flatBtnText, darkMode && styles.flatBtnTextDark]}>Update</Text>
           </Pressable>
-          <Pressable style={[styles.deleteFlatBtn, darkMode && styles.deleteFlatBtnDark]} onPress={(e) => { e.stopPropagation?.(); onDeleteBudget(budget.id); }}>
+          <Pressable
+            style={[styles.deleteFlatBtn, styles.transactionActionBtnCompact, darkMode && styles.deleteFlatBtnDark]}
+            onPress={(e) => {
+              e.stopPropagation?.();
+              if (!opened) return;
+              onDeleteBudget(budget.id);
+            }}
+          >
             <Text style={[styles.flatBtnText, darkMode && styles.flatBtnTextDark]}>Delete</Text>
           </Pressable>
-        </View>
+        </Animated.View>
       </View>
 
-      <Animated.View style={[styles.listRow, styles.listRowInner, darkMode && styles.listRowDark, { marginRight: reveal }]}>
+      <Animated.View style={[styles.transactionRow, darkMode && styles.transactionRowDark, { marginRight: reveal }]}>
         <View style={styles.topRow}>
           <Text style={[styles.name, darkMode && styles.textDark]}>{budget.category}</Text>
           <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(budget.amount, currency)}</Text>
         </View>
       </Animated.View>
+      <View style={[styles.recordSeparator, darkMode && styles.recordSeparatorDark]} />
     </Pressable>
   );
 }
@@ -333,7 +340,12 @@ export function TransactionsScreen(props: Props) {
                 );
               })()}
 
-              {budgets.map((b) => (
+              <View style={[styles.tableHeaderRow, darkMode && styles.tableHeaderRowDark]}>
+                <Text style={[styles.tableHeaderText, darkMode && styles.metaDark]}>Category</Text>
+                <Text style={[styles.tableHeaderText, darkMode && styles.metaDark]}>Amount</Text>
+              </View>
+
+              {budgets.map((b, index) => (
                 <BudgetSwipeRow
                   key={b.id}
                   budget={b}
