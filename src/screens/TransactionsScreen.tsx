@@ -51,7 +51,7 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
   return (
     <Pressable style={styles.transactionShell} onPress={() => setActiveId(opened ? null : item.id)}>
       <View style={[styles.tapActionsBg, styles.transactionActionsBg]} pointerEvents="box-none">
-        <Animated.View style={[styles.tapActionsRight, styles.transactionActionsRail, { width: reveal, opacity: actionOpacity }]}> 
+        <Animated.View style={[styles.tapActionsRight, styles.transactionActionsRail, { width: reveal, opacity: actionOpacity }]}>
           <Pressable
             style={[styles.updateFlatBtn, styles.transactionActionBtnCompact, darkMode && styles.updateFlatBtnDark]}
             onPress={(e) => {
@@ -59,7 +59,7 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
               if (!opened) return;
               Alert.prompt(
                 'Update transaction amount',
-                `${item.category} • ${item.name || '—'}`,
+                `${item.category} • ${item.name || '-'}`,
                 [
                   { text: 'Cancel', style: 'cancel' },
                   {
@@ -93,7 +93,7 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
         </Animated.View>
       </View>
 
-      <Animated.View style={[styles.transactionRow, darkMode && styles.transactionRowDark, { marginRight: reveal }]}>
+      <Animated.View style={[styles.transactionRow, darkMode && styles.transactionRowDark, { marginRight: reveal }]}> 
         <View style={styles.topRow}>
           <View>
             <Text style={[styles.name, darkMode && styles.textDark]}>{item.name?.trim() ? item.name : '—'}</Text>
@@ -104,8 +104,8 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
             <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(item.amount, currency)}</Text>
           </View>
         </View>
-        {showSeparator ? <View style={[styles.recordSeparator, darkMode && styles.recordSeparatorDark]} /> : null}
       </Animated.View>
+      {showSeparator ? <View style={[styles.recordSeparator, darkMode && styles.recordSeparatorDark]} /> : null}
     </Pressable>
   );
 }
@@ -310,7 +310,7 @@ export function TransactionsScreen(props: Props) {
           </View>
         </View>
 
-        <View style={[styles.reviewBudgetsPage, { width }]}> 
+        <View style={[styles.reviewBudgetsPage, { width }]}>
           <ScrollView contentContainerStyle={styles.contentContainer}>
             <View style={[styles.panel, darkMode && styles.panelDark]}>
               {(() => {
