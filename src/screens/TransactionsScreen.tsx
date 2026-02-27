@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
   tableWrap: { flex: 1, position: 'relative' },
   transactionsListScroll: { flex: 1 },
   transactionsListContent: { paddingBottom: 18 },
-  scrollHint: { position: 'absolute', left: '50%', marginLeft: -16, width: 32, textAlign: 'center', color: '#2f7a43', fontSize: 10, fontWeight: '700', lineHeight: 10, backgroundColor: 'rgba(234,255,239,0.85)', borderRadius: 8, paddingVertical: 1 },
+  scrollHint: { position: 'absolute', left: '25%', width: '50%', textAlign: 'center', color: '#2f7a43', fontSize: 11, fontWeight: '700', lineHeight: 11, backgroundColor: 'rgba(234,255,239,0.85)', borderRadius: 10, paddingVertical: 1 },
   scrollHintDark: { color: '#b5dec1', backgroundColor: 'rgba(15,26,20,0.85)' },
   scrollHintTop: { top: 4 },
   scrollHintBottom: { bottom: 4 },
