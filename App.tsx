@@ -1,6 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import Svg, { Defs, Pattern, Rect, Text as SvgText } from 'react-native-svg';
 import {
   Alert,
   NativeScrollEvent,
@@ -83,25 +82,6 @@ function toCsv(transactions: Transaction[]): string {
   return [header, ...rows]
     .map((r) => r.map((c) => `"${String(c).replaceAll('"', '""')}"`).join(','))
     .join('\n');
-}
-
-function MoneyPatternBackground({ darkMode }: { darkMode: boolean }) {
-  if (darkMode) return null;
-  return (
-    <View pointerEvents="none" style={StyleSheet.absoluteFillObject}>
-      <Svg width="100%" height="100%">
-        <Defs>
-          <Pattern id="moneyPattern" patternUnits="userSpaceOnUse" width={76} height={76} patternTransform="rotate(-28)">
-            <Rect x={0} y={0} width={76} height={76} fill="#8ad58e" />
-            <Rect x={10} y={16} width={56} height={34} rx={6} fill="#61bf70" stroke="#2c8f4d" strokeWidth={2} />
-            <SvgText x={38} y={39} textAnchor="middle" fontSize={16} fontWeight="700" fill="#1f6f3e">$</SvgText>
-          </Pattern>
-        </Defs>
-        <Rect x={0} y={0} width="100%" height="100%" fill="url(#moneyPattern)" opacity={0.34} />
-        <Rect x={0} y={0} width="100%" height="100%" fill="#8cd99a" opacity={0.18} />
-      </Svg>
-    </View>
-  );
 }
 
 export default function App() {
@@ -350,7 +330,6 @@ export default function App() {
   return (
     <SafeAreaView style={[styles.safeArea, darkMode && styles.safeAreaDark]}>
       <StatusBar style={darkMode ? 'light' : 'dark'} />
-      <MoneyPatternBackground darkMode={darkMode} />
 
       <ScrollView
         ref={pagerRef}
@@ -451,7 +430,7 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#8fdc98' },
+  safeArea: { flex: 1, backgroundColor: '#eaffef' },
   safeAreaDark: { backgroundColor: '#0f1a14' },
   page: { flex: 1 },
   tabDots: {
