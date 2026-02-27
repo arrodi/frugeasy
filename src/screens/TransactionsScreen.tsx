@@ -240,7 +240,7 @@ export function TransactionsScreen(props: Props) {
           </ScrollView>
         </View>
 
-        <View style={{ width }}>
+        <View style={[styles.reviewBudgetsPage, { width }]}> 
           <ScrollView contentContainerStyle={styles.contentContainer}>
             <View style={[styles.panel, darkMode && styles.panelDark]}>
               {(() => {
@@ -305,13 +305,13 @@ export function TransactionsScreen(props: Props) {
               ) : null}
             </View>
           </ScrollView>
+          <View style={styles.reviewAddBudgetWrapInPage}>
+            <Pressable style={styles.reviewAddBudgetBtn} onPress={() => setShowAddBudget((v) => !v)}>
+              <Text style={styles.reviewAddBudgetText}>Add New Budget</Text>
+            </Pressable>
+          </View>
         </View>
       </ScrollView>
-      <View style={styles.reviewAddBudgetWrap}>
-        <Pressable style={styles.reviewAddBudgetBtn} onPress={() => setShowAddBudget((v) => !v)}>
-          <Text style={styles.reviewAddBudgetText}>Add New Budget</Text>
-        </Pressable>
-      </View>
       <View style={[styles.reviewBottomTabs, darkMode && styles.reviewBottomTabsDark]}>
         {(['transactions', 'budgets'] as const).map((tab) => {
           const active = reviewTab === tab;
@@ -351,7 +351,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#eaffef',
   },
   reviewBottomTabsDark: { backgroundColor: '#0f1a14' },
-  reviewAddBudgetWrap: { position: 'absolute', left: 16, right: 16, bottom: 56 },
+  reviewBudgetsPage: { flex: 1 },
+  reviewAddBudgetWrapInPage: { position: 'absolute', left: 16, right: 16, bottom: 56 },
   reviewAddBudgetBtn: { backgroundColor: '#14b85a', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
   reviewAddBudgetText: { color: 'white', fontWeight: '800', fontSize: 16 },
   reviewBottomTab: { flex: 1, alignItems: 'center', gap: 4, paddingTop: 2 },
