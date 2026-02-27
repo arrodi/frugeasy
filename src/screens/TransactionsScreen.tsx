@@ -80,10 +80,12 @@ export function TransactionsScreen(props: Props) {
 
   const onReviewEndDrag = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { contentOffset, contentSize, layoutMeasurement, velocity } = event.nativeEvent;
-    const atStart = contentOffset.x <= 0;
+    const atStart = contentOffset.x <= 1;
     const atEnd = contentOffset.x >= contentSize.width - layoutMeasurement.width - 1;
-    if (atStart && (velocity?.x ?? 0) > 0.35) onSwipeBeyondLeft();
-    if (atEnd && (velocity?.x ?? 0) < -0.35) onSwipeBeyondRight();
+    const fastEnough = Math.abs(velocity?.x ?? 0) > 0.2;
+
+    if (reviewTab === 'transactions' && atStart && fastEnough) onSwipeBeyondLeft();
+    if (reviewTab === 'budgets' && atEnd && fastEnough) onSwipeBeyondRight();
   };
 
   return (
