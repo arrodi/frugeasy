@@ -70,7 +70,8 @@ function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudg
                   },
                 ],
                 'plain-text',
-                String(budget.amount)
+                String(budget.amount),
+                'decimal-pad'
               );
             }}
           >
