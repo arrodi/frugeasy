@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Animated, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
-import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg';
+import { NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { Budget, CurrencyCode, Transaction, TransactionCategory, TransactionType } from '../domain/types';
-import { formatCurrency } from '../ui/format';
+import { BudgetDonutChart } from './transactions/BudgetDonutChart';
+import { BudgetSwipeRow } from './transactions/BudgetSwipeRow';
+import { TransactionTapRow } from './transactions/TransactionTapRow';
 
 type Props = {
   darkMode?: boolean;
@@ -24,166 +25,6 @@ type Props = {
   onSwipeBeyondLeft: () => void;
   onSwipeBeyondRight: () => void;
 };
-
-type BudgetSwipeRowProps = { budget: Budget; currency: CurrencyCode; darkMode?: boolean; onSaveBudget: (category: TransactionCategory, amount: number) => Promise<void>; onDeleteBudget: (id: string) => Promise<void>; activeSwipeBudgetId: string | null; setActiveSwipeBudgetId: (id: string | null) => void };
-
-type TransactionTapRowProps = {
-  item: Transaction;
-  currency: CurrencyCode;
-  darkMode?: boolean;
-  activeId: string | null;
-  setActiveId: (id: string | null) => void;
-  onDeleteTransaction: (id: string) => Promise<void>;
-  onUpdateTransaction: (input: { id: string; amount: number; type: TransactionType; category: TransactionCategory; name: string; date: string }) => Promise<void>;
-  showSeparator: boolean;
-};
-
-
-function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, onDeleteTransaction, onUpdateTransaction, showSeparator }: TransactionTapRowProps) {
-  const reveal = useRef(new Animated.Value(0)).current;
-  const opened = activeId === item.id;
-  const dateLabel = new Date(item.date).toLocaleDateString();
-  const actionOpacity = reveal.interpolate({ inputRange: [0, 24, 120], outputRange: [0, 0.2, 1] });
-
-  useEffect(() => {
-    Animated.timing(reveal, { toValue: opened ? 120 : 0, duration: 180, useNativeDriver: false }).start();
-  }, [opened]);
-
-  return (
-    <Pressable style={styles.transactionShell} onPress={() => setActiveId(opened ? null : item.id)}>
-      <View style={[styles.tapActionsBg, styles.transactionActionsBg]} pointerEvents="box-none">
-        <Animated.View style={[styles.tapActionsRight, styles.transactionActionsRail, { width: reveal, opacity: actionOpacity }]}>
-          <Pressable
-            style={[styles.updateFlatBtn, styles.transactionActionBtnCompact, darkMode && styles.updateFlatBtnDark]}
-            onPress={(e) => {
-              e.stopPropagation?.();
-              if (!opened) return;
-              Alert.prompt(
-                'Update transaction amount',
-                `${item.category} • ${item.name || '-'}`,
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  {
-                    text: 'Save',
-                    onPress: async (value?: string) => {
-                      const amount = Number((value ?? '').replace(',', '.'));
-                      if (!Number.isFinite(amount) || amount <= 0) return;
-                      await onUpdateTransaction({ id: item.id, amount, type: item.type, category: item.category, name: item.name, date: item.date });
-                      setActiveId(null);
-                    },
-                  },
-                ],
-                'plain-text',
-                String(item.amount),
-                'decimal-pad'
-              );
-            }}
-          >
-            <Text style={[styles.flatBtnText, darkMode && styles.flatBtnTextDark]}>Update</Text>
-          </Pressable>
-          <Pressable
-            style={[styles.deleteFlatBtn, styles.transactionActionBtnCompact, darkMode && styles.deleteFlatBtnDark]}
-            onPress={(e) => {
-              e.stopPropagation?.();
-              if (!opened) return;
-              onDeleteTransaction(item.id);
-            }}
-          >
-            <Text style={[styles.flatBtnText, darkMode && styles.flatBtnTextDark]}>Delete</Text>
-          </Pressable>
-        </Animated.View>
-      </View>
-
-      <Animated.View style={[styles.transactionRow, darkMode && styles.transactionRowDark, { marginRight: reveal }]}>
-        <View style={styles.topRow}>
-          <View>
-            <Text style={[styles.name, darkMode && styles.textDark]}>{item.name?.trim() ? item.name : '-'}</Text>
-            <Text style={[styles.meta, darkMode && styles.metaDark]}>{item.category}</Text>
-          </View>
-          <View style={styles.rightRow}>
-            <Text style={[styles.meta, darkMode && styles.metaDark]}>{dateLabel}</Text>
-            <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(item.amount, currency)}</Text>
-          </View>
-        </View>
-      </Animated.View>
-      {showSeparator ? <View style={[styles.recordSeparator, darkMode && styles.recordSeparatorDark]} /> : null}
-    </Pressable>
-  );
-}
-
-function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudget, activeSwipeBudgetId, setActiveSwipeBudgetId }: BudgetSwipeRowProps) {
-  const reveal = useRef(new Animated.Value(0)).current;
-
-  const opened = activeSwipeBudgetId === budget.id;
-  const actionOpacity = reveal.interpolate({ inputRange: [0, 24, 120], outputRange: [0, 0.2, 1] });
-
-  const animateTo = (v: number) => Animated.timing(reveal, { toValue: v, duration: 180, useNativeDriver: false }).start();
-
-  useEffect(() => {
-    animateTo(opened ? 120 : 0);
-  }, [opened]);
-
-  return (
-    <Pressable style={styles.transactionShell} onPress={() => setActiveSwipeBudgetId(opened ? null : budget.id)}>
-      <View style={[styles.tapActionsBg, styles.transactionActionsBg]} pointerEvents="box-none">
-        <Animated.View style={[styles.tapActionsRight, styles.transactionActionsRail, { width: reveal, opacity: actionOpacity }]}>
-          <Pressable
-            style={[styles.updateFlatBtn, styles.transactionActionBtnCompact, darkMode && styles.updateFlatBtnDark]}
-            onPress={(e) => {
-              e.stopPropagation?.();
-              if (!opened) return;
-              Alert.prompt(
-                'Update budget',
-                budget.category,
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  {
-                    text: 'Save',
-                    onPress: async (value?: string) => {
-                      const raw = (value ?? '').trim();
-                      if (!raw) return;
-                      if (!/^\d+(?:[.,]\d+)?$/.test(raw)) {
-                        Alert.alert('Invalid amount', 'Use numbers only (e.g. 120 or 120.50).');
-                        return;
-                      }
-                      const amount = Number(raw.replace(',', '.'));
-                      if (!Number.isFinite(amount) || amount <= 0) return;
-                      await onSaveBudget(budget.category, amount);
-                      setActiveSwipeBudgetId(null);
-                    },
-                  },
-                ],
-                'plain-text',
-                String(budget.amount),
-                'decimal-pad'
-              );
-            }}
-          >
-            <Text style={[styles.flatBtnText, darkMode && styles.flatBtnTextDark]}>Update</Text>
-          </Pressable>
-          <Pressable
-            style={[styles.deleteFlatBtn, styles.transactionActionBtnCompact, darkMode && styles.deleteFlatBtnDark]}
-            onPress={(e) => {
-              e.stopPropagation?.();
-              if (!opened) return;
-              onDeleteBudget(budget.id);
-            }}
-          >
-            <Text style={[styles.flatBtnText, darkMode && styles.flatBtnTextDark]}>Delete</Text>
-          </Pressable>
-        </Animated.View>
-      </View>
-
-      <Animated.View style={[styles.transactionRow, darkMode && styles.transactionRowDark, { marginRight: reveal }]}>
-        <View style={styles.topRow}>
-          <Text style={[styles.name, darkMode && styles.textDark]}>{budget.category}</Text>
-          <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(budget.amount, currency)}</Text>
-        </View>
-      </Animated.View>
-      <View style={[styles.recordSeparator, darkMode && styles.recordSeparatorDark]} />
-    </Pressable>
-  );
-}
 
 export function TransactionsScreen(props: Props) {
   const {
@@ -312,6 +153,7 @@ export function TransactionsScreen(props: Props) {
                     onDeleteTransaction={onDeleteTransaction}
                     onUpdateTransaction={onUpdateTransaction}
                     showSeparator={index < shownTransactions.length - 1}
+                    styles={styles}
                   />
                 ))}
               </ScrollView>
@@ -326,46 +168,29 @@ export function TransactionsScreen(props: Props) {
               showsVerticalScrollIndicator={false}
 
             >
-            <View style={[styles.panel, darkMode && styles.panelDark]}>
-              {(() => {
-                const total = budgets.reduce((s,b)=>s+b.amount,0);
-                const size=160; const r=58; const c=2*Math.PI*r;
-                let acc=0;
-                const colors=['#ff6b6b','#f59e0b','#facc15','#22c55e','#14b8a6','#0ea5e9','#6366f1','#a855f7','#ec4899','#f97316','#84cc16','#06b6d4'];
-                const center=size/2;
-                let cumulative=0;
-                const slices = total > 0 ? budgets.map((b,i)=>{ const frac=b.amount/total; const start=cumulative; const mid=start+frac/2; cumulative+=frac; return { b, i, frac, mid }; }) : [];
-                return (
-                  <View style={styles.chartWrap}>
-                    <Text style={[styles.totalBudgetText, darkMode && styles.textDark]}>Total Budget: {formatCurrency(total, currency)}</Text>
-                    <Svg width={size+220} height={size+80}><G x={110} y={30}><G rotation={-90} origin={`${center}, ${center}`}>
-                      {total>0 ? budgets.map((b,i)=>{ const frac=b.amount/total; const seg=c*frac; const dash=`${seg} ${c-seg}`; const off=-acc*c; acc+=frac; return <Circle key={b.id} cx={center} cy={center} r={r} fill="none" stroke={colors[i%colors.length]} strokeWidth={20} strokeDasharray={dash} strokeDashoffset={off} strokeLinecap="butt"/>; }) : <Circle cx={center} cy={center} r={r} fill="none" stroke={darkMode ? '#2e4d3b' : '#d1fae5'} strokeWidth={20}/>}
-                    </G>
-                    {slices.map(({ b, i, frac, mid }) => { const angle = mid * Math.PI * 2 - Math.PI/2; const x1 = center + Math.cos(angle) * (r + 10); const y1 = center + Math.sin(angle) * (r + 10); const x2 = center + Math.cos(angle) * (r + 28); const y2 = center + Math.sin(angle) * (r + 28); const right = Math.cos(angle) >= 0; const x3 = x2 + (right ? 24 : -24); const shortCategory = b.category.length > 10 ? `${b.category.slice(0, 10)}…` : b.category; const label = `${shortCategory} ${(frac*100).toFixed(0)}%`; return (<G key={`callout-${b.id}`}><Line x1={x1} y1={y1} x2={x2} y2={y2} stroke={colors[i%colors.length]} strokeWidth={1.5} /><Line x1={x2} y1={y2} x2={x3} y2={y2} stroke={colors[i%colors.length]} strokeWidth={1.5} /><SvgText x={x3 + (right ? 4 : -4)} y={y2 + 4} fontSize={10} fill={darkMode ? '#d6f5df' : '#14532d'} textAnchor={right ? 'start' : 'end'}>{label}</SvgText></G>); })}
-                    </G></Svg>
-                  </View>
-                );
-              })()}
+              <View style={[styles.panel, darkMode && styles.panelDark]}>
+                <BudgetDonutChart budgets={budgets} currency={currency} darkMode={darkMode} styles={styles} />
 
-              <View style={[styles.tableHeaderRow, darkMode && styles.tableHeaderRowDark]}>
-                <Text style={[styles.tableHeaderText, darkMode && styles.metaDark]}>Category</Text>
-                <Text style={[styles.tableHeaderText, darkMode && styles.metaDark]}>Amount</Text>
+                <View style={[styles.tableHeaderRow, darkMode && styles.tableHeaderRowDark]}>
+                  <Text style={[styles.tableHeaderText, darkMode && styles.metaDark]}>Category</Text>
+                  <Text style={[styles.tableHeaderText, darkMode && styles.metaDark]}>Amount</Text>
+                </View>
+
+                {budgets.map((b) => (
+                  <BudgetSwipeRow
+                    key={b.id}
+                    budget={b}
+                    currency={currency}
+                    darkMode={darkMode}
+                    onSaveBudget={onSaveBudget}
+                    onDeleteBudget={onDeleteBudget}
+                    activeSwipeBudgetId={activeSwipeBudgetId}
+                    setActiveSwipeBudgetId={setActiveSwipeBudgetId}
+                    styles={styles}
+                  />
+                ))}
+
               </View>
-
-              {budgets.map((b, index) => (
-                <BudgetSwipeRow
-                  key={b.id}
-                  budget={b}
-                  currency={currency}
-                  darkMode={darkMode}
-                  onSaveBudget={onSaveBudget}
-                  onDeleteBudget={onDeleteBudget}
-                  activeSwipeBudgetId={activeSwipeBudgetId}
-                  setActiveSwipeBudgetId={setActiveSwipeBudgetId}
-                />
-              ))}
-
-            </View>
             </ScrollView>
           </View>
           <View style={styles.reviewAddBudgetWrapInPage}>
