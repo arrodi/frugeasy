@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { LayoutAnimation, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg';
 import { Budget, CurrencyCode, Transaction, TransactionCategory } from '../domain/types';
 import { formatCurrency } from '../ui/format';
@@ -18,8 +17,6 @@ type Props = {
 
 export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetProgressRows, transactions, onSaveBudget, categoryOptions }: Props) {
   const [expandedBudgetKey, setExpandedBudgetKey] = useState<string | null>(null);
-  const [showTopFade, setShowTopFade] = useState(false);
-  const [showBottomFade, setShowBottomFade] = useState(false);
 
 
   const displayedBudgetRows = (() => {
@@ -39,8 +36,6 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
       return b.spent - a.spent;
     });
   })();
-
-  const fadeColor = darkMode ? '#0f1a14' : '#eaffef';
 
   return (
     <View style={[styles.screenContainer, darkMode && styles.screenDark]}>
@@ -126,13 +121,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
             contentContainerStyle={styles.entriesScrollContent}
             showsVerticalScrollIndicator={false}
             scrollEventThrottle={16}
-            onScroll={(e) => {
-              const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
-              const y = contentOffset.y;
-              setShowTopFade(y > 4);
-              const distanceFromBottom = contentSize.height - (y + layoutMeasurement.height);
-              setShowBottomFade(y > 4 && distanceFromBottom > 4);
-            }}
+
           >
             {displayedBudgetRows.length === 0 ? <Text style={[styles.ruleText, darkMode && styles.textDark]}>No budgets set yet.</Text> : null}
             {displayedBudgetRows.map((row) => {
@@ -157,21 +146,25 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
                     {row.budgetMissing ? formatCurrency(row.spent, currency) : `${formatCurrency(row.spent, currency)} / ${formatCurrency(row.budget, currency)}`}
                   </Text>
                 </View>
-                <View style={[styles.progressTrack, darkMode && styles.progressTrackDark]}>
-                  <View
-                    style={[
-                      styles.progressFill,
-                      darkMode && styles.progressFillDark,
-                      { width: `${Math.min(100, Math.max(0, row.usagePct))}%` },
-                      row.usagePct > 100 && styles.progressOver,
-                    ]}
-                  />
-                  <View style={styles.progressOverlayCenter}>
-                    <Text style={[styles.progressInsideText, row.usagePct >= 55 ? styles.progressInsideOnFill : styles.progressInsideOffFill]}>
-                      {row.budgetMissing ? 'Budget not set' : `${row.usagePct.toFixed(0)}% used`}
-                    </Text>
+                {!row.budgetMissing ? (
+                  <View style={[styles.progressTrack, darkMode && styles.progressTrackDark]}>
+                    <View
+                      style={[
+                        styles.progressFill,
+                        darkMode && styles.progressFillDark,
+                        { width: `${Math.min(100, Math.max(0, row.usagePct))}%` },
+                        row.usagePct > 100 && styles.progressOver,
+                      ]}
+                    />
+                    <View style={styles.progressOverlayCenter}>
+                      <Text style={[styles.progressInsideText, row.usagePct >= 55 ? styles.progressInsideOnFill : styles.progressInsideOffFill]}>
+                        {`${row.usagePct.toFixed(0)}% used`}
+                      </Text>
+                    </View>
                   </View>
-                </View>
+                ) : (
+                  <Text style={[styles.ruleText, darkMode && styles.textDark, { marginTop: 6 }]}>Budget not set</Text>
+                )}
 
                 {expanded ? (
                   <View style={styles.historyWrap}>
@@ -188,20 +181,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
             );
           })}
           </ScrollView>
-          {showTopFade ? (
-            <LinearGradient
-              pointerEvents="none"
-              colors={[fadeColor, 'transparent']}
-              style={[styles.edgeFade, styles.edgeFadeTop]}
-            />
-          ) : null}
-          {showBottomFade ? (
-            <LinearGradient
-              pointerEvents="none"
-              colors={['transparent', fadeColor]}
-              style={[styles.edgeFade, styles.edgeFadeBottom]}
-            />
-          ) : null}
+
         </View>
 
       </View>
@@ -217,9 +197,7 @@ const styles = StyleSheet.create({
   entriesScrollWrap: { flex: 1, position: 'relative' },
   entriesScroll: { flex: 1 },
   entriesScrollContent: { paddingBottom: 8 },
-  edgeFade: { position: 'absolute', left: 0, right: 0, height: 18 },
-  edgeFadeTop: { top: 0 },
-  edgeFadeBottom: { bottom: 0 },
+
   title: { fontSize: 17, fontWeight: '700', color: '#156530' },
   panelTitle: { fontSize: 14, fontWeight: '700', color: '#14532d', marginBottom: 6 },
   textDark: { color: '#d6f5df' },
