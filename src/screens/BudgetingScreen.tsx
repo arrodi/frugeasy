@@ -40,7 +40,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
     });
   })();
 
-  const fadeColor = darkMode ? '#0f1a14' : '#f6fff8';
+  const fadeColor = darkMode ? '#0f1a14' : '#eaffef';
 
   return (
     <View style={[styles.screenContainer, darkMode && styles.screenDark]}>
