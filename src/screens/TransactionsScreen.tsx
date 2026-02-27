@@ -48,40 +48,38 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
   return (
     <Pressable style={[styles.swipeShell, darkMode && styles.swipeShellDark]} onPress={() => setActiveId(opened ? null : item.id)}>
       <View style={styles.tapActionsBg} pointerEvents="box-none">
-        {opened ? (
-          <View style={styles.tapActionsRight}>
-            <Pressable
-              style={[styles.updateFlatBtn, darkMode && styles.updateFlatBtnDark]}
-              onPress={(e) => {
-                e.stopPropagation?.();
-                Alert.prompt(
-                  'Update transaction amount',
-                  `${item.category} • ${item.name || '—'}`,
-                  [
-                    { text: 'Cancel', style: 'cancel' },
-                    {
-                      text: 'Save',
-                      onPress: async (value?: string) => {
-                        const amount = Number((value ?? '').replace(',', '.'));
-                        if (!Number.isFinite(amount) || amount <= 0) return;
-                        await onUpdateTransaction({ id: item.id, amount, type: item.type, category: item.category, name: item.name, date: item.date });
-                        setActiveId(null);
-                      },
+        <View style={styles.tapActionsRight}>
+          <Pressable
+            style={[styles.updateFlatBtn, darkMode && styles.updateFlatBtnDark]}
+            onPress={(e) => {
+              e.stopPropagation?.();
+              Alert.prompt(
+                'Update transaction amount',
+                `${item.category} • ${item.name || '—'}`,
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Save',
+                    onPress: async (value?: string) => {
+                      const amount = Number((value ?? '').replace(',', '.'));
+                      if (!Number.isFinite(amount) || amount <= 0) return;
+                      await onUpdateTransaction({ id: item.id, amount, type: item.type, category: item.category, name: item.name, date: item.date });
+                      setActiveId(null);
                     },
-                  ],
-                  'plain-text',
-                  String(item.amount),
-                  'decimal-pad'
-                );
-              }}
-            >
-              <Text style={[styles.flatBtnText, darkMode && styles.flatBtnTextDark]}>Update</Text>
-            </Pressable>
-            <Pressable style={[styles.deleteFlatBtn, darkMode && styles.deleteFlatBtnDark]} onPress={(e) => { e.stopPropagation?.(); onDeleteTransaction(item.id); }}>
-              <Text style={[styles.flatBtnText, darkMode && styles.flatBtnTextDark]}>Delete</Text>
-            </Pressable>
-          </View>
-        ) : null}
+                  },
+                ],
+                'plain-text',
+                String(item.amount),
+                'decimal-pad'
+              );
+            }}
+          >
+            <Text style={[styles.flatBtnText, darkMode && styles.flatBtnTextDark]}>Update</Text>
+          </Pressable>
+          <Pressable style={[styles.deleteFlatBtn, darkMode && styles.deleteFlatBtnDark]} onPress={(e) => { e.stopPropagation?.(); onDeleteTransaction(item.id); }}>
+            <Text style={[styles.flatBtnText, darkMode && styles.flatBtnTextDark]}>Delete</Text>
+          </Pressable>
+        </View>
       </View>
 
       <Animated.View style={[styles.listRow, styles.listRowInner, darkMode && styles.listRowDark, { marginRight: reveal }]}>
@@ -449,12 +447,12 @@ const styles = StyleSheet.create({
   swipeShellDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
   tapActionsBg: { position: 'absolute', inset: 0, justifyContent: 'center', alignItems: 'flex-end' },
   tapActionsRight: { flexDirection: 'row', height: '100%' },
-  updateFlatBtn: { backgroundColor: '#dff4e7', justifyContent: 'center', alignItems: 'center', width: 66 },
-  updateFlatBtnDark: { backgroundColor: '#234231' },
-  deleteFlatBtn: { backgroundColor: '#f8e3e3', justifyContent: 'center', alignItems: 'center', width: 66 },
-  deleteFlatBtnDark: { backgroundColor: '#4a2a2a' },
-  flatBtnText: { color: '#1e6e37', fontWeight: '700', fontSize: 11 },
-  flatBtnTextDark: { color: '#d6f5df' },
+  updateFlatBtn: { backgroundColor: '#14b85a', justifyContent: 'center', alignItems: 'center', width: 66 },
+  updateFlatBtnDark: { backgroundColor: '#14b85a' },
+  deleteFlatBtn: { backgroundColor: '#dc2626', justifyContent: 'center', alignItems: 'center', width: 66 },
+  deleteFlatBtnDark: { backgroundColor: '#dc2626' },
+  flatBtnText: { color: '#ffffff', fontWeight: '700', fontSize: 11 },
+  flatBtnTextDark: { color: '#ffffff' },
   listRow: { backgroundColor: '#ecfff1', borderRadius: 14, padding: 11, borderWidth: 1, borderColor: '#9ee5ab' },
   listRowInner: { marginBottom: 0, borderWidth: 0, borderRadius: 0 },
   listRowDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
