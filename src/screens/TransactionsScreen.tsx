@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { Alert, Animated, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg';
 import { Budget, CurrencyCode, Transaction, TransactionCategory, TransactionType } from '../domain/types';
 import { formatCurrency } from '../ui/format';
@@ -28,15 +28,13 @@ type BudgetSwipeRowProps = { budget: Budget; currency: CurrencyCode; darkMode?: 
 
 function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudget, activeSwipeBudgetId, setActiveSwipeBudgetId }: BudgetSwipeRowProps) {
   const reveal = useRef(new Animated.Value(0)).current;
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(String(budget.amount));
+
   const opened = activeSwipeBudgetId === budget.id;
 
   const animateTo = (v: number) => Animated.timing(reveal, { toValue: v, duration: 180, useNativeDriver: false }).start();
 
   useEffect(() => {
     animateTo(opened ? 132 : 0);
-    if (!opened) setEditing(false);
   }, [opened]);
 
   return (
@@ -46,46 +44,35 @@ function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudg
     >
       <View style={styles.tapActionsBg} pointerEvents="box-none">
         <View style={styles.tapActionsRight}>
-          {!editing ? (
-            <>
-              <Pressable
-                style={styles.updateFlatBtn}
-                onPress={(e) => {
-                  e.stopPropagation?.();
-                  setEditing(true);
-                }}
-              >
-                <Text style={styles.flatBtnText}>Update</Text>
-              </Pressable>
-              <Pressable style={styles.deleteFlatBtn} onPress={(e) => { e.stopPropagation?.(); onDeleteBudget(budget.id); }}>
-                <Text style={styles.flatBtnText}>Delete</Text>
-              </Pressable>
-            </>
-          ) : (
-            <>
-              <TextInput
-                value={draft}
-                onChangeText={setDraft}
-                style={[styles.flatInput, darkMode && styles.flatInputDark]}
-                keyboardType="decimal-pad"
-                placeholder="Amount"
-                placeholderTextColor={darkMode ? '#b7d9c0' : '#14532d'}
-              />
-              <Pressable
-                style={styles.updateFlatBtn}
-                onPress={async (e) => {
-                  e.stopPropagation?.();
-                  const amount = Number(draft.replace(',', '.'));
-                  if (!Number.isFinite(amount) || amount <= 0) return;
-                  await onSaveBudget(budget.category, amount);
-                  setEditing(false);
-                  setActiveSwipeBudgetId(null);
-                }}
-              >
-                <Text style={styles.flatBtnText}>Submit</Text>
-              </Pressable>
-            </>
-          )}
+          <Pressable
+            style={styles.updateFlatBtn}
+            onPress={(e) => {
+              e.stopPropagation?.();
+              Alert.prompt(
+                'Update budget',
+                budget.category,
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Save',
+                    onPress: async (value?: string) => {
+                      const amount = Number((value ?? '').replace(',', '.'));
+                      if (!Number.isFinite(amount) || amount <= 0) return;
+                      await onSaveBudget(budget.category, amount);
+                      setActiveSwipeBudgetId(null);
+                    },
+                  },
+                ],
+                'plain-text',
+                String(budget.amount)
+              );
+            }}
+          >
+            <Text style={styles.flatBtnText}>Update</Text>
+          </Pressable>
+          <Pressable style={styles.deleteFlatBtn} onPress={(e) => { e.stopPropagation?.(); onDeleteBudget(budget.id); }}>
+            <Text style={styles.flatBtnText}>Delete</Text>
+          </Pressable>
         </View>
       </View>
 
@@ -341,8 +328,6 @@ const styles = StyleSheet.create({
   tapActionsRight: { flexDirection: 'row', height: '100%' },
   updateFlatBtn: { backgroundColor: '#14b85a', justifyContent: 'center', alignItems: 'center', width: 66 },
   deleteFlatBtn: { backgroundColor: '#dc2626', justifyContent: 'center', alignItems: 'center', width: 66 },
-  flatInput: { width: 66, backgroundColor: '#22c55e', color: 'white', textAlign: 'center', fontWeight: '700', paddingHorizontal: 4 },
-  flatInputDark: { backgroundColor: '#16a34a', color: '#eaffef' },
   flatBtnText: { color: 'white', fontWeight: '700', fontSize: 12 },
   listRow: { backgroundColor: '#ecfff1', borderRadius: 14, padding: 11, borderWidth: 1, borderColor: '#9ee5ab' },
   listRowInner: { marginBottom: 0, borderWidth: 0, borderRadius: 0 },
