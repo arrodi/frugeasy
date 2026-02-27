@@ -162,9 +162,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
                       </Text>
                     </View>
                   </View>
-                ) : (
-                  <Text style={[styles.ruleText, darkMode && styles.textDark, { marginTop: 6 }]}>Budget not set</Text>
-                )}
+                ) : null}
 
                 {expanded ? (
                   <View style={styles.historyWrap}>
