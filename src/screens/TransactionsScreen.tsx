@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Animated, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg';
 import { Budget, CurrencyCode, Transaction, TransactionCategory, TransactionType } from '../domain/types';
 import { formatCurrency } from '../ui/format';
@@ -236,8 +237,8 @@ export function TransactionsScreen(props: Props) {
         onMomentumScrollEnd={onReviewPagerEnd}
         onScrollEndDrag={onReviewEndDrag}
       >
-        <View style={{ width }}>
-          <ScrollView contentContainerStyle={styles.contentContainer}>
+        <View style={[styles.reviewTransactionsPage, { width }]}>
+          <View style={[styles.contentContainer, styles.transactionsPageContent]}>
             <TextInput value={searchQuery} onChangeText={onSearchQueryChange} placeholder="Search categories" placeholderTextColor="#4f7a59" style={[styles.searchInput, darkMode && styles.inputDark]} />
 
             <View style={styles.row}>
@@ -267,19 +268,31 @@ export function TransactionsScreen(props: Props) {
               </View>
             </View>
 
-            {shownTransactions.map((item) => (
-              <TransactionTapRow
-                key={item.id}
-                item={item}
-                currency={currency}
-                darkMode={darkMode}
-                activeId={activeTransactionId}
-                setActiveId={setActiveTransactionId}
-                onDeleteTransaction={onDeleteTransaction}
-                onUpdateTransaction={onUpdateTransaction}
-              />
-            ))}
-          </ScrollView>
+            <LinearGradient
+              pointerEvents="none"
+              colors={[ 'transparent', darkMode ? 'rgba(214,245,223,0.22)' : 'rgba(20,99,47,0.18)', 'transparent' ]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.listDivider}
+            />
+
+            <View style={[styles.transactionsBox, darkMode && styles.transactionsBoxDark]}>
+              <ScrollView style={styles.transactionsListScroll} contentContainerStyle={styles.transactionsListContent} showsVerticalScrollIndicator={false}>
+                {shownTransactions.map((item) => (
+                  <TransactionTapRow
+                    key={item.id}
+                    item={item}
+                    currency={currency}
+                    darkMode={darkMode}
+                    activeId={activeTransactionId}
+                    setActiveId={setActiveTransactionId}
+                    onDeleteTransaction={onDeleteTransaction}
+                    onUpdateTransaction={onUpdateTransaction}
+                  />
+                ))}
+              </ScrollView>
+            </View>
+          </View>
         </View>
 
         <View style={[styles.reviewBudgetsPage, { width }]}> 
@@ -388,6 +401,7 @@ const styles = StyleSheet.create({
   screenDark: { backgroundColor: '#0f1a14' },
   panelDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
   contentContainer: { paddingHorizontal: 16, gap: 10, paddingTop: 8, paddingBottom: 88 },
+  transactionsPageContent: { flex: 1 },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: 17, fontWeight: '700', color: '#156530' },
   textDark: { color: '#d6f5df' },
@@ -406,6 +420,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#eaffef',
   },
   reviewBottomTabsDark: { backgroundColor: '#0f1a14' },
+  reviewTransactionsPage: { flex: 1 },
   reviewBudgetsPage: { flex: 1 },
   reviewAddBudgetWrapInPage: { position: 'absolute', left: 16, right: 16, bottom: 56 },
   modalBackdrop: { ...StyleSheet.absoluteFillObject, justifyContent: 'center', paddingHorizontal: 20, zIndex: 30 },
@@ -413,6 +428,11 @@ const styles = StyleSheet.create({
   modalCard: { backgroundColor: '#ecfff1', borderWidth: 1, borderColor: '#9ee5ab', borderRadius: 14, padding: 12, gap: 10 },
   reviewAddBudgetBtn: { backgroundColor: '#14b85a', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
   reviewAddBudgetText: { color: 'white', fontWeight: '800', fontSize: 16 },
+  listDivider: { height: 1, marginTop: 4, marginBottom: 8, marginHorizontal: 2 },
+  transactionsBox: { flex: 1, borderWidth: 1, borderColor: '#b6e9c3', borderRadius: 12, backgroundColor: '#ecfff1', overflow: 'hidden' },
+  transactionsBoxDark: { borderColor: '#2e4d3b', backgroundColor: '#15251c' },
+  transactionsListScroll: { flex: 1 },
+  transactionsListContent: { padding: 8, paddingBottom: 18, gap: 8 },
   reviewBottomTab: { flex: 1, alignItems: 'center', gap: 4, paddingTop: 2 },
   reviewBottomDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#79d992' },
   reviewBottomDotActive: { backgroundColor: '#14b85a', width: 22 },
