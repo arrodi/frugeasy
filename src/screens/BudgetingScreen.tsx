@@ -23,7 +23,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
   const [budgetAmount, setBudgetAmount] = useState('');
   const [budgetCategoryOpen, setBudgetCategoryOpen] = useState(false);
   const [showTopFade, setShowTopFade] = useState(false);
-  const [showBottomFade, setShowBottomFade] = useState(true);
+  const [showBottomFade, setShowBottomFade] = useState(false);
 
 
   const displayedBudgetRows = (() => {
@@ -136,7 +136,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
               const y = contentOffset.y;
               setShowTopFade(y > 4);
               const distanceFromBottom = contentSize.height - (y + layoutMeasurement.height);
-              setShowBottomFade(distanceFromBottom > 4);
+              setShowBottomFade(y > 4 && distanceFromBottom > 4);
             }}
           >
             {displayedBudgetRows.length === 0 ? <Text style={[styles.ruleText, darkMode && styles.textDark]}>No budgets set yet.</Text> : null}
