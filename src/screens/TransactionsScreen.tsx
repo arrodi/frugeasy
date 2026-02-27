@@ -25,15 +25,19 @@ type Props = {
   onEntrySwipeActiveChange: (active: boolean) => void;
 };
 
-type BudgetSwipeRowProps = { budget: Budget; currency: CurrencyCode; darkMode?: boolean; onSaveBudget: (category: TransactionCategory, amount: number) => Promise<void>; onDeleteBudget: (id: string) => Promise<void>; onSwipeActiveChange: (active: boolean) => void; onEntrySwipeActiveChange: (active: boolean) => void };
+type BudgetSwipeRowProps = { budget: Budget; currency: CurrencyCode; darkMode?: boolean; onSaveBudget: (category: TransactionCategory, amount: number) => Promise<void>; onDeleteBudget: (id: string) => Promise<void>; onSwipeActiveChange: (active: boolean) => void; onEntrySwipeActiveChange: (active: boolean) => void; activeSwipeBudgetId: string | null; setActiveSwipeBudgetId: (id: string | null) => void };
 
-function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudget, onSwipeActiveChange, onEntrySwipeActiveChange }: BudgetSwipeRowProps) {
+function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudget, onSwipeActiveChange, onEntrySwipeActiveChange, activeSwipeBudgetId, setActiveSwipeBudgetId }: BudgetSwipeRowProps) {
   const reveal = useRef(new Animated.Value(0)).current;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(budget.amount));
 
   const snap = (v: number, onDone?: () => void) =>
     Animated.spring(reveal, { toValue: v, useNativeDriver: false, bounciness: 0 }).start(() => onDone?.());
+
+  useEffect(() => {
+    if (activeSwipeBudgetId !== budget.id) snap(0);
+  }, [activeSwipeBudgetId, budget.id]);
 
   const pan = useMemo(() => PanResponder.create({
     onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 8 && Math.abs(g.dx) > Math.abs(g.dy),
@@ -46,11 +50,19 @@ function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudg
         onSwipeActiveChange(false);
         onEntrySwipeActiveChange(false);
       };
-      if (g.dx > 36) snap(80, unlock);
-      else if (g.dx < -36) snap(-80, unlock);
-      else snap(0, unlock);
+      if (g.dx > 36) {
+        setActiveSwipeBudgetId(budget.id);
+        snap(80, unlock);
+      } else if (g.dx < -36) {
+        setActiveSwipeBudgetId(budget.id);
+        snap(-80, unlock);
+      } else {
+        setActiveSwipeBudgetId(null);
+        snap(0, unlock);
+      }
     },
     onPanResponderTerminate: () => {
+      setActiveSwipeBudgetId(null);
       snap(0, () => {
         onSwipeActiveChange(false);
         onEntrySwipeActiveChange(false);
@@ -147,6 +159,7 @@ export function TransactionsScreen(props: Props) {
 
   const reviewPagerRef = useRef<ScrollView>(null);
   const [lockReviewPager, setLockReviewPager] = useState(false);
+  const [activeSwipeBudgetId, setActiveSwipeBudgetId] = useState<string | null>(null);
   const { width } = useWindowDimensions();
 
   const shownTransactions = useMemo(() => {
@@ -253,7 +266,7 @@ export function TransactionsScreen(props: Props) {
 
         <View style={{ width }}>
           <ScrollView contentContainerStyle={styles.contentContainer}>
-            <View style={[styles.panel, darkMode && styles.panelDark]}>
+            <View style={[styles.panel, darkMode && styles.panelDark]} onTouchEnd={() => setActiveSwipeBudgetId(null)}>
               {(() => {
                 const total = budgets.reduce((s,b)=>s+b.amount,0);
                 const size=160; const r=58; const c=2*Math.PI*r;
@@ -284,6 +297,8 @@ export function TransactionsScreen(props: Props) {
                   onDeleteBudget={onDeleteBudget}
                   onSwipeActiveChange={setLockReviewPager}
                   onEntrySwipeActiveChange={onEntrySwipeActiveChange}
+                  activeSwipeBudgetId={activeSwipeBudgetId}
+                  setActiveSwipeBudgetId={setActiveSwipeBudgetId}
                 />
               ))}
             </View>
