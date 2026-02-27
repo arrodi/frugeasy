@@ -212,7 +212,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
 
 const styles = StyleSheet.create({
   screenContainer: { flex: 1 },
-  screenDark: { backgroundColor: '#0f1a14' },
+  screenDark: { backgroundColor: 'transparent' },
   contentContainer: { flex: 1, paddingHorizontal: 16, gap: 10, paddingTop: 8, paddingBottom: 80 },
   entriesScrollWrap: { flex: 1, position: 'relative' },
   entriesScroll: { flex: 1 },

@@ -337,7 +337,7 @@ export function TransactionsScreen(props: Props) {
 
 const styles = StyleSheet.create({
   screenContainer: { flex: 1 },
-  screenDark: { backgroundColor: '#0f1a14' },
+  screenDark: { backgroundColor: 'transparent' },
   panelDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
   contentContainer: { paddingHorizontal: 16, gap: 10, paddingTop: 8, paddingBottom: 88 },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
