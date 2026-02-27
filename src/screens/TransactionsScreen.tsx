@@ -42,6 +42,7 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
   const reveal = useRef(new Animated.Value(0)).current;
   const opened = activeId === item.id;
   const dateLabel = new Date(item.date).toLocaleDateString();
+  const actionOpacity = reveal.interpolate({ inputRange: [0, 30, 132], outputRange: [0, 0.2, 1] });
 
   useEffect(() => {
     Animated.timing(reveal, { toValue: opened ? 132 : 0, duration: 180, useNativeDriver: false }).start();
@@ -50,11 +51,12 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
   return (
     <Pressable style={styles.transactionShell} onPress={() => setActiveId(opened ? null : item.id)}>
       <View style={styles.tapActionsBg} pointerEvents="box-none">
-        <View style={styles.tapActionsRight}>
+        <Animated.View style={[styles.tapActionsRight, { width: reveal, opacity: actionOpacity }]}> 
           <Pressable
             style={[styles.updateFlatBtn, darkMode && styles.updateFlatBtnDark]}
             onPress={(e) => {
               e.stopPropagation?.();
+              if (!opened) return;
               Alert.prompt(
                 'Update transaction amount',
                 `${item.category} • ${item.name || '—'}`,
@@ -78,10 +80,17 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
           >
             <Text style={[styles.flatBtnText, darkMode && styles.flatBtnTextDark]}>Update</Text>
           </Pressable>
-          <Pressable style={[styles.deleteFlatBtn, darkMode && styles.deleteFlatBtnDark]} onPress={(e) => { e.stopPropagation?.(); onDeleteTransaction(item.id); }}>
+          <Pressable
+            style={[styles.deleteFlatBtn, darkMode && styles.deleteFlatBtnDark]}
+            onPress={(e) => {
+              e.stopPropagation?.();
+              if (!opened) return;
+              onDeleteTransaction(item.id);
+            }}
+          >
             <Text style={[styles.flatBtnText, darkMode && styles.flatBtnTextDark]}>Delete</Text>
           </Pressable>
-        </View>
+        </Animated.View>
       </View>
 
       <Animated.View style={[styles.transactionRow, darkMode && styles.transactionRowDark, { marginRight: reveal }]}>
@@ -467,7 +476,7 @@ const styles = StyleSheet.create({
   swipeShell: { position: 'relative', marginBottom: 8, borderRadius: 14, borderWidth: 1, borderColor: '#9ee5ab', backgroundColor: '#ecfff1', overflow: 'hidden' },
   swipeShellDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
   tapActionsBg: { position: 'absolute', inset: 0, justifyContent: 'center', alignItems: 'flex-end' },
-  tapActionsRight: { flexDirection: 'row', height: '100%' },
+  tapActionsRight: { flexDirection: 'row', height: '100%', overflow: 'hidden' },
   updateFlatBtn: { backgroundColor: '#14b85a', justifyContent: 'center', alignItems: 'center', width: 66 },
   updateFlatBtnDark: { backgroundColor: '#14b85a' },
   deleteFlatBtn: { backgroundColor: '#dc2626', justifyContent: 'center', alignItems: 'center', width: 66 },
