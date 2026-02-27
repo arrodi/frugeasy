@@ -25,20 +25,15 @@ type Props = {
   onEntrySwipeActiveChange: (active: boolean) => void;
 };
 
-type BudgetSwipeRowProps = { budget: Budget; currency: CurrencyCode; darkMode?: boolean; onSaveBudget: (category: TransactionCategory, amount: number) => Promise<void>; onDeleteBudget: (id: string) => Promise<void>; onSwipeActiveChange: (active: boolean) => void; onEntrySwipeActiveChange: (active: boolean) => void; collapseSignal: number };
+type BudgetSwipeRowProps = { budget: Budget; currency: CurrencyCode; darkMode?: boolean; onSaveBudget: (category: TransactionCategory, amount: number) => Promise<void>; onDeleteBudget: (id: string) => Promise<void>; onSwipeActiveChange: (active: boolean) => void; onEntrySwipeActiveChange: (active: boolean) => void };
 
-function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudget, onSwipeActiveChange, onEntrySwipeActiveChange, collapseSignal }: BudgetSwipeRowProps) {
+function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudget, onSwipeActiveChange, onEntrySwipeActiveChange }: BudgetSwipeRowProps) {
   const tx = useRef(new Animated.Value(0)).current;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(budget.amount));
 
   const snap = (v: number, onDone?: () => void) =>
     Animated.spring(tx, { toValue: v, useNativeDriver: true, bounciness: 0 }).start(() => onDone?.());
-  useEffect(() => {
-    setEditing(false);
-    snap(0);
-  }, [collapseSignal]);
-
   const pan = useMemo(() => PanResponder.create({
     onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 8 && Math.abs(g.dx) > Math.abs(g.dy),
     onMoveShouldSetPanResponderCapture: (_, g) => Math.abs(g.dx) > 8 && Math.abs(g.dx) > Math.abs(g.dy),
@@ -126,7 +121,6 @@ export function TransactionsScreen(props: Props) {
 
   const reviewPagerRef = useRef<ScrollView>(null);
   const [lockReviewPager, setLockReviewPager] = useState(false);
-  const [collapseSignal, setCollapseSignal] = useState(0);
   const { width } = useWindowDimensions();
 
   const shownTransactions = useMemo(() => {
@@ -233,7 +227,7 @@ export function TransactionsScreen(props: Props) {
 
         <View style={{ width }}>
           <ScrollView contentContainerStyle={styles.contentContainer}>
-            <View style={[styles.panel, darkMode && styles.panelDark]} onTouchStart={() => setCollapseSignal((v) => v + 1)}>
+            <View style={[styles.panel, darkMode && styles.panelDark]}>
               {(() => {
                 const total = budgets.reduce((s,b)=>s+b.amount,0);
                 const size=160; const r=58; const c=2*Math.PI*r;
@@ -264,7 +258,6 @@ export function TransactionsScreen(props: Props) {
                   onDeleteBudget={onDeleteBudget}
                   onSwipeActiveChange={setLockReviewPager}
                   onEntrySwipeActiveChange={onEntrySwipeActiveChange}
-                  collapseSignal={collapseSignal}
                 />
               ))}
             </View>
