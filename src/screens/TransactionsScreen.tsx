@@ -20,6 +20,8 @@ type Props = {
   onUpdateTransaction: (input: { id: string; amount: number; type: TransactionType; category: TransactionCategory; name: string; date: string }) => Promise<void>;
   onSaveBudget: (category: TransactionCategory, amount: number) => Promise<void>;
   onDeleteBudget: (id: string) => Promise<void>;
+  onSwipeBeyondLeft: () => void;
+  onSwipeBeyondRight: () => void;
 };
 
 export function TransactionsScreen(props: Props) {
@@ -39,6 +41,8 @@ export function TransactionsScreen(props: Props) {
     onUpdateTransaction,
     onSaveBudget,
     onDeleteBudget,
+    onSwipeBeyondLeft,
+    onSwipeBeyondRight,
   } = props;
 
   const [reviewTab, setReviewTab] = useState<'transactions' | 'budgets'>('transactions');
@@ -59,11 +63,17 @@ export function TransactionsScreen(props: Props) {
       PanResponder.create({
         onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 20 && Math.abs(g.dx) > Math.abs(g.dy),
         onPanResponderRelease: (_, g) => {
-          if (g.dx < -40) setReviewTab('budgets');
-          if (g.dx > 40) setReviewTab('transactions');
+          if (g.dx < -40) {
+            if (reviewTab === 'budgets') onSwipeBeyondRight();
+            else setReviewTab('budgets');
+          }
+          if (g.dx > 40) {
+            if (reviewTab === 'transactions') onSwipeBeyondLeft();
+            else setReviewTab('transactions');
+          }
         },
       }),
-    []
+    [reviewTab, onSwipeBeyondLeft, onSwipeBeyondRight]
   );
 
   const shownTransactions = useMemo(() => {

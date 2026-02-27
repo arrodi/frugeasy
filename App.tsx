@@ -317,6 +317,11 @@ export default function App() {
   const categoryOptions = Array.from(new Set(baseMonthlyTransactions.map((t) => t.category))).sort();
   const expenseCategoryOptions = ['Food','Transport','Housing','Utilities','Health','Entertainment','Shopping','Education','Other'] as TransactionCategory[];
 
+  const goToTab = (idx: number) => {
+    pagerRef.current?.scrollTo({ x: idx * width, animated: true });
+    setActiveTab(idx);
+  };
+
   const onPagerEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const nextTab = Math.round(event.nativeEvent.contentOffset.x / width);
     setActiveTab(nextTab);
@@ -391,6 +396,8 @@ export default function App() {
             budgets={budgets}
             onSaveBudget={handleSaveBudget}
             onDeleteBudget={handleDeleteBudget}
+            onSwipeBeyondLeft={() => goToTab(1)}
+            onSwipeBeyondRight={() => goToTab(3)}
           />
         </View>
 
@@ -410,10 +417,7 @@ export default function App() {
           <Pressable
             key={label}
             style={styles.tabDotWrap}
-            onPress={() => {
-              pagerRef.current?.scrollTo({ x: idx * width, animated: true });
-              setActiveTab(idx);
-            }}
+            onPress={() => goToTab(idx)}
           >
             <View style={[styles.dot, activeTab === idx && styles.dotActive]} />
             <Text style={[styles.dotLabel, activeTab === idx && styles.dotLabelActive]}>{label}</Text>
