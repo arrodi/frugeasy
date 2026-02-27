@@ -46,37 +46,53 @@ function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudg
     >
       <View style={styles.tapActionsBg} pointerEvents="box-none">
         <View style={styles.tapActionsRight}>
-          <Pressable
-            style={styles.updateFlatBtn}
-            onPress={async (e) => {
-              e.stopPropagation?.();
-              if (!editing) {
-                setEditing(true);
-                return;
-              }
-              const amount = Number(draft.replace(',', '.'));
-              if (!Number.isFinite(amount) || amount <= 0) return;
-              await onSaveBudget(budget.category, amount);
-              setEditing(false);
-              setActiveSwipeBudgetId(null);
-            }}
-          >
-            <Text style={styles.flatBtnText}>{editing ? 'Submit' : 'Update'}</Text>
-          </Pressable>
-          <Pressable style={styles.deleteFlatBtn} onPress={(e) => { e.stopPropagation?.(); onDeleteBudget(budget.id); }}>
-            <Text style={styles.flatBtnText}>Delete</Text>
-          </Pressable>
+          {!editing ? (
+            <>
+              <Pressable
+                style={styles.updateFlatBtn}
+                onPress={(e) => {
+                  e.stopPropagation?.();
+                  setEditing(true);
+                }}
+              >
+                <Text style={styles.flatBtnText}>Update</Text>
+              </Pressable>
+              <Pressable style={styles.deleteFlatBtn} onPress={(e) => { e.stopPropagation?.(); onDeleteBudget(budget.id); }}>
+                <Text style={styles.flatBtnText}>Delete</Text>
+              </Pressable>
+            </>
+          ) : (
+            <>
+              <TextInput
+                value={draft}
+                onChangeText={setDraft}
+                style={[styles.flatInput, darkMode && styles.flatInputDark]}
+                keyboardType="decimal-pad"
+                placeholder="Amount"
+                placeholderTextColor={darkMode ? '#b7d9c0' : '#14532d'}
+              />
+              <Pressable
+                style={styles.updateFlatBtn}
+                onPress={async (e) => {
+                  e.stopPropagation?.();
+                  const amount = Number(draft.replace(',', '.'));
+                  if (!Number.isFinite(amount) || amount <= 0) return;
+                  await onSaveBudget(budget.category, amount);
+                  setEditing(false);
+                  setActiveSwipeBudgetId(null);
+                }}
+              >
+                <Text style={styles.flatBtnText}>Submit</Text>
+              </Pressable>
+            </>
+          )}
         </View>
       </View>
 
       <Animated.View style={[styles.listRow, styles.listRowInner, darkMode && styles.listRowDark, { marginRight: reveal }]}>
         <View style={styles.topRow}>
           <Text style={[styles.name, darkMode && styles.textDark]}>{budget.category}</Text>
-          {editing ? (
-            <TextInput value={draft} onChangeText={setDraft} style={[styles.smallInput, darkMode && styles.inputDark, styles.budgetInput]} keyboardType="decimal-pad" placeholder="Amount" />
-          ) : (
-            <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(budget.amount, currency)}</Text>
-          )}
+          <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(budget.amount, currency)}</Text>
         </View>
       </Animated.View>
     </Pressable>
@@ -325,8 +341,9 @@ const styles = StyleSheet.create({
   tapActionsRight: { flexDirection: 'row', height: '100%' },
   updateFlatBtn: { backgroundColor: '#14b85a', justifyContent: 'center', alignItems: 'center', width: 66 },
   deleteFlatBtn: { backgroundColor: '#dc2626', justifyContent: 'center', alignItems: 'center', width: 66 },
+  flatInput: { width: 66, backgroundColor: '#22c55e', color: 'white', textAlign: 'center', fontWeight: '700', paddingHorizontal: 4 },
+  flatInputDark: { backgroundColor: '#16a34a', color: '#eaffef' },
   flatBtnText: { color: 'white', fontWeight: '700', fontSize: 12 },
-  budgetInput: { minWidth: 110, textAlign: 'right' },
   listRow: { backgroundColor: '#ecfff1', borderRadius: 14, padding: 11, borderWidth: 1, borderColor: '#9ee5ab' },
   listRowInner: { marginBottom: 0, borderWidth: 0, borderRadius: 0 },
   listRowDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
