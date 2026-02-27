@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Animated, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { Alert, Animated, Easing, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg';
 import { Budget, CurrencyCode, Transaction, TransactionCategory, TransactionType } from '../domain/types';
@@ -43,7 +43,12 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
   const opened = activeId === item.id;
 
   useEffect(() => {
-    Animated.timing(reveal, { toValue: opened ? 132 : 0, duration: 170, useNativeDriver: false }).start();
+    Animated.timing(reveal, {
+      toValue: opened ? 132 : 0,
+      duration: 240,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
   }, [opened]);
 
   return (
@@ -52,7 +57,7 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
         {opened ? (
           <View style={styles.tapActionsRight}>
             <Pressable
-              style={styles.updateFlatBtn}
+              style={[styles.updateFlatBtn, darkMode && styles.updateFlatBtnDark]}
               onPress={(e) => {
                 e.stopPropagation?.();
                 Alert.prompt(
@@ -76,10 +81,10 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
                 );
               }}
             >
-              <Text style={styles.flatBtnText}>Update</Text>
+              <Text style={[styles.flatBtnText, darkMode && styles.flatBtnTextDark]}>Update</Text>
             </Pressable>
-            <Pressable style={styles.deleteFlatBtn} onPress={(e) => { e.stopPropagation?.(); onDeleteTransaction(item.id); }}>
-              <Text style={styles.flatBtnText}>Delete</Text>
+            <Pressable style={[styles.deleteFlatBtn, darkMode && styles.deleteFlatBtnDark]} onPress={(e) => { e.stopPropagation?.(); onDeleteTransaction(item.id); }}>
+              <Text style={[styles.flatBtnText, darkMode && styles.flatBtnTextDark]}>Delete</Text>
             </Pressable>
           </View>
         ) : null}
@@ -124,7 +129,7 @@ function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudg
       <View style={styles.tapActionsBg} pointerEvents="box-none">
         <View style={styles.tapActionsRight}>
           <Pressable
-            style={styles.updateFlatBtn}
+            style={[styles.updateFlatBtn, darkMode && styles.updateFlatBtnDark]}
             onPress={(e) => {
               e.stopPropagation?.();
               Alert.prompt(
@@ -154,10 +159,10 @@ function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudg
               );
             }}
           >
-            <Text style={styles.flatBtnText}>Update</Text>
+            <Text style={[styles.flatBtnText, darkMode && styles.flatBtnTextDark]}>Update</Text>
           </Pressable>
-          <Pressable style={styles.deleteFlatBtn} onPress={(e) => { e.stopPropagation?.(); onDeleteBudget(budget.id); }}>
-            <Text style={styles.flatBtnText}>Delete</Text>
+          <Pressable style={[styles.deleteFlatBtn, darkMode && styles.deleteFlatBtnDark]} onPress={(e) => { e.stopPropagation?.(); onDeleteBudget(budget.id); }}>
+            <Text style={[styles.flatBtnText, darkMode && styles.flatBtnTextDark]}>Delete</Text>
           </Pressable>
         </View>
       </View>
@@ -460,9 +465,12 @@ const styles = StyleSheet.create({
   swipeShellDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
   tapActionsBg: { position: 'absolute', inset: 0, justifyContent: 'center', alignItems: 'flex-end' },
   tapActionsRight: { flexDirection: 'row', height: '100%' },
-  updateFlatBtn: { backgroundColor: '#14b85a', justifyContent: 'center', alignItems: 'center', width: 66 },
-  deleteFlatBtn: { backgroundColor: '#dc2626', justifyContent: 'center', alignItems: 'center', width: 66 },
-  flatBtnText: { color: 'white', fontWeight: '700', fontSize: 12 },
+  updateFlatBtn: { backgroundColor: '#dff4e7', justifyContent: 'center', alignItems: 'center', width: 66 },
+  updateFlatBtnDark: { backgroundColor: '#234231' },
+  deleteFlatBtn: { backgroundColor: '#f8e3e3', justifyContent: 'center', alignItems: 'center', width: 66 },
+  deleteFlatBtnDark: { backgroundColor: '#4a2a2a' },
+  flatBtnText: { color: '#1e6e37', fontWeight: '700', fontSize: 11 },
+  flatBtnTextDark: { color: '#d6f5df' },
   listRow: { backgroundColor: '#ecfff1', borderRadius: 14, padding: 11, borderWidth: 1, borderColor: '#9ee5ab' },
   listRowInner: { marginBottom: 0, borderWidth: 0, borderRadius: 0 },
   listRowDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
