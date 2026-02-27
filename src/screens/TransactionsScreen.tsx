@@ -83,7 +83,7 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
         </View>
       </View>
 
-      <Animated.View style={[styles.listRow, styles.listRowInner, darkMode && styles.listRowDark, styles.transactionRowFlat, { marginRight: reveal }]}>
+      <Animated.View style={[styles.listRow, styles.listRowInner, darkMode && styles.listRowDark, { marginRight: reveal }]}>
         <View style={styles.topRow}>
           <View>
             <Text style={[styles.name, darkMode && styles.textDark]}>{item.name?.trim() ? item.name : '—'}</Text>
@@ -91,13 +91,6 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
           </View>
           <Text style={[styles.amount, darkMode && styles.textDark]}>{formatCurrency(item.amount, currency)}</Text>
         </View>
-        <LinearGradient
-          pointerEvents="none"
-          colors={['transparent', darkMode ? 'rgba(214,245,223,0.20)' : 'rgba(20,99,47,0.16)', 'transparent']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.rowSeparator}
-        />
       </Animated.View>
     </Pressable>
   );
@@ -275,20 +268,30 @@ export function TransactionsScreen(props: Props) {
               </View>
             </View>
 
-            <ScrollView style={styles.transactionsListScroll} contentContainerStyle={styles.transactionsListContent} showsVerticalScrollIndicator={false}>
-              {shownTransactions.map((item) => (
-                <TransactionTapRow
-                  key={item.id}
-                  item={item}
-                  currency={currency}
-                  darkMode={darkMode}
-                  activeId={activeTransactionId}
-                  setActiveId={setActiveTransactionId}
-                  onDeleteTransaction={onDeleteTransaction}
-                  onUpdateTransaction={onUpdateTransaction}
-                />
-              ))}
-            </ScrollView>
+            <LinearGradient
+              pointerEvents="none"
+              colors={[ 'transparent', darkMode ? 'rgba(214,245,223,0.22)' : 'rgba(20,99,47,0.18)', 'transparent' ]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.listDivider}
+            />
+
+            <View style={[styles.transactionsBox, darkMode && styles.transactionsBoxDark]}>
+              <ScrollView style={styles.transactionsListScroll} contentContainerStyle={styles.transactionsListContent} showsVerticalScrollIndicator={false}>
+                {shownTransactions.map((item) => (
+                  <TransactionTapRow
+                    key={item.id}
+                    item={item}
+                    currency={currency}
+                    darkMode={darkMode}
+                    activeId={activeTransactionId}
+                    setActiveId={setActiveTransactionId}
+                    onDeleteTransaction={onDeleteTransaction}
+                    onUpdateTransaction={onUpdateTransaction}
+                  />
+                ))}
+              </ScrollView>
+            </View>
           </View>
         </View>
 
@@ -425,8 +428,11 @@ const styles = StyleSheet.create({
   modalCard: { backgroundColor: '#ecfff1', borderWidth: 1, borderColor: '#9ee5ab', borderRadius: 14, padding: 12, gap: 10 },
   reviewAddBudgetBtn: { backgroundColor: '#14b85a', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
   reviewAddBudgetText: { color: 'white', fontWeight: '800', fontSize: 16 },
+  listDivider: { height: 1, marginTop: 4, marginBottom: 8, marginHorizontal: 2 },
+  transactionsBox: { flex: 1, borderWidth: 1, borderColor: '#b6e9c3', borderRadius: 12, backgroundColor: '#ecfff1', overflow: 'hidden' },
+  transactionsBoxDark: { borderColor: '#2e4d3b', backgroundColor: '#15251c' },
   transactionsListScroll: { flex: 1 },
-  transactionsListContent: { paddingBottom: 18 },
+  transactionsListContent: { padding: 8, paddingBottom: 18, gap: 8 },
   reviewBottomTab: { flex: 1, alignItems: 'center', gap: 4, paddingTop: 2 },
   reviewBottomDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#79d992' },
   reviewBottomDotActive: { backgroundColor: '#14b85a', width: 22 },
@@ -450,8 +456,8 @@ const styles = StyleSheet.create({
   filterChipActive: { backgroundColor: '#14b85a', borderColor: '#14b85a' },
   filterChipText: { color: '#1e6e37', fontWeight: '600', textTransform: 'capitalize' },
   filterChipTextActive: { color: 'white' },
-  swipeShell: { position: 'relative', overflow: 'hidden' },
-  swipeShellDark: {}, 
+  swipeShell: { position: 'relative', marginBottom: 8, borderRadius: 14, borderWidth: 1, borderColor: '#9ee5ab', backgroundColor: '#ecfff1', overflow: 'hidden' },
+  swipeShellDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
   tapActionsBg: { position: 'absolute', inset: 0, justifyContent: 'center', alignItems: 'flex-end' },
   tapActionsRight: { flexDirection: 'row', height: '100%' },
   updateFlatBtn: { backgroundColor: '#14b85a', justifyContent: 'center', alignItems: 'center', width: 66 },
@@ -459,8 +465,6 @@ const styles = StyleSheet.create({
   flatBtnText: { color: 'white', fontWeight: '700', fontSize: 12 },
   listRow: { backgroundColor: '#ecfff1', borderRadius: 14, padding: 11, borderWidth: 1, borderColor: '#9ee5ab' },
   listRowInner: { marginBottom: 0, borderWidth: 0, borderRadius: 0 },
-  transactionRowFlat: { backgroundColor: 'transparent', paddingHorizontal: 6, paddingTop: 10, paddingBottom: 8 },
-  rowSeparator: { height: 1, marginTop: 10 },
   listRowDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
   rightRow: { alignItems: 'flex-end', gap: 6 },
   name: { fontWeight: '700', color: '#1e6e37' },
