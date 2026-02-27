@@ -18,10 +18,6 @@ type Props = {
 
 export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetProgressRows, transactions, onSaveBudget, categoryOptions }: Props) {
   const [expandedBudgetKey, setExpandedBudgetKey] = useState<string | null>(null);
-  const [showAddBudget, setShowAddBudget] = useState(false);
-  const [budgetCategory, setBudgetCategory] = useState<TransactionCategory>('Food');
-  const [budgetAmount, setBudgetAmount] = useState('');
-  const [budgetCategoryOpen, setBudgetCategoryOpen] = useState(false);
   const [showTopFade, setShowTopFade] = useState(false);
   const [showBottomFade, setShowBottomFade] = useState(false);
 
@@ -208,40 +204,8 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
           ) : null}
         </View>
 
-        {showAddBudget ? (
-          <View style={[styles.panel, darkMode && styles.panelDark]}>
-            <Pressable style={[styles.dropdownTrigger, darkMode && styles.inputDark]} onPress={() => setBudgetCategoryOpen((p) => !p)}>
-              <Text style={[styles.dropdownText, darkMode && styles.textDark]}>{budgetCategory}</Text>
-              <Text style={styles.dropdownChevron}>{budgetCategoryOpen ? '▴' : '▾'}</Text>
-            </Pressable>
-            {budgetCategoryOpen ? (
-              <View style={[styles.dropdownMenu, darkMode && styles.panelDark]}>
-                {categoryOptions.map((cat) => (
-                  <Pressable key={cat} style={styles.dropdownOption} onPress={() => { setBudgetCategory(cat); setBudgetCategoryOpen(false); }}>
-                    <Text style={[styles.dropdownText, darkMode && styles.textDark]}>{cat}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            ) : null}
-            <TextInput value={budgetAmount} onChangeText={setBudgetAmount} style={[styles.input, darkMode && styles.inputDark]} placeholder="Budget amount" keyboardType="decimal-pad" />
-            <Pressable style={styles.saveBtn} onPress={async () => {
-              const amount = Number(budgetAmount.replace(',', '.'));
-              if (!Number.isFinite(amount) || amount <= 0) return;
-              await onSaveBudget(budgetCategory, amount);
-              setBudgetAmount('');
-              setShowAddBudget(false);
-            }}>
-              <Text style={styles.saveBtnText}>Save</Text>
-            </Pressable>
-          </View>
-        ) : null}
       </View>
 
-      <View style={styles.bottomActionWrap}>
-        <Pressable style={styles.bigSaveBtn} onPress={() => setShowAddBudget((v) => !v)}>
-          <Text style={styles.bigSaveText}>Add New Budget</Text>
-        </Pressable>
-      </View>
     </View>
   );
 }

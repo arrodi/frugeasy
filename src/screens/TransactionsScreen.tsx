@@ -123,6 +123,10 @@ export function TransactionsScreen(props: Props) {
   const [sortOpen, setSortOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'amountDesc' | 'amountAsc'>('newest');
+  const [showAddBudget, setShowAddBudget] = useState(false);
+  const [budgetCategory, setBudgetCategory] = useState<TransactionCategory>('Other');
+  const [budgetAmount, setBudgetAmount] = useState('');
+  const [budgetCategoryOpen, setBudgetCategoryOpen] = useState(false);
 
   const reviewPagerRef = useRef<ScrollView>(null);
   const [activeSwipeBudgetId, setActiveSwipeBudgetId] = useState<string | null>(null);
@@ -263,10 +267,45 @@ export function TransactionsScreen(props: Props) {
                   setActiveSwipeBudgetId={setActiveSwipeBudgetId}
                 />
               ))}
+
+              {showAddBudget ? (
+                <View style={[styles.panel, darkMode && styles.panelDark]}>
+                  <Pressable style={[styles.dropdown, darkMode && styles.inputDark]} onPress={() => setBudgetCategoryOpen((p) => !p)}>
+                    <Text style={[styles.dropdownText, darkMode && styles.textDark]}>{budgetCategory}</Text>
+                    <Text>▾</Text>
+                  </Pressable>
+                  {budgetCategoryOpen ? (
+                    <View style={[styles.dropdownMenu, darkMode && styles.panelDark]}>
+                      {categoryOptions.map((cat) => (
+                        <Pressable key={cat} style={styles.dropdownOption} onPress={() => { setBudgetCategory(cat); setBudgetCategoryOpen(false); }}>
+                          <Text style={[styles.dropdownText, darkMode && styles.textDark]}>{cat}</Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  ) : null}
+                  <TextInput value={budgetAmount} onChangeText={setBudgetAmount} style={[styles.smallInput, darkMode && styles.inputDark]} placeholder="Budget amount" keyboardType="decimal-pad" />
+                  <Pressable style={styles.reviewAddBudgetBtn} onPress={async () => {
+                    const amount = Number(budgetAmount.replace(',', '.'));
+                    if (!Number.isFinite(amount) || amount <= 0) return;
+                    await onSaveBudget(budgetCategory, amount);
+                    setBudgetAmount('');
+                    setShowAddBudget(false);
+                  }}>
+                    <Text style={styles.reviewAddBudgetText}>Save</Text>
+                  </Pressable>
+                </View>
+              ) : null}
             </View>
           </ScrollView>
         </View>
       </ScrollView>
+      {reviewTab === 'budgets' ? (
+        <View style={styles.reviewAddBudgetWrap}>
+          <Pressable style={styles.reviewAddBudgetBtn} onPress={() => setShowAddBudget((v) => !v)}>
+            <Text style={styles.reviewAddBudgetText}>Add New Budget</Text>
+          </Pressable>
+        </View>
+      ) : null}
       <View style={[styles.reviewBottomTabs, darkMode && styles.reviewBottomTabsDark]}>
         {(['transactions', 'budgets'] as const).map((tab) => {
           const active = reviewTab === tab;
@@ -306,6 +345,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#eaffef',
   },
   reviewBottomTabsDark: { backgroundColor: '#0f1a14' },
+  reviewAddBudgetWrap: { position: 'absolute', left: 16, right: 16, bottom: 56 },
+  reviewAddBudgetBtn: { backgroundColor: '#14b85a', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  reviewAddBudgetText: { color: 'white', fontWeight: '800', fontSize: 16 },
   reviewBottomTab: { flex: 1, alignItems: 'center', gap: 4, paddingTop: 2 },
   reviewBottomDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#79d992' },
   reviewBottomDotActive: { backgroundColor: '#14b85a', width: 22 },
