@@ -51,9 +51,9 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
   return (
     <Pressable style={styles.transactionShell} onPress={() => setActiveId(opened ? null : item.id)}>
       <View style={[styles.tapActionsBg, styles.transactionActionsBg]} pointerEvents="box-none">
-        <Animated.View style={[styles.tapActionsRight, { width: reveal, opacity: actionOpacity }]}> 
+        <Animated.View style={[styles.tapActionsRight, styles.transactionActionsRail, { width: reveal, opacity: actionOpacity }]}> 
           <Pressable
-            style={[styles.updateFlatBtn, darkMode && styles.updateFlatBtnDark]}
+            style={[styles.updateFlatBtn, styles.transactionActionBtnCompact, darkMode && styles.updateFlatBtnDark]}
             onPress={(e) => {
               e.stopPropagation?.();
               if (!opened) return;
@@ -81,7 +81,7 @@ function TransactionTapRow({ item, currency, darkMode, activeId, setActiveId, on
             <Text style={[styles.flatBtnText, darkMode && styles.flatBtnTextDark]}>Update</Text>
           </Pressable>
           <Pressable
-            style={[styles.deleteFlatBtn, darkMode && styles.deleteFlatBtnDark]}
+            style={[styles.deleteFlatBtn, styles.transactionActionBtnCompact, darkMode && styles.deleteFlatBtnDark]}
             onPress={(e) => {
               e.stopPropagation?.();
               if (!opened) return;
@@ -476,8 +476,10 @@ const styles = StyleSheet.create({
   swipeShell: { position: 'relative', marginBottom: 8, borderRadius: 14, borderWidth: 1, borderColor: '#9ee5ab', backgroundColor: '#ecfff1', overflow: 'hidden' },
   swipeShellDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
   tapActionsBg: { position: 'absolute', inset: 0, justifyContent: 'center', alignItems: 'flex-end' },
-  transactionActionsBg: { top: 10, bottom: 10 },
+  transactionActionsBg: { top: 8, bottom: 12 },
   tapActionsRight: { flexDirection: 'row', height: '100%', overflow: 'hidden' },
+  transactionActionsRail: { alignItems: 'center' },
+  transactionActionBtnCompact: { height: 30, borderRadius: 6 },
   updateFlatBtn: { backgroundColor: '#14b85a', justifyContent: 'center', alignItems: 'center', width: 60 },
   updateFlatBtnDark: { backgroundColor: '#14b85a' },
   deleteFlatBtn: { backgroundColor: '#dc2626', justifyContent: 'center', alignItems: 'center', width: 60 },
