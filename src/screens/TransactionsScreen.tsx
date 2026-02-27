@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { LayoutAnimation, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg';
 import { Budget, CurrencyCode, Transaction, TransactionCategory, TransactionType } from '../domain/types';
 import { formatCurrency } from '../ui/format';
@@ -246,13 +245,6 @@ export function TransactionsScreen(props: Props) {
         </View>
       </ScrollView>
       <View style={[styles.reviewBottomTabs, darkMode && styles.reviewBottomTabsDark]}>
-        <LinearGradient
-          pointerEvents="none"
-          colors={['transparent', darkMode ? 'rgba(214,245,223,0.28)' : 'rgba(20,99,47,0.20)', 'transparent']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.reviewDivider}
-        />
         {(['transactions', 'budgets'] as const).map((tab) => {
           const active = reviewTab === tab;
           const label = tab === 'transactions' ? 'Transactions' : 'Budgets';
@@ -291,7 +283,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#eaffef',
   },
   reviewBottomTabsDark: { backgroundColor: '#0f1a14' },
-  reviewDivider: { position: 'absolute', top: 0, left: 20, right: 20, height: 1 },
   reviewBottomTab: { flex: 1, alignItems: 'center', gap: 4, paddingTop: 2 },
   reviewBottomDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#79d992' },
   reviewBottomDotActive: { backgroundColor: '#14b85a', width: 22 },
