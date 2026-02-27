@@ -22,11 +22,12 @@ type Props = {
   onDeleteBudget: (id: string) => Promise<void>;
   onSwipeBeyondLeft: () => void;
   onSwipeBeyondRight: () => void;
+  onEntrySwipeActiveChange: (active: boolean) => void;
 };
 
-type BudgetSwipeRowProps = { budget: Budget; currency: CurrencyCode; darkMode?: boolean; onSaveBudget: (category: TransactionCategory, amount: number) => Promise<void>; onDeleteBudget: (id: string) => Promise<void>; onSwipeActiveChange: (active: boolean) => void };
+type BudgetSwipeRowProps = { budget: Budget; currency: CurrencyCode; darkMode?: boolean; onSaveBudget: (category: TransactionCategory, amount: number) => Promise<void>; onDeleteBudget: (id: string) => Promise<void>; onSwipeActiveChange: (active: boolean) => void; onEntrySwipeActiveChange: (active: boolean) => void };
 
-function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudget, onSwipeActiveChange }: BudgetSwipeRowProps) {
+function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudget, onSwipeActiveChange, onEntrySwipeActiveChange }: BudgetSwipeRowProps) {
   const tx = useRef(new Animated.Value(0)).current;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(budget.amount));
@@ -34,16 +35,17 @@ function BudgetSwipeRow({ budget, currency, darkMode, onSaveBudget, onDeleteBudg
   const snap = (v: number) => Animated.spring(tx, { toValue: v, useNativeDriver: true, bounciness: 0 }).start();
   const pan = useMemo(() => PanResponder.create({
     onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 10 && Math.abs(g.dx) > Math.abs(g.dy),
-    onPanResponderGrant: () => onSwipeActiveChange(true),
+    onPanResponderGrant: () => { onSwipeActiveChange(true); onEntrySwipeActiveChange(true); },
     onPanResponderMove: (_, g) => tx.setValue(Math.max(-88, Math.min(88, g.dx))),
     onPanResponderRelease: (_, g) => {
       if (g.dx > 36) snap(80);
       else if (g.dx < -36) snap(-80);
       else snap(0);
       onSwipeActiveChange(false);
+      onEntrySwipeActiveChange(false);
     },
-    onPanResponderTerminate: () => { snap(0); onSwipeActiveChange(false); },
-  }), [onSwipeActiveChange]);
+    onPanResponderTerminate: () => { snap(0); onSwipeActiveChange(false); onEntrySwipeActiveChange(false); },
+  }), [onSwipeActiveChange, onEntrySwipeActiveChange]);
 
   return (
     <View style={styles.swipeWrap}>
@@ -94,6 +96,7 @@ export function TransactionsScreen(props: Props) {
     onDeleteBudget,
     onSwipeBeyondLeft,
     onSwipeBeyondRight,
+    onEntrySwipeActiveChange,
   } = props;
 
   const [reviewTab, setReviewTab] = useState<'transactions' | 'budgets'>('transactions');
@@ -243,6 +246,7 @@ export function TransactionsScreen(props: Props) {
                   onSaveBudget={onSaveBudget}
                   onDeleteBudget={onDeleteBudget}
                   onSwipeActiveChange={setLockReviewPager}
+                  onEntrySwipeActiveChange={onEntrySwipeActiveChange}
                 />
               ))}
             </View>

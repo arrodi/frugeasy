@@ -88,6 +88,7 @@ export default function App() {
   const { width } = useWindowDimensions();
   const pagerRef = useRef<ScrollView>(null);
   const [activeTab, setActiveTab] = useState(0);
+  const [lockMainPager, setLockMainPager] = useState(false);
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [amountInput, setAmountInput] = useState('');
@@ -335,6 +336,7 @@ export default function App() {
         ref={pagerRef}
         horizontal
         pagingEnabled
+        scrollEnabled={!lockMainPager}
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={onPagerEnd}
       >
@@ -397,6 +399,7 @@ export default function App() {
             onDeleteBudget={handleDeleteBudget}
             onSwipeBeyondLeft={() => goToTab(1)}
             onSwipeBeyondRight={() => goToTab(3)}
+            onEntrySwipeActiveChange={setLockMainPager}
           />
         </View>
 
