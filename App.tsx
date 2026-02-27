@@ -7,6 +7,7 @@ import {
   Pressable,
   SafeAreaView,
   ScrollView,
+  ImageBackground,
   StyleSheet,
   Text,
   View,
@@ -330,6 +331,14 @@ export default function App() {
   return (
     <SafeAreaView style={[styles.safeArea, darkMode && styles.safeAreaDark]}>
       <StatusBar style={darkMode ? 'light' : 'dark'} />
+      {darkMode ? (
+        <ImageBackground
+          source={require('./assets/dark-mode-money-bg.jpg')}
+          resizeMode="cover"
+          style={StyleSheet.absoluteFillObject}
+          imageStyle={styles.darkMoneyBgImage}
+        />
+      ) : null}
 
       <ScrollView
         ref={pagerRef}
@@ -432,6 +441,7 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#eaffef' },
   safeAreaDark: { backgroundColor: '#0f1a14' },
+  darkMoneyBgImage: { opacity: 0.4 },
   page: { flex: 1 },
   tabDots: {
     flexDirection: 'row',
