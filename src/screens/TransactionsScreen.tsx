@@ -231,9 +231,9 @@ export function TransactionsScreen(props: Props) {
           </ScrollView>
         </View>
 
-        <Pressable style={{ width }} onPress={() => setCollapseSignal((v) => v + 1)}>
+        <View style={{ width }}>
           <ScrollView contentContainerStyle={styles.contentContainer}>
-            <View style={[styles.panel, darkMode && styles.panelDark]}>
+            <View style={[styles.panel, darkMode && styles.panelDark]} onTouchStart={() => setCollapseSignal((v) => v + 1)}>
               {(() => {
                 const total = budgets.reduce((s,b)=>s+b.amount,0);
                 const size=160; const r=58; const c=2*Math.PI*r;
@@ -269,7 +269,7 @@ export function TransactionsScreen(props: Props) {
               ))}
             </View>
           </ScrollView>
-        </Pressable>
+        </View>
       </ScrollView>
       <View style={[styles.reviewBottomTabs, darkMode && styles.reviewBottomTabsDark]}>
         {(['transactions', 'budgets'] as const).map((tab) => {
