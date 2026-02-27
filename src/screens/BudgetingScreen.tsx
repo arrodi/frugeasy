@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
   contentContainer: { flex: 1, paddingHorizontal: 16, gap: 10, paddingTop: 8, paddingBottom: 120 },
   entriesScrollWrap: { flex: 1, position: 'relative' },
   entriesScroll: { flex: 1 },
-  entriesScrollContent: { paddingBottom: 8 },
+  entriesScrollContent: { paddingTop: 6, paddingBottom: 20 },
   edgeFade: { position: 'absolute', left: 0, right: 0, height: 18 },
   edgeFadeTop: { top: 0 },
   edgeFadeBottom: { bottom: 0 },
