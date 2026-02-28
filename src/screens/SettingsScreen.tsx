@@ -38,7 +38,7 @@ export function SettingsScreen({ currency, onCurrencyChange, darkMode, onDarkMod
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#eaffef' },
+  container: { flex: 1, backgroundColor: '#f3fbe9' },
   containerDark: { backgroundColor: '#08170f' },
   content: { padding: 16, gap: 12 },
   title: { fontSize: 20, fontWeight: '800', color: '#156530' },

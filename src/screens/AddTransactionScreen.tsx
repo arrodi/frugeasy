@@ -103,7 +103,7 @@ export function AddTransactionScreen({
   };
 
   return (
-    <View style={styles.screenContainer}>
+    <View style={[styles.screenContainer, darkMode && styles.screenContainerDark]}>
       <View style={styles.heroWrap}>
         <View style={styles.wordmarkCrop}>
           <Image source={require('../../assets/tap2budget-wordmark.png')} style={styles.wordmarkImage} resizeMode="contain" />
@@ -255,7 +255,8 @@ export function AddTransactionScreen({
 }
 
 const styles = StyleSheet.create({
-  screenContainer: { flex: 1, paddingHorizontal: 14, justifyContent: 'center', alignItems: 'center' },
+  screenContainer: { flex: 1, paddingHorizontal: 14, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f3fbe9' },
+  screenContainerDark: { backgroundColor: '#08170f' },
   heroWrap: { width: '100%', maxWidth: 520, height: 132, alignItems: 'center', justifyContent: 'center' },
   wordmarkCrop: { width: '100%', maxWidth: 500, height: 120, overflow: 'hidden', borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   wordmarkImage: { width: '100%', maxWidth: 500, height: 120 },

@@ -429,7 +429,7 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#eefdf1' },
+  safeArea: { flex: 1, backgroundColor: '#f3fbe9' },
   safeAreaDark: { backgroundColor: '#08170f' },
   page: { flex: 1 },
   tabDots: {
