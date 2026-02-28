@@ -5,7 +5,7 @@ export const colors = {
   panelDark: '#102117',
   borderDark: '#26523a',
   textDark: '#d6f5df',
-  panelLight: '#f4fff6',
+  panelLight: '#e6f4ea',
   borderLight: '#a7e6b4',
   borderInput: '#8fdf8e',
   accentGreen: '#14b85a',
