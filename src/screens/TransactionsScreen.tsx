@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { Budget, CurrencyCode, Transaction, TransactionCategory, TransactionType } from '../domain/types';
+import { colors, spacing } from '../ui/themeTokens';
 import { BudgetDonutChart } from './transactions/BudgetDonutChart';
 import { BudgetSwipeRow } from './transactions/BudgetSwipeRow';
 import { TransactionTapRow } from './transactions/TransactionTapRow';
-import { getThemeColors, radii, spacing, typography } from '../ui/themeTokens';
 
 type Props = {
   darkMode?: boolean;
@@ -48,17 +48,19 @@ export function TransactionsScreen(props: Props) {
     onSwipeBeyondLeft,
     onSwipeBeyondRight,
   } = props;
-  const colors = getThemeColors(darkMode);
 
   const [reviewTab, setReviewTab] = useState<'transactions' | 'budgets'>('transactions');
   const [activeTransactionId, setActiveTransactionId] = useState<string | null>(null);
+  const [sortOpen, setSortOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'amountDesc' | 'amountAsc'>('newest');
   const [showAddBudget, setShowAddBudget] = useState(false);
   const [budgetCategory, setBudgetCategory] = useState<TransactionCategory>('Other');
   const [budgetAmount, setBudgetAmount] = useState('');
-  const [activeSwipeBudgetId, setActiveSwipeBudgetId] = useState<string | null>(null);
+  const [budgetCategoryOpen, setBudgetCategoryOpen] = useState(false);
 
   const reviewPagerRef = useRef<ScrollView>(null);
+  const [activeSwipeBudgetId, setActiveSwipeBudgetId] = useState<string | null>(null);
   const { width } = useWindowDimensions();
 
   const sortOptions = useMemo(() => ['newest', 'oldest', 'amountDesc', 'amountAsc'] as const, []);
@@ -94,7 +96,7 @@ export function TransactionsScreen(props: Props) {
   }, [onSwipeBeyondLeft, onSwipeBeyondRight, reviewTab]);
 
   return (
-    <View style={[styles.screenContainer, { backgroundColor: colors.bg }]}> 
+    <View style={[styles.screenContainer, darkMode && styles.screenDark]}>
       <ScrollView
         ref={reviewPagerRef}
         horizontal
@@ -103,52 +105,48 @@ export function TransactionsScreen(props: Props) {
         onMomentumScrollEnd={onReviewPagerEnd}
         onScrollEndDrag={onReviewEndDrag}
       >
-        <View style={[styles.reviewTransactionsPage, { width }]}> 
-          <View style={styles.contentContainer}>
-            <TextInput
-              value={searchQuery}
-              onChangeText={onSearchQueryChange}
-              placeholder="Search by name"
-              placeholderTextColor={colors.textMuted}
-              style={[styles.searchInput, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
-            />
+        <View style={[styles.reviewTransactionsPage, { width }]}>
+          <View style={[styles.contentContainer, styles.transactionsPageContent]}>
+            <TextInput value={searchQuery} onChangeText={onSearchQueryChange} placeholder="Search categories" placeholderTextColor={colors.placeholder} style={[styles.searchInput, darkMode && styles.inputDark]} />
 
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsBar}>
-              {sortOptions.map((o) => (
-                <Pressable key={o} style={[styles.filterChip, { borderColor: colors.border, backgroundColor: sortBy === o ? colors.primary : colors.chip }]} onPress={() => setSortBy(o)}>
-                  <Text style={[styles.filterChipText, { color: sortBy === o ? '#fff' : colors.text }]}>{o}</Text>
-                </Pressable>
-              ))}
-            </ScrollView>
+            <View style={styles.row}>
+              <View style={styles.flex1}>
+                <Pressable style={[styles.dropdown, darkMode && styles.inputDark]} onPress={() => setSortOpen((p) => !p)}><Text style={[styles.dropdownText, darkMode && styles.textDark]}>Sort by: {sortBy}</Text><Text>▾</Text></Pressable>
+                {sortOpen ? (
+                  <View style={[styles.dropdownMenu, darkMode && styles.panelDark]}>
+                    {sortOptions.map((o) => (
+                      <Pressable key={o} style={styles.dropdownOption} onPress={() => { setSortBy(o); setSortOpen(false); }}>
+                        <Text style={[styles.dropdownText, darkMode && styles.textDark]}>{o}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                ) : null}
+              </View>
 
-            <View style={styles.sectionBlock}>
-              <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>Type</Text>
-              <View style={styles.inlineWrap}>
-                {typeOptions.map((t) => (
-                  <Pressable key={t} style={[styles.filterChip, { borderColor: colors.border, backgroundColor: typeFilter === t ? colors.primary : colors.chip }]} onPress={() => onTypeFilterChange(t)}>
-                    <Text style={[styles.filterChipText, { color: typeFilter === t ? '#fff' : colors.text }]}>{t}</Text>
-                  </Pressable>
-                ))}
+              <View style={styles.flex1}>
+                <Pressable style={[styles.dropdown, darkMode && styles.inputDark]} onPress={() => setFilterOpen((p) => !p)}><Text style={[styles.dropdownText, darkMode && styles.textDark]}>Filter: {typeFilter}/{categoryFilter}</Text><Text>▾</Text></Pressable>
+                {filterOpen ? (
+                  <View style={[styles.dropdownMenu, darkMode && styles.panelDark]}>
+                    <Text style={styles.section}>Type</Text>
+                    <View style={styles.filterRow}>{typeOptions.map((t) => <Pressable key={t} style={[styles.filterChip, typeFilter === t && styles.filterChipActive]} onPress={() => onTypeFilterChange(t)}><Text style={[styles.filterChipText, typeFilter === t && styles.filterChipTextActive]}>{t}</Text></Pressable>)}</View>
+                    <Text style={styles.section}>Category</Text>
+                    <View style={styles.filterRow}>{categoryFilterOptions.map((cat) => <Pressable key={cat} style={[styles.filterChip, categoryFilter === cat && styles.filterChipActive]} onPress={() => onCategoryFilterChange(cat)}><Text style={[styles.filterChipText, categoryFilter === cat && styles.filterChipTextActive]}>{cat}</Text></Pressable>)}</View>
+                  </View>
+                ) : null}
               </View>
             </View>
 
-            <View style={styles.sectionBlock}>
-              <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>Category</Text>
-              <View style={styles.inlineWrap}>
-                {categoryFilterOptions.map((cat) => (
-                  <Pressable key={cat} style={[styles.filterChip, { borderColor: colors.border, backgroundColor: categoryFilter === cat ? colors.primary : colors.chip }]} onPress={() => onCategoryFilterChange(cat)}>
-                    <Text style={[styles.filterChipText, { color: categoryFilter === cat ? '#fff' : colors.text }]}>{cat}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
+            <View style={styles.tableWrap}>
+              <ScrollView
+                style={styles.transactionsListScroll}
+                contentContainerStyle={styles.transactionsListContent}
+                showsVerticalScrollIndicator={false}
 
-            <View style={[styles.tableWrap, { backgroundColor: colors.surface, borderColor: colors.border }]}> 
-              <View style={[styles.tableHeaderRow, { borderColor: colors.border }]}> 
-                <Text style={[styles.tableHeaderText, { color: colors.textMuted }]}>Name / Category</Text>
-                <Text style={[styles.tableHeaderText, { color: colors.textMuted }]}>Date / Amount</Text>
-              </View>
-              <ScrollView style={styles.transactionsListScroll} contentContainerStyle={styles.transactionsListContent} showsVerticalScrollIndicator={false}>
+              >
+                <View style={[styles.tableHeaderRow, darkMode && styles.tableHeaderRowDark]}>
+                  <Text style={[styles.tableHeaderText, darkMode && styles.metaDark]}>Name / Category</Text>
+                  <Text style={[styles.tableHeaderText, darkMode && styles.metaDark]}>Date / Amount</Text>
+                </View>
                 {shownTransactions.map((item, index) => (
                   <TransactionTapRow
                     key={item.id}
@@ -169,34 +167,40 @@ export function TransactionsScreen(props: Props) {
         </View>
 
         <View style={[styles.reviewBudgetsPage, { width }]}> 
-          <View style={styles.contentContainer}>
-            <View style={[styles.tableWrap, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <ScrollView contentContainerStyle={styles.transactionsListContent} showsVerticalScrollIndicator={false}>
-                <View style={styles.panel}>
-                  <BudgetDonutChart budgets={budgets} currency={currency} darkMode={darkMode} styles={styles} />
-                  <View style={[styles.tableHeaderRow, { borderColor: colors.border }]}> 
-                    <Text style={[styles.tableHeaderText, { color: colors.textMuted }]}>Category</Text>
-                    <Text style={[styles.tableHeaderText, { color: colors.textMuted }]}>Amount</Text>
-                  </View>
-                  {budgets.map((b) => (
-                    <BudgetSwipeRow
-                      key={b.id}
-                      budget={b}
-                      currency={currency}
-                      darkMode={darkMode}
-                      onSaveBudget={onSaveBudget}
-                      onDeleteBudget={onDeleteBudget}
-                      activeSwipeBudgetId={activeSwipeBudgetId}
-                      setActiveSwipeBudgetId={setActiveSwipeBudgetId}
-                      styles={styles}
-                    />
-                  ))}
-                </View>
-              </ScrollView>
-            </View>
+          <View style={styles.tableWrap}>
+            <ScrollView
+              contentContainerStyle={styles.contentContainer}
+              showsVerticalScrollIndicator={false}
 
-            <Pressable style={[styles.reviewAddBudgetBtn, { backgroundColor: colors.primary }]} onPress={() => setShowAddBudget((v) => !v)}>
-              <Text style={styles.reviewAddBudgetText}>{showAddBudget ? 'Close' : 'Add budget'}</Text>
+            >
+              <View style={[styles.panel, darkMode && styles.panelDark]}>
+                <BudgetDonutChart budgets={budgets} currency={currency} darkMode={darkMode} styles={styles} />
+
+                <View style={[styles.tableHeaderRow, darkMode && styles.tableHeaderRowDark]}>
+                  <Text style={[styles.tableHeaderText, darkMode && styles.metaDark]}>Category</Text>
+                  <Text style={[styles.tableHeaderText, darkMode && styles.metaDark]}>Amount</Text>
+                </View>
+
+                {budgets.map((b) => (
+                  <BudgetSwipeRow
+                    key={b.id}
+                    budget={b}
+                    currency={currency}
+                    darkMode={darkMode}
+                    onSaveBudget={onSaveBudget}
+                    onDeleteBudget={onDeleteBudget}
+                    activeSwipeBudgetId={activeSwipeBudgetId}
+                    setActiveSwipeBudgetId={setActiveSwipeBudgetId}
+                    styles={styles}
+                  />
+                ))}
+
+              </View>
+            </ScrollView>
+          </View>
+          <View style={styles.reviewAddBudgetWrapInPage}>
+            <Pressable style={styles.reviewAddBudgetBtn} onPress={() => setShowAddBudget((v) => !v)}>
+              <Text style={styles.reviewAddBudgetText}>Add New Budget</Text>
             </Pressable>
           </View>
         </View>
@@ -204,50 +208,51 @@ export function TransactionsScreen(props: Props) {
 
       {showAddBudget ? (
         <View style={styles.modalBackdrop}>
-          <Pressable style={[styles.modalScrim, { backgroundColor: colors.overlay }]} onPress={() => setShowAddBudget(false)} />
-          <View style={[styles.modalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.name, { color: colors.text }]}>New budget</Text>
+          <Pressable style={styles.modalScrim} onPress={() => { setShowAddBudget(false); setBudgetCategoryOpen(false); }} />
+          <View style={[styles.modalCard, darkMode && styles.panelDark]}>
+            <Text style={[styles.name, darkMode && styles.textDark]}>Add New Budget</Text>
             <TextInput
               value={budgetAmount}
               onChangeText={setBudgetAmount}
-              style={[styles.smallInput, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
+              style={[styles.smallInput, darkMode && styles.inputDark]}
               placeholder="Budget amount"
               keyboardType="decimal-pad"
-              placeholderTextColor={colors.textMuted}
             />
-
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.inlineWrap}>
-              {budgetCategoryOptions.map((cat) => (
-                <Pressable key={cat} style={[styles.filterChip, { borderColor: colors.border, backgroundColor: budgetCategory === cat ? colors.primary : colors.chip }]} onPress={() => setBudgetCategory(cat)}>
-                  <Text style={[styles.filterChipText, { color: budgetCategory === cat ? '#fff' : colors.text }]}>{cat}</Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-
-            <Pressable
-              style={[styles.reviewAddBudgetBtn, { backgroundColor: colors.primary }]}
-              onPress={async () => {
-                const amount = Number(budgetAmount.replace(',', '.'));
-                if (!Number.isFinite(amount) || amount <= 0) return;
-                await onSaveBudget(budgetCategory, amount);
-                setBudgetAmount('');
-                setShowAddBudget(false);
-              }}
-            >
+            <Pressable style={[styles.dropdown, darkMode && styles.inputDark]} onPress={() => setBudgetCategoryOpen((p) => !p)}>
+              <Text style={[styles.dropdownText, darkMode && styles.textDark]}>{budgetCategory}</Text>
+              <Text>▾</Text>
+            </Pressable>
+            {budgetCategoryOpen ? (
+              <View style={[styles.dropdownMenu, darkMode && styles.panelDark]}>
+                {budgetCategoryOptions.map((cat) => (
+                  <Pressable key={cat} style={styles.dropdownOption} onPress={() => { setBudgetCategory(cat); setBudgetCategoryOpen(false); }}>
+                    <Text style={[styles.dropdownText, darkMode && styles.textDark]}>{cat}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
+            <Pressable style={styles.reviewAddBudgetBtn} onPress={async () => {
+              const amount = Number(budgetAmount.replace(',', '.'));
+              if (!Number.isFinite(amount) || amount <= 0) return;
+              await onSaveBudget(budgetCategory, amount);
+              setBudgetAmount('');
+              setShowAddBudget(false);
+              setBudgetCategoryOpen(false);
+            }}>
               <Text style={styles.reviewAddBudgetText}>Save</Text>
             </Pressable>
           </View>
         </View>
       ) : null}
 
-      <View style={[styles.reviewBottomTabs, { backgroundColor: colors.surface, borderColor: colors.border }]}> 
+      <View style={[styles.reviewBottomTabs, darkMode && styles.reviewBottomTabsDark]}>
         {(['transactions', 'budgets'] as const).map((tab) => {
           const active = reviewTab === tab;
           const label = tab === 'transactions' ? 'Transactions' : 'Budgets';
           return (
             <Pressable key={tab} style={styles.reviewBottomTab} onPress={() => setReviewTab(tab)}>
-              <View style={[styles.reviewBottomDot, { backgroundColor: active ? colors.primary : colors.tabIdle, width: active ? 22 : 8 }]} />
-              <Text style={[styles.reviewBottomLabel, { color: active ? colors.text : colors.textMuted, fontWeight: active ? '800' : '500' }]}>{label}</Text>
+              <View style={[styles.reviewBottomDot, active && styles.reviewBottomDotActive]} />
+              <Text style={[styles.reviewBottomLabel, darkMode && styles.textDark, active && styles.reviewBottomLabelActive]}>{label}</Text>
             </Pressable>
           );
         })}
@@ -258,76 +263,105 @@ export function TransactionsScreen(props: Props) {
 
 const styles = StyleSheet.create({
   screenContainer: { flex: 1 },
-  panelDark: {},
-  contentContainer: { flex: 1, padding: spacing.md, gap: spacing.sm, paddingBottom: 84 },
-  reviewTransactionsPage: { flex: 1 },
-  reviewBudgetsPage: { flex: 1 },
-
-  searchInput: { borderRadius: radii.md, borderWidth: 1, paddingHorizontal: spacing.md, paddingVertical: 11, fontSize: typography.body },
-  chipsBar: { gap: spacing.xs, paddingVertical: spacing.xs },
-  sectionBlock: { gap: spacing.xs },
-  sectionTitle: { fontSize: typography.caption, fontWeight: '700' },
-  inlineWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  filterChip: { paddingHorizontal: spacing.sm, paddingVertical: 7, borderRadius: radii.pill, borderWidth: 1 },
-  filterChipText: { fontWeight: '700', textTransform: 'capitalize', fontSize: typography.caption },
-
-  tableWrap: { flex: 1, borderRadius: radii.lg, borderWidth: 1, overflow: 'hidden' },
-  transactionsListScroll: { flex: 1 },
-  transactionsListContent: { paddingHorizontal: spacing.sm, paddingBottom: spacing.md },
-  tableHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: spacing.sm, paddingHorizontal: spacing.sm, borderBottomWidth: 1, marginBottom: spacing.xs },
-  tableHeaderText: { fontSize: typography.caption, fontWeight: '700' },
-
-  panel: { gap: spacing.xs },
-  reviewAddBudgetBtn: { borderRadius: radii.md, paddingVertical: 13, alignItems: 'center', marginTop: spacing.xs },
-  reviewAddBudgetText: { color: '#fff', fontWeight: '800', fontSize: typography.body },
-
-  modalBackdrop: { ...StyleSheet.absoluteFillObject, justifyContent: 'center', paddingHorizontal: spacing.lg, zIndex: 30 },
-  modalScrim: { ...StyleSheet.absoluteFillObject },
-  modalCard: { borderWidth: 1, borderRadius: radii.lg, padding: spacing.md, gap: spacing.sm },
-  smallInput: { borderWidth: 1, borderRadius: radii.md, paddingHorizontal: spacing.md, paddingVertical: 10 },
-
+  screenDark: { backgroundColor: colors.screenDark },
+  panelDark: { backgroundColor: colors.panelDark, borderColor: colors.borderDark },
+  contentContainer: { paddingHorizontal: 0, gap: spacing.md, paddingTop: 8, paddingBottom: 88 },
+  transactionsPageContent: { flex: 1 },
+  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  title: { fontSize: 17, fontWeight: '700', color: '#156530' },
+  textDark: { color: colors.textDark },
+  exportBtn: { backgroundColor: colors.accentGreen, borderRadius: 10, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
+  exportBtnText: { color: colors.white, fontWeight: '700', fontSize: 12 },
   reviewBottomTabs: {
     position: 'absolute',
-    left: spacing.md,
-    right: spacing.md,
-    bottom: spacing.sm,
+    left: 0,
+    right: 0,
+    bottom: 0,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radii.lg,
-    borderWidth: 1,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    backgroundColor: '#eaffef',
   },
-  reviewBottomTab: { flex: 1, alignItems: 'center', gap: 4, paddingTop: 2 },
-  reviewBottomDot: { width: 8, height: 8, borderRadius: 4 },
-  reviewBottomLabel: { fontSize: typography.caption },
+  reviewBottomTabsDark: { backgroundColor: colors.screenDark },
+  reviewTransactionsPage: { flex: 1 },
+  reviewBudgetsPage: { flex: 1 },
+  reviewAddBudgetWrapInPage: { position: 'absolute', left: 16, right: 16, bottom: 56 },
+  modalBackdrop: { ...StyleSheet.absoluteFillObject, justifyContent: 'center', paddingHorizontal: 20, zIndex: 30 },
+  modalScrim: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.35)' },
+  modalCard: { backgroundColor: colors.panelLight, borderWidth: 1, borderColor: colors.borderLight, borderRadius: 14, padding: spacing.lg, gap: spacing.md },
+  reviewAddBudgetBtn: { backgroundColor: colors.accentGreen, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  reviewAddBudgetText: { color: colors.white, fontWeight: '800', fontSize: 16 },
+  tableWrap: { flex: 1, position: 'relative' },
+  transactionsListScroll: { flex: 1 },
+  transactionsListContent: { paddingBottom: 18 },
 
+  tableHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 6, paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: colors.tableBorderLight, marginBottom: 6 },
+  tableHeaderRowDark: { borderBottomColor: colors.borderDark },
+  tableHeaderText: { color: colors.textSecondary, fontSize: 11, fontWeight: '700' },
+
+  reviewBottomTab: { flex: 1, alignItems: 'center', gap: 4, paddingTop: 2 },
+  reviewBottomDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.tabDotIdle },
+  reviewBottomDotActive: { backgroundColor: colors.accentGreen, width: 22 },
+  reviewBottomLabel: { color: colors.textSecondary, fontSize: 12 },
+  reviewBottomLabelActive: { color: colors.textStrong, fontWeight: '800' },
+  searchInput: { backgroundColor: colors.white, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.borderInput, paddingHorizontal: spacing.lg, paddingVertical: spacing.md, color: '#156530' },
+  inputDark: { backgroundColor: colors.panelDark, borderColor: colors.borderDark, color: colors.textDark },
+  row: { flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start' },
+  flex1: { flex: 1 },
+  nameCol: { flex: 0.8 },
+  inputCol: { flex: 1.2 },
+  dropdown: { minHeight: 42, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.borderInput, paddingHorizontal: spacing.md, backgroundColor: colors.white, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  dropdownText: { color: colors.textPrimary, fontWeight: '600', fontSize: 12 },
+  dropdownMenu: { marginTop: spacing.xs, borderWidth: 1, borderColor: colors.borderInput, borderRadius: 10, padding: spacing.sm, gap: 6, backgroundColor: colors.panelLight },
+  dropdownOption: { paddingVertical: 6 },
+  section: { fontSize: 12, color: '#2f7a43', fontWeight: '700' },
+  smallInput: { backgroundColor: colors.white, borderWidth: 1, borderColor: colors.borderInput, borderRadius: 10, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, color: '#156530' },
+  inlineRow: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center', marginTop: spacing.sm },
+  filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  filterChip: { paddingHorizontal: spacing.md, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: colors.chipBorder, backgroundColor: colors.chipBg },
+  filterChipActive: { backgroundColor: colors.accentGreen, borderColor: colors.accentGreen },
+  filterChipText: { color: colors.textPrimary, fontWeight: '600', textTransform: 'capitalize' },
+  filterChipTextActive: { color: colors.white },
   transactionShell: { position: 'relative', overflow: 'hidden' },
+  swipeShell: { position: 'relative', marginBottom: 8, borderRadius: 14, borderWidth: 1, borderColor: colors.borderLight, backgroundColor: colors.panelLight, overflow: 'hidden' },
+  swipeShellDark: { backgroundColor: colors.panelDark, borderColor: colors.borderDark },
   tapActionsBg: { position: 'absolute', inset: 0, justifyContent: 'center', alignItems: 'flex-end' },
-  transactionActionsBg: { top: 6, bottom: 8 },
+  transactionActionsBg: { top: 8, bottom: 12 },
   tapActionsRight: { flexDirection: 'row', height: '100%', overflow: 'hidden' },
   transactionActionsRail: { alignItems: 'center', gap: 4 },
-  transactionActionBtnCompact: { height: 42, borderRadius: 0 },
-  updateFlatBtn: { backgroundColor: '#2f7a4d', justifyContent: 'center', alignItems: 'center', width: 70 },
-  updateFlatBtnDark: { backgroundColor: '#2f7a4d' },
-  deleteFlatBtn: { backgroundColor: '#bf3b3b', justifyContent: 'center', alignItems: 'center', width: 70 },
-  deleteFlatBtnDark: { backgroundColor: '#bf3b3b' },
-  flatBtnText: { color: '#fff', fontWeight: '700', fontSize: typography.caption },
-  flatBtnTextDark: { color: '#fff' },
-
-  transactionRow: { backgroundColor: 'transparent', paddingHorizontal: spacing.xs, paddingVertical: spacing.sm },
+  transactionActionBtnCompact: { height: 36, borderRadius: 0 },
+  updateFlatBtn: { backgroundColor: colors.accentGreen, justifyContent: 'center', alignItems: 'center', width: 60 },
+  updateFlatBtnDark: { backgroundColor: colors.accentGreen },
+  deleteFlatBtn: { backgroundColor: colors.danger, justifyContent: 'center', alignItems: 'center', width: 60 },
+  deleteFlatBtnDark: { backgroundColor: colors.danger },
+  flatBtnText: { color: colors.white, fontWeight: '700', fontSize: 11 },
+  flatBtnTextDark: { color: colors.white },
+  listRow: { backgroundColor: colors.panelLight, borderRadius: 14, padding: 11, borderWidth: 1, borderColor: colors.borderLight },
+  listRowInner: { marginBottom: 0, borderWidth: 0, borderRadius: 0 },
+  listRowDark: { backgroundColor: colors.panelDark, borderColor: colors.borderDark },
+  transactionRow: { backgroundColor: 'transparent', paddingHorizontal: 6, paddingTop: 10, paddingBottom: 8 },
   transactionRowDark: { backgroundColor: 'transparent' },
-  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  rightRow: { alignItems: 'flex-end', gap: 4 },
-  name: { fontWeight: '700', color: '#1c2d24' },
-  textDark: { color: '#e4efe7' },
-  meta: { color: '#5d6f63', fontSize: typography.caption, marginTop: 2 },
-  metaDark: { color: '#a8b8ac' },
-  amount: { color: '#1c2d24', fontWeight: '700' },
-  recordSeparator: { marginTop: spacing.sm, height: StyleSheet.hairlineWidth, backgroundColor: '#d4ddd6' },
-  recordSeparatorDark: { backgroundColor: '#2d3a31' },
-
+  recordSeparator: { marginTop: 10, height: StyleSheet.hairlineWidth, backgroundColor: colors.separatorLight },
+  recordSeparatorDark: { backgroundColor: colors.borderDark },
+  rightRow: { alignItems: 'flex-end', gap: 6 },
+  name: { fontWeight: '700', color: colors.textPrimary },
+  meta: { color: colors.textSecondary, fontSize: 12, marginTop: 2 },
+  metaDark: { color: '#9dc9ab' },
+  amount: { color: colors.textStrong, fontWeight: '700' },
+  actionBtn: { backgroundColor: '#e6f8ec', borderWidth: 1, borderColor: colors.chipBorder, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
+  actionBtnText: { color: '#2d7a43', fontSize: 12, fontWeight: '700' },
+  deleteBtn: { backgroundColor: '#fee2e2', borderRadius: 8, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderWidth: 1, borderColor: '#fecaca' },
+  deleteBtnText: { color: '#991b1b', fontWeight: '700', fontSize: 12 },
+  panel: { backgroundColor: colors.panelLight, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.borderLight, padding: spacing.md, gap: spacing.sm },
+  budgetExpandedWrap: { gap: spacing.md },
+  equalButtonRow: { flexDirection: 'row', gap: spacing.sm, alignItems: 'stretch' },
+  equalButton: { flex: 1, minHeight: 42, justifyContent: 'center', alignItems: 'center' },
   chartWrap: { alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.sm },
-  totalBudgetText: { color: '#1c2d24', fontWeight: '800', marginTop: 6 },
+  totalBudgetText: { color: '#14532d', fontWeight: '800', marginTop: 6 },
+  legendWrap: { width: '100%', marginTop: spacing.sm, gap: 6 },
+  legendRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  legendDot: { width: 10, height: 10, borderRadius: 5 },
+  legendText: { color: '#14532d', fontWeight: '600', fontSize: 12 },
 });

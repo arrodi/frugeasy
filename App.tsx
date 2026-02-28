@@ -19,7 +19,6 @@ import { AddTransactionScreen } from './src/screens/AddTransactionScreen';
 import { BudgetingScreen } from './src/screens/BudgetingScreen';
 import { TransactionsScreen } from './src/screens/TransactionsScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
-import { getThemeColors, radii, spacing, typography } from './src/ui/themeTokens';
 
 import { calculateMonthlyTotals, filterTransactionsByMonth } from './src/domain/summary';
 import { Budget, CurrencyCode, RecurringRule, Transaction, TransactionCategory, TransactionType } from './src/domain/types';
@@ -317,7 +316,6 @@ export default function App() {
 
   const categoryOptions = Array.from(new Set(baseMonthlyTransactions.map((t) => t.category))).sort();
   const expenseCategoryOptions = ['Food','Transport','Housing','Subscription','Health','Entertainment','Shopping','Education','Other'] as TransactionCategory[];
-  const colors = getThemeColors(darkMode);
 
   const goToTab = (idx: number) => {
     pagerRef.current?.scrollTo({ x: idx * width, animated: true });
@@ -330,7 +328,7 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bg }]}> 
+    <SafeAreaView style={[styles.safeArea, darkMode && styles.safeAreaDark]}>
       <StatusBar style={darkMode ? 'light' : 'dark'} />
       <ScrollView
         ref={pagerRef}
@@ -413,20 +411,17 @@ export default function App() {
         </View>
       </ScrollView>
 
-      <View style={[styles.tabDots, { backgroundColor: colors.surface, borderColor: colors.border }]}> 
-        {['Transact', 'Budget', 'Review', 'Settings'].map((label, idx) => {
-          const active = activeTab === idx;
-          return (
-            <Pressable
-              key={label}
-              style={styles.tabDotWrap}
-              onPress={() => goToTab(idx)}
-            >
-              <View style={[styles.dot, { backgroundColor: active ? colors.primary : colors.tabIdle, width: active ? 22 : 8 }]} />
-              <Text style={[styles.dotLabel, { color: active ? colors.text : colors.textMuted, fontWeight: active ? '800' : '500' }]}>{label}</Text>
-            </Pressable>
-          );
-        })}
+      <View style={styles.tabDots}>
+        {['Transact', 'Budget', 'Review', 'Settings'].map((label, idx) => (
+          <Pressable
+            key={label}
+            style={styles.tabDotWrap}
+            onPress={() => goToTab(idx)}
+          >
+            <View style={[styles.dot, activeTab === idx && styles.dotActive]} />
+            <Text style={[styles.dotLabel, activeTab === idx && styles.dotLabelActive]}>{label}</Text>
+          </Pressable>
+        ))}
       </View>
 
     </SafeAreaView>
@@ -434,24 +429,24 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1 },
+  safeArea: { flex: 1, backgroundColor: '#f3fbe9' },
+  safeAreaDark: { backgroundColor: '#08170f' },
   page: { flex: 1 },
   tabDots: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    marginHorizontal: spacing.md,
-    marginBottom: spacing.sm,
-    borderRadius: radii.lg,
-    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
   },
   tabDotWrap: { flex: 1, alignItems: 'center', gap: 4 },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
+    backgroundColor: '#8fdc5f',
   },
-  dotLabel: { fontSize: typography.caption },
+  dotActive: { backgroundColor: '#14b85a', width: 22 },
+  dotLabel: { color: '#2f7a52', fontSize: 12 },
+  dotLabelActive: { color: '#0f5a36', fontWeight: '800' },
 });
