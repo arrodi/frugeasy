@@ -429,8 +429,8 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#eaffef' },
-  safeAreaDark: { backgroundColor: '#0f1a14' },
+  safeArea: { flex: 1, backgroundColor: '#eefdf1' },
+  safeAreaDark: { backgroundColor: '#08170f' },
   page: { flex: 1 },
   tabDots: {
     flexDirection: 'row',
@@ -444,9 +444,9 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#79d992',
+    backgroundColor: '#8fdc5f',
   },
   dotActive: { backgroundColor: '#14b85a', width: 22 },
-  dotLabel: { color: '#3e7b52', fontSize: 12 },
-  dotLabelActive: { color: '#14632f', fontWeight: '800' },
+  dotLabel: { color: '#2f7a52', fontSize: 12 },
+  dotLabelActive: { color: '#0f5a36', fontWeight: '800' },
 });

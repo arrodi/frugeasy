@@ -94,7 +94,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
                       const off = -acc * c;
                       acc += frac;
                       return <Circle key={`ex-${i}`} cx={size/2} cy={size/2} r={r} fill="none" stroke={colors[i % colors.length]} strokeWidth={20} strokeDasharray={dash} strokeDashoffset={off} strokeLinecap="butt" />;
-                    }) : <Circle cx={size/2} cy={size/2} r={r} fill="none" stroke={darkMode ? '#2e4d3b' : '#d1fae5'} strokeWidth={20} />}
+                    }) : <Circle cx={size/2} cy={size/2} r={r} fill="none" stroke={darkMode ? '#26523a' : '#d1fae5'} strokeWidth={20} />}
                   </G>
 
                   {slices.map(({ category, frac, i, mid }) => {
@@ -111,7 +111,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
                       <G key={`ex-l-${category}-${i}`}>
                         <Line x1={x1} y1={y1} x2={x2} y2={y2} stroke={colors[i % colors.length]} strokeWidth={1.5} />
                         <Line x1={x2} y1={y2} x2={x3} y2={y2} stroke={colors[i % colors.length]} strokeWidth={1.5} />
-                        <SvgText x={x3 + (right ? 4 : -4)} y={y2 + 4} fontSize={10} fill={darkMode ? '#d6f5df' : '#14532d'} textAnchor={right ? 'start' : 'end'}>{label}</SvgText>
+                        <SvgText x={x3 + (right ? 4 : -4)} y={y2 + 4} fontSize={10} fill={darkMode ? '#d6f5df' : '#0f5a36'} textAnchor={right ? 'start' : 'end'}>{label}</SvgText>
                       </G>
                     );
                   })}
@@ -209,7 +209,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
 
 const styles = StyleSheet.create({
   screenContainer: { flex: 1 },
-  screenDark: { backgroundColor: '#0f1a14' },
+  screenDark: { backgroundColor: '#08170f' },
   contentContainer: { flex: 1, paddingHorizontal: 16, gap: 10, paddingTop: 8, paddingBottom: 80 },
   entriesScrollWrap: { flex: 1, position: 'relative' },
   entriesScroll: { flex: 1 },
@@ -219,22 +219,22 @@ const styles = StyleSheet.create({
   edgeFadeBottom: { bottom: 0 },
 
   title: { fontSize: 17, fontWeight: '700', color: '#156530' },
-  panelTitle: { fontSize: 14, fontWeight: '700', color: '#14532d', marginBottom: 6 },
+  panelTitle: { fontSize: 14, fontWeight: '700', color: '#0f5a36', marginBottom: 6 },
   textDark: { color: '#d6f5df' },
   overviewRowHorizontal: { flexDirection: 'row', gap: 8 },
   card: { backgroundColor: '#eef5f2', borderRadius: 16, padding: 12, borderWidth: 1, borderColor: '#d2e2dc' },
   cardHorizontal: { flex: 1, minWidth: 0 },
-  cardDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
+  cardDark: { backgroundColor: '#102117', borderColor: '#26523a' },
   cardLabel: { color: '#49635d', marginBottom: 4, fontWeight: '600' },
   cardValue: { fontSize: 18, fontWeight: '800', color: '#1f3b35' },
   income: { color: '#1f8b63' },
   expense: { color: '#536c90' },
   net: { color: '#355f53' },
-  budgetItem: { borderWidth: 1, borderColor: '#b7ebc3', borderRadius: 10, padding: 10, backgroundColor: '#f6fff8', marginBottom: 10 },
-  budgetItemDark: { backgroundColor: '#1a2d22', borderColor: '#2e4d3b' },
+  budgetItem: { borderWidth: 1, borderColor: '#8fdf8e', borderRadius: 10, padding: 10, backgroundColor: '#f6fff8', marginBottom: 10 },
+  budgetItemDark: { backgroundColor: '#1a2d22', borderColor: '#26523a' },
   budgetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  budgetCat: { fontWeight: '700', color: '#1e6e37' },
-  budgetAmt: { color: '#14532d', fontWeight: '700' },
+  budgetCat: { fontWeight: '700', color: '#0f5a36' },
+  budgetAmt: { color: '#0f5a36', fontWeight: '700' },
   progressTrack: { height: 24, backgroundColor: '#dcefe3', borderRadius: 999, overflow: 'hidden', marginTop: 6, justifyContent: 'center' },
   progressTrackDark: { backgroundColor: '#243b30' },
   progressFill: { position: 'absolute', left: 0, top: 0, bottom: 0, backgroundColor: '#16a34a' },
@@ -243,22 +243,22 @@ const styles = StyleSheet.create({
   progressOverlayCenter: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
   progressInsideText: { fontWeight: '800', fontSize: 11 },
   progressInsideOnFill: { color: '#ffffff' },
-  progressInsideOffFill: { color: '#14532d' },
-  historyWrap: { marginTop: 10, borderTopWidth: 1, borderTopColor: '#b7ebc3', paddingTop: 10, gap: 10 },
+  progressInsideOffFill: { color: '#0f5a36' },
+  historyWrap: { marginTop: 10, borderTopWidth: 1, borderTopColor: '#8fdf8e', paddingTop: 10, gap: 10 },
     historyRow: { flexDirection: 'row', justifyContent: 'space-between' },
   historyItem: { color: '#35544c', fontSize: 12 },
   ruleText: { color: '#35544c' },
 
-  panel: { backgroundColor: '#ecfff1', borderWidth: 1, borderColor: '#9ee5ab', borderRadius: 12, padding: 10, gap: 8, marginTop: 8 },
+  panel: { backgroundColor: '#f4fff6', borderWidth: 1, borderColor: '#a7e6b4', borderRadius: 12, padding: 10, gap: 8, marginTop: 8 },
   expenseChartWrap: { alignItems: 'center', justifyContent: 'center', paddingVertical: 8 },
-  totalBudgetText: { color: '#14532d', fontWeight: '800', marginTop: 6 },
-  panelDark: { backgroundColor: '#15251c', borderColor: '#2e4d3b' },
-  input: { backgroundColor: 'white', borderWidth: 1, borderColor: '#b7ebc3', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 10, color: '#156530' },
-  inputDark: { backgroundColor: '#0f1a14', borderColor: '#2e4d3b', color: '#d6f5df' },
-  dropdownTrigger: { minHeight: 46, paddingHorizontal: 12, borderRadius: 10, borderWidth: 1, borderColor: '#b7ebc3', backgroundColor: 'white', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  totalBudgetText: { color: '#0f5a36', fontWeight: '800', marginTop: 6 },
+  panelDark: { backgroundColor: '#102117', borderColor: '#26523a' },
+  input: { backgroundColor: 'white', borderWidth: 1, borderColor: '#8fdf8e', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 10, color: '#156530' },
+  inputDark: { backgroundColor: '#08170f', borderColor: '#26523a', color: '#d6f5df' },
+  dropdownTrigger: { minHeight: 46, paddingHorizontal: 12, borderRadius: 10, borderWidth: 1, borderColor: '#8fdf8e', backgroundColor: 'white', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   dropdownText: { color: '#156530', fontWeight: '600' },
   dropdownChevron: { color: '#2d7a43' },
-  dropdownMenu: { borderWidth: 1, borderColor: '#b7ebc3', borderRadius: 10, overflow: 'hidden' },
+  dropdownMenu: { borderWidth: 1, borderColor: '#8fdf8e', borderRadius: 10, overflow: 'hidden' },
   dropdownOption: { paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#e3f6e8' },
   saveBtn: { backgroundColor: '#14b85a', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8, alignItems: 'center' },
   saveBtnText: { color: 'white', fontWeight: '700', fontSize: 12 },
