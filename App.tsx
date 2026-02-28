@@ -55,7 +55,7 @@ const EXPENSE_CATEGORIES: TransactionCategory[] = [
   'Food',
   'Transport',
   'Housing',
-  'Utilities',
+  'Subscription',
   'Health',
   'Entertainment',
   'Shopping',
@@ -315,7 +315,7 @@ export default function App() {
   };
 
   const categoryOptions = Array.from(new Set(baseMonthlyTransactions.map((t) => t.category))).sort();
-  const expenseCategoryOptions = ['Food','Transport','Housing','Utilities','Health','Entertainment','Shopping','Education','Other'] as TransactionCategory[];
+  const expenseCategoryOptions = ['Food','Transport','Housing','Subscription','Health','Entertainment','Shopping','Education','Other'] as TransactionCategory[];
 
   const goToTab = (idx: number) => {
     pagerRef.current?.scrollTo({ x: idx * width, animated: true });

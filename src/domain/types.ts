@@ -12,7 +12,7 @@ export type TransactionCategory =
   | 'Food'
   | 'Transport'
   | 'Housing'
-  | 'Utilities'
+  | 'Subscription'
   | 'Health'
   | 'Entertainment'
   | 'Shopping'
