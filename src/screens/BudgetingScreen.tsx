@@ -125,9 +125,7 @@ export function BudgetingScreen({ darkMode, currency, budgets, totals, budgetPro
           <ScrollView
             style={styles.entriesScroll}
             contentContainerStyle={styles.entriesScrollContent}
-            showsVerticalScrollIndicator
-            indicatorStyle={darkMode ? 'white' : 'black'}
-            scrollIndicatorInsets={{ right: 1 }}
+            showsVerticalScrollIndicator={false}
             scrollEventThrottle={16}
             onScroll={(e) => {
               const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
