@@ -103,7 +103,7 @@ export function AddTransactionScreen({
   };
 
   return (
-    <View style={[styles.screenContainer, darkMode && styles.screenContainerDark]}>
+    <View style={styles.screenContainer}>
       <View style={styles.heroWrap}>
         <View style={styles.wordmarkCrop}>
           <Image source={require('../../assets/tap2budget-wordmark.png')} style={styles.wordmarkImage} resizeMode="contain" />
@@ -255,13 +255,12 @@ export function AddTransactionScreen({
 }
 
 const styles = StyleSheet.create({
-  screenContainer: { flex: 1, paddingHorizontal: 0, justifyContent: 'center', alignItems: 'stretch', backgroundColor: '#f3fbe9' },
-  screenContainerDark: { backgroundColor: '#08170f' },
-  heroWrap: { width: '100%', height: 132, alignItems: 'center', justifyContent: 'center' },
+  screenContainer: { flex: 1, paddingHorizontal: 14, justifyContent: 'center', alignItems: 'center' },
+  heroWrap: { width: '100%', maxWidth: 520, height: 132, alignItems: 'center', justifyContent: 'center' },
   wordmarkCrop: { width: '100%', maxWidth: 500, height: 120, overflow: 'hidden', borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   wordmarkImage: { width: '100%', maxWidth: 500, height: 120 },
-  formArea: { width: '100%', backgroundColor: '#f4fff6', paddingHorizontal: 16, paddingVertical: 14, gap: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#beddae' },
-  formAreaDark: { backgroundColor: '#102117', borderBottomColor: '#26523a' },
+  formArea: { width: '100%', maxWidth: 520, backgroundColor: '#f4fff6', borderWidth: 1, borderColor: '#a7e6b4', borderRadius: 18, padding: 16, gap: 14 },
+  formAreaDark: { backgroundColor: '#102117', borderColor: '#26523a' },
   sectionTitle: { fontSize: 44, fontWeight: '900', color: '#166534', letterSpacing: 0.4 },
   textDark: { color: '#d6f5df' },
   input: { backgroundColor: 'white', borderWidth: 1, borderColor: '#8fdf8e', color: '#0f5a36', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, fontSize: 18, fontWeight: '600' },
@@ -282,7 +281,7 @@ const styles = StyleSheet.create({
   saveBtnDone: { backgroundColor: '#0f8d45', borderColor: '#0c6e36' },
   saveBtnText: { color: 'white', fontWeight: '800', fontSize: 18 },
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center', padding: 20 },
-  modalCard: { width: '100%', maxWidth: 520, backgroundColor: '#f3fff6', padding: 14, gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#beddae' },
+  modalCard: { width: '100%', maxWidth: 520, backgroundColor: '#f3fff6', borderRadius: 16, borderWidth: 1, borderColor: '#b8efc4', padding: 14, gap: 12 },
   modalTitle: { fontSize: 18, fontWeight: '800', color: '#166534' },
   typeTileWrap: { width: '100%', gap: 8 },
   typeTile: { width: '100%', paddingVertical: 12, borderRadius: 10, borderWidth: 1, borderColor: '#9dddad', backgroundColor: 'white', alignItems: 'center' },
