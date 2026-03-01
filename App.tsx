@@ -149,7 +149,8 @@ export default function App() {
       if (categoryFilter !== 'all' && t.category !== categoryFilter) return false;
       if (searchQuery.trim()) {
         const q = searchQuery.trim().toLowerCase();
-        if (!t.name.toLowerCase().includes(q)) return false;
+        const name = (t.name ?? '').toLowerCase();
+        if (!name.includes(q)) return false;
       }
       return true;
     });
