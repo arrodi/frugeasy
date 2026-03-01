@@ -92,7 +92,8 @@ export function AddTransactionScreen({
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setSaveDone(true);
         setTimeout(() => setSaveDone(false), 900);
-        amountInputRef.current?.focus();
+        setAdvanced(false);
+        Keyboard.dismiss();
       }
       if (ok && advanced && freq !== 'none') {
         await onCreateRecurring({ frequency: freq, label: nameInput.trim() || `${selectedCategory} recurring` });
