@@ -67,6 +67,8 @@ export function AddTransactionScreen({
 
 
   const onPressSave = async () => {
+    if (isSaving) return;
+
     const amount = Number(amountInput.replace(',', '.'));
     if (!Number.isFinite(amount) || amount <= 0) {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
@@ -173,7 +175,7 @@ export function AddTransactionScreen({
           </>
         ) : null}
 
-        <Pressable style={[styles.saveBtn, saveDone && styles.saveBtnDone]} onPress={onPressSave}>
+        <Pressable disabled={isSaving} style={[styles.saveBtn, saveDone && styles.saveBtnDone, isSaving && styles.saveBtnDisabled]} onPress={onPressSave}>
           <Text style={styles.saveBtnText}>{isSaving ? 'Saving…' : saveDone ? 'Saved ✓' : 'Save transaction'}</Text>
         </Pressable>
 
@@ -280,6 +282,7 @@ const styles = StyleSheet.create({
   advancedHint: { color: '#6f8f78', fontSize: 12, fontWeight: '500' },
   saveBtn: { marginTop: 'auto', backgroundColor: '#14b85a', borderWidth: 1, borderColor: '#0f8d45', borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
   saveBtnDone: { backgroundColor: '#0f8d45', borderColor: '#0c6e36' },
+  saveBtnDisabled: { opacity: 0.7 },
   saveBtnText: { color: 'white', fontWeight: '800', fontSize: 18 },
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center', padding: 20 },
   modalCard: { width: '100%', maxWidth: 520, backgroundColor: '#e6f4ea', borderRadius: 16, borderWidth: 1, borderColor: '#b8efc4', padding: 14, gap: 12 },

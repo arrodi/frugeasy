@@ -89,6 +89,8 @@ export default function App() {
   const { width } = useWindowDimensions();
   const pagerRef = useRef<ScrollView>(null);
   const [activeTab, setActiveTab] = useState(0);
+  const saveLockRef = useRef(false);
+  const lastSaveSigRef = useRef<{ sig: string; at: number } | null>(null);
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [amountInput, setAmountInput] = useState('');
@@ -180,9 +182,17 @@ export default function App() {
   };
 
   const handleSave = async (input?: { dateIso?: string }): Promise<boolean> => {
+    if (saveLockRef.current) return false;
+
     const amount = Number(amountInput.replace(',', '.'));
     const nowIso = input?.dateIso ?? new Date().toISOString();
+    const sig = `${selectedType}|${selectedCategory}|${amount}|${nameInput.trim()}|${nowIso}`;
+    const last = lastSaveSigRef.current;
+    if (last && last.sig === sig && Date.now() - last.at < 1200) {
+      return false;
+    }
 
+    saveLockRef.current = true;
     try {
       const categoryCount = transactions.filter((t) => t.category === selectedCategory).length + 1;
       const tx = await insertTransaction({
@@ -193,6 +203,7 @@ export default function App() {
         date: nowIso,
         createdAt: nowIso,
       });
+      lastSaveSigRef.current = { sig, at: Date.now() };
       setTransactions((prev) => [tx, ...prev]);
       setAmountInput('');
       setNameInput('');
@@ -200,6 +211,8 @@ export default function App() {
     } catch {
       Alert.alert('Oops', 'Could not save transaction.');
       return false;
+    } finally {
+      saveLockRef.current = false;
     }
   };
 
