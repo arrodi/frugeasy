@@ -213,8 +213,8 @@ export function AddTransactionScreen({
               {(['none', 'weekly', 'monthly'] as const).map((r) => {
                 const selected = r === freq;
                 return (
-                  <Pressable key={r} style={[styles.typeTile, selected && styles.categoryTileSelected]} onPress={() => { setFreq(r); setRecurrenceModalOpen(false); }}>
-                    <Text style={[styles.categoryTileText, selected && styles.categoryTileTextSelected]}>{r === 'none' ? 'None' : r === 'weekly' ? 'Weekly' : 'Monthly'}</Text>
+                  <Pressable key={r} style={[styles.typeTile, darkMode && styles.typeTileDark, selected && styles.categoryTileSelected]} onPress={() => { setFreq(r); setRecurrenceModalOpen(false); }}>
+                    <Text style={[styles.categoryTileText, darkMode && styles.categoryTileTextDark, selected && styles.categoryTileTextSelected]}>{r === 'none' ? 'None' : r === 'weekly' ? 'Weekly' : 'Monthly'}</Text>
                   </Pressable>
                 );
               })}
@@ -231,8 +231,8 @@ export function AddTransactionScreen({
               {categoryOptions.map((category) => {
                 const selected = category === selectedCategory;
                 return (
-                  <Pressable key={category} style={[styles.categoryTile, selected && styles.categoryTileSelected]} onPress={() => { onChangeCategory(category); setCategoryChosen(true); setCategoryModalOpen(false); }}>
-                    <Text style={[styles.categoryTileText, selected && styles.categoryTileTextSelected]}>{category}</Text>
+                  <Pressable key={category} style={[styles.categoryTile, darkMode && styles.categoryTileDark, selected && styles.categoryTileSelected]} onPress={() => { onChangeCategory(category); setCategoryChosen(true); setCategoryModalOpen(false); }}>
+                    <Text style={[styles.categoryTileText, darkMode && styles.categoryTileTextDark, selected && styles.categoryTileTextSelected]}>{category}</Text>
                   </Pressable>
                 );
               })}
@@ -285,10 +285,13 @@ const styles = StyleSheet.create({
   modalTitle: { fontSize: 18, fontWeight: '800', color: '#166534' },
   typeTileWrap: { width: '100%', gap: 8 },
   typeTile: { width: '100%', paddingVertical: 12, borderRadius: 10, borderWidth: 1, borderColor: '#9dddad', backgroundColor: '#e6f4ea', alignItems: 'center' },
+  typeTileDark: { backgroundColor: '#08170f', borderColor: '#26523a' },
   tileWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
   categoryTile: { width: '31%', minHeight: 52, borderRadius: 10, borderWidth: 1, borderColor: '#9dddad', backgroundColor: '#e6f4ea', alignItems: 'center', justifyContent: 'center' },
+  categoryTileDark: { backgroundColor: '#08170f', borderColor: '#26523a' },
   categoryTileSelected: { backgroundColor: '#16a34a', borderColor: '#16a34a' },
   categoryTileText: { color: '#14532d', fontWeight: '700' },
+  categoryTileTextDark: { color: '#d6f5df' },
   categoryTileTextSelected: { color: 'white' },
   accessoryBar: { backgroundColor: '#e5faeb', borderTopWidth: 1, borderTopColor: '#b9ebc7', paddingHorizontal: 12, paddingVertical: 8, alignItems: 'flex-end' },
   doneTypingButton: { backgroundColor: '#d2f5dc', borderWidth: 1, borderColor: '#98dda9', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 },
