@@ -202,6 +202,16 @@ export async function setSetting(key: string, value: string): Promise<void> {
   );
 }
 
+export async function clearAllData(): Promise<void> {
+  const db = await getDb();
+  await db.execAsync(`
+    DELETE FROM ${TX_TABLE};
+    DELETE FROM ${BUDGET_TABLE};
+    DELETE FROM ${RECURRING_TABLE};
+    DELETE FROM ${SETTINGS_TABLE};
+  `);
+}
+
 export async function applyRecurringRulesForMonth(year: number, monthIndex: number): Promise<void> {
   const db = await getDb();
   const rules = await db.getAllAsync<RecurringRuleRow>(

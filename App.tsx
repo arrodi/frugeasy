@@ -37,6 +37,7 @@ import {
   updateTransaction,
   upsertBudget,
   deleteBudget,
+  clearAllData,
 } from './src/storage/transactionsRepo';
 
 const INCOME_CATEGORIES: TransactionCategory[] = [
@@ -315,6 +316,53 @@ export default function App() {
     }
   };
 
+  const handleResetAllData = async () => {
+    Alert.alert(
+      'Reset all data?',
+      'This will permanently delete all transactions, budgets, recurring rules, and settings.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Continue',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Final confirmation',
+              'This cannot be undone. Do you want to erase everything now?',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Erase all data',
+                  style: 'destructive',
+                  onPress: async () => {
+                    try {
+                      await clearAllData();
+                      setTransactions([]);
+                      setBudgets([]);
+                      setRecurringRules([]);
+                      setNameInput('');
+                      setAmountInput('');
+                      setTypeFilter('all');
+                      setCategoryFilter('all');
+                      setSearchQuery('');
+                      setSelectedType('expense');
+                      setSelectedCategory('Other');
+                      setCurrency('USD');
+                      setDarkMode(false);
+                      Alert.alert('Done', 'All app data has been reset.');
+                    } catch {
+                      Alert.alert('Oops', 'Could not reset app data.');
+                    }
+                  },
+                },
+              ]
+            );
+          },
+        },
+      ]
+    );
+  };
+
   const categoryOptions = Array.from(new Set(baseMonthlyTransactions.map((t) => t.category))).sort();
   const expenseCategoryOptions = ['Food','Transport','Housing','Subscription','Health','Entertainment','Shopping','Education','Other'] as TransactionCategory[];
 
@@ -408,6 +456,7 @@ export default function App() {
             darkMode={darkMode}
             onDarkModeChange={handleDarkModeChange}
             onExportCsv={handleExportCsv}
+            onResetAllData={handleResetAllData}
           />
         </View>
       </ScrollView>

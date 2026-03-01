@@ -7,9 +7,10 @@ type Props = {
   darkMode: boolean;
   onDarkModeChange: (enabled: boolean) => Promise<void>;
   onExportCsv: () => Promise<void>;
+  onResetAllData: () => Promise<void>;
 };
 
-export function SettingsScreen({ currency, onCurrencyChange, darkMode, onDarkModeChange, onExportCsv }: Props) {
+export function SettingsScreen({ currency, onCurrencyChange, darkMode, onDarkModeChange, onExportCsv, onResetAllData }: Props) {
   return (
     <ScrollView style={[styles.container, darkMode && styles.containerDark]} contentContainerStyle={styles.content}>
       <Text style={[styles.title, darkMode && styles.textDark]}>Settings</Text>
@@ -33,6 +34,9 @@ export function SettingsScreen({ currency, onCurrencyChange, darkMode, onDarkMod
       <Pressable style={styles.exportBtn} onPress={onExportCsv}>
         <Text style={styles.exportBtnText}>Export CSV</Text>
       </Pressable>
+      <Pressable style={styles.resetBtn} onPress={onResetAllData}>
+        <Text style={styles.resetBtnText}>Reset All Data</Text>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -55,4 +59,6 @@ const styles = StyleSheet.create({
   chipTextActive: { color: '#e6f4ea' },
   exportBtn: { backgroundColor: '#14b85a', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 12, alignItems: 'center' },
   exportBtnText: { color: '#e6f4ea', fontWeight: '700' },
+  resetBtn: { backgroundColor: '#dc2626', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 12, alignItems: 'center' },
+  resetBtnText: { color: '#ffffff', fontWeight: '800' },
 });
