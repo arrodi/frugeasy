@@ -28,7 +28,7 @@ type Props = {
   onChangeAmount: (value: string) => void;
   onChangeType: (value: TransactionType) => void;
   onChangeCategory: (value: TransactionCategory) => void;
-  onSave: (input?: { dateIso?: string }) => Promise<boolean>;
+  onSave: (input?: { dateIso?: string; recurrence?: 'none' | 'weekly' | 'monthly' }) => Promise<boolean>;
   onCreateRecurring: (input: { frequency: 'weekly' | 'monthly'; label: string }) => Promise<void>;
 };
 
@@ -89,7 +89,7 @@ export function AddTransactionScreen({
 
     setIsSaving(true);
     try {
-      const ok = await onSave({ dateIso });
+      const ok = await onSave({ dateIso, recurrence: advanced ? freq : 'none' });
       if (ok) {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setSaveDone(true);

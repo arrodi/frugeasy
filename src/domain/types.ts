@@ -25,6 +25,7 @@ export type Transaction = {
   type: TransactionType;
   category: TransactionCategory;
   name: string;
+  recurrence?: 'none' | 'weekly' | 'monthly';
   date: string; // ISO timestamp
   createdAt: string; // ISO
 };

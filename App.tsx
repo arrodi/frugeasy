@@ -78,8 +78,8 @@ function monthKey(year: number, monthIndex: number): string {
 }
 
 function toCsv(transactions: Transaction[]): string {
-  const header = ['id', 'name', 'amount', 'type', 'category', 'date', 'createdAt'];
-  const rows = transactions.map((t) => [t.id, t.name, String(t.amount), t.type, t.category, t.date, t.createdAt]);
+  const header = ['id', 'name', 'amount', 'type', 'category', 'recurrence', 'date', 'createdAt'];
+  const rows = transactions.map((t) => [t.id, t.name, String(t.amount), t.type, t.category, t.recurrence, t.date, t.createdAt]);
   return [header, ...rows]
     .map((r) => r.map((c) => `"${String(c).replaceAll('"', '""')}"`).join(','))
     .join('\n');
@@ -181,7 +181,7 @@ export default function App() {
     setSelectedCategory(categoriesFor(nextType)[0]);
   };
 
-  const handleSave = async (input?: { dateIso?: string }): Promise<boolean> => {
+  const handleSave = async (input?: { dateIso?: string; recurrence?: 'none' | 'weekly' | 'monthly' }): Promise<boolean> => {
     if (saveLockRef.current) return false;
 
     const amount = Number(amountInput.replace(',', '.'));
@@ -200,6 +200,7 @@ export default function App() {
         type: selectedType,
         category: selectedCategory,
         name: nameInput.trim() || `${selectedCategory} ${categoryCount}`,
+        recurrence: input?.recurrence ?? 'none',
         date: nowIso,
         createdAt: nowIso,
       });
@@ -231,12 +232,13 @@ export default function App() {
     type: TransactionType;
     category: TransactionCategory;
     name: string;
+    recurrence: 'none' | 'weekly' | 'monthly';
     date: string;
   }) => {
     try {
       await updateTransaction(input);
       setTransactions((prev) =>
-        prev.map((t) => (t.id === input.id ? { ...t, amount: input.amount, type: input.type, category: input.category, name: input.name, date: input.date } : t))
+        prev.map((t) => (t.id === input.id ? { ...t, amount: input.amount, type: input.type, category: input.category, name: input.name, recurrence: input.recurrence, date: input.date } : t))
       );
     } catch {
       Alert.alert('Oops', 'Could not update transaction.');

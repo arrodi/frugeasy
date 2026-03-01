@@ -20,7 +20,7 @@ type Props = {
   searchQuery: string;
   onSearchQueryChange: (value: string) => void;
   onDeleteTransaction: (id: string) => Promise<void>;
-  onUpdateTransaction: (input: { id: string; amount: number; type: TransactionType; category: TransactionCategory; name: string; date: string }) => Promise<void>;
+  onUpdateTransaction: (input: { id: string; amount: number; type: TransactionType; category: TransactionCategory; name: string; recurrence: 'none' | 'weekly' | 'monthly'; date: string }) => Promise<void>;
   onSaveBudget: (category: TransactionCategory, amount: number) => Promise<void>;
   onDeleteBudget: (id: string) => Promise<void>;
   onSwipeBeyondLeft: () => void;

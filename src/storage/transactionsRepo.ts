@@ -30,6 +30,7 @@ export async function initTransactionsRepo(): Promise<void> {
       type TEXT NOT NULL,
       category TEXT NOT NULL DEFAULT 'Other',
       name TEXT NOT NULL DEFAULT 'Untitled',
+      recurrence TEXT NOT NULL DEFAULT 'none',
       date TEXT NOT NULL,
       createdAt TEXT NOT NULL
     );
@@ -69,6 +70,11 @@ export async function initTransactionsRepo(): Promise<void> {
     // column exists
   }
   try {
+    await db.execAsync(`ALTER TABLE ${TX_TABLE} ADD COLUMN recurrence TEXT NOT NULL DEFAULT 'none';`);
+  } catch {
+    // column exists
+  }
+  try {
     await db.execAsync(`ALTER TABLE ${RECURRING_TABLE} ADD COLUMN frequency TEXT NOT NULL DEFAULT 'monthly';`);
   } catch {
     // column exists
@@ -80,22 +86,24 @@ export async function insertTransaction(input: {
   type: TransactionType;
   category: TransactionCategory;
   name: string;
+  recurrence?: 'none' | 'weekly' | 'monthly';
   date: string;
   createdAt: string;
 }): Promise<Transaction> {
   const db = await getDb();
   const id = `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
+  const recurrence = input.recurrence ?? 'none';
   await db.runAsync(
-    `INSERT INTO ${TX_TABLE} (id, amount, type, category, name, date, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?);`,
-    [id, input.amount, input.type, input.category, input.name, input.date, input.createdAt]
+    `INSERT INTO ${TX_TABLE} (id, amount, type, category, name, recurrence, date, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+    [id, input.amount, input.type, input.category, input.name, recurrence, input.date, input.createdAt]
   );
-  return { id, ...input };
+  return { id, ...input, recurrence };
 }
 
 export async function listTransactions(): Promise<Transaction[]> {
   const db = await getDb();
   return db.getAllAsync<Transaction>(
-    `SELECT id, amount, type, COALESCE(category, 'Other') as category, COALESCE(name, 'Untitled') as name, date, createdAt FROM ${TX_TABLE} ORDER BY createdAt DESC;`
+    `SELECT id, amount, type, COALESCE(category, 'Other') as category, COALESCE(name, 'Untitled') as name, COALESCE(recurrence, 'none') as recurrence, date, createdAt FROM ${TX_TABLE} ORDER BY createdAt DESC;`
   );
 }
 
@@ -110,12 +118,13 @@ export async function updateTransaction(input: {
   type: TransactionType;
   category: TransactionCategory;
   name: string;
+  recurrence: 'none' | 'weekly' | 'monthly';
   date: string;
 }): Promise<void> {
   const db = await getDb();
   await db.runAsync(
-    `UPDATE ${TX_TABLE} SET amount = ?, type = ?, category = ?, name = ?, date = ? WHERE id = ?;`,
-    [input.amount, input.type, input.category, input.name, input.date, input.id]
+    `UPDATE ${TX_TABLE} SET amount = ?, type = ?, category = ?, name = ?, recurrence = ?, date = ? WHERE id = ?;`,
+    [input.amount, input.type, input.category, input.name, input.recurrence, input.date, input.id]
   );
 }
 
@@ -242,8 +251,8 @@ export async function applyRecurringRulesForMonth(year: number, monthIndex: numb
 
       const id = `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
       await db.runAsync(
-        `INSERT INTO ${TX_TABLE} (id, amount, type, category, name, date, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?);`,
-        [id, rule.amount, rule.type, rule.category, rule.label || 'Recurring', dateIso, new Date().toISOString()]
+        `INSERT INTO ${TX_TABLE} (id, amount, type, category, name, recurrence, date, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+        [id, rule.amount, rule.type, rule.category, rule.label || 'Recurring', rule.frequency, dateIso, new Date().toISOString()]
       );
     }
   }

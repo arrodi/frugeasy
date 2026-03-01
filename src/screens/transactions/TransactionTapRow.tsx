@@ -11,7 +11,7 @@ type Props = {
   activeId: string | null;
   setActiveId: (id: string | null) => void;
   onDeleteTransaction: (id: string) => Promise<void>;
-  onUpdateTransaction: (input: { id: string; amount: number; type: TransactionType; category: TransactionCategory; name: string; date: string }) => Promise<void>;
+  onUpdateTransaction: (input: { id: string; amount: number; type: TransactionType; category: TransactionCategory; name: string; recurrence: 'none' | 'weekly' | 'monthly'; date: string }) => Promise<void>;
   showSeparator: boolean;
   styles: any;
 };
@@ -23,24 +23,63 @@ function TransactionTapRowImpl({ item, currency, darkMode, activeId, setActiveId
   const onPressUpdate = useCallback((e: any) => {
     e.stopPropagation?.();
     if (!opened) return;
+
     Alert.prompt(
-      'Update transaction amount',
-      `${item.category} • ${item.name || '-'}`,
+      'Update name',
+      'Transaction name',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Save',
-          onPress: async (value?: string) => {
-            const amount = Number((value ?? '').replace(',', '.'));
-            if (!Number.isFinite(amount) || amount <= 0) return;
-            await onUpdateTransaction({ id: item.id, amount, type: item.type, category: item.category, name: item.name, date: item.date });
-            setActiveId(null);
+          text: 'Next',
+          onPress: (nameValue?: string) => {
+            const nextName = (nameValue ?? '').trim() || item.name || '-';
+            Alert.prompt(
+              'Update category',
+              'Category',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Next',
+                  onPress: (categoryValue?: string) => {
+                    const nextCategory = ((categoryValue ?? '').trim() || item.category) as TransactionCategory;
+                    Alert.prompt(
+                      'Update amount',
+                      'Amount',
+                      [
+                        { text: 'Cancel', style: 'cancel' },
+                        {
+                          text: 'Next',
+                          onPress: (amountValue?: string) => {
+                            const amount = Number((amountValue ?? '').replace(',', '.'));
+                            if (!Number.isFinite(amount) || amount <= 0) return;
+                            Alert.alert(
+                              'Update recurrence',
+                              'Select recurrence',
+                              [
+                                { text: 'None', onPress: async () => { await onUpdateTransaction({ id: item.id, amount, type: item.type, category: nextCategory, name: nextName, recurrence: 'none', date: item.date }); setActiveId(null); } },
+                                { text: 'Weekly', onPress: async () => { await onUpdateTransaction({ id: item.id, amount, type: item.type, category: nextCategory, name: nextName, recurrence: 'weekly', date: item.date }); setActiveId(null); } },
+                                { text: 'Monthly', onPress: async () => { await onUpdateTransaction({ id: item.id, amount, type: item.type, category: nextCategory, name: nextName, recurrence: 'monthly', date: item.date }); setActiveId(null); } },
+                                { text: 'Cancel', style: 'cancel' },
+                              ]
+                            );
+                          },
+                        },
+                      ],
+                      'plain-text',
+                      String(item.amount),
+                      'decimal-pad'
+                    );
+                  },
+                },
+              ],
+              'plain-text',
+              item.category
+            );
           },
         },
       ],
       'plain-text',
-      String(item.amount),
-      'decimal-pad'
+      item.name || '-'
     );
   }, [item.amount, item.category, item.date, item.id, item.name, item.type, onUpdateTransaction, opened, setActiveId]);
 
@@ -79,7 +118,9 @@ function TransactionTapRowImpl({ item, currency, darkMode, activeId, setActiveId
       <View style={styles.topRow}>
         <View>
           <Text style={[styles.name, darkMode && styles.textDark]}>{item.name?.trim() ? item.name : '-'}</Text>
-          <Text style={[styles.meta, darkMode && styles.metaDark]}>{item.category}</Text>
+          <Text style={[styles.meta, darkMode && styles.metaDark]}>
+            {item.category}{(item.recurrence ?? 'none') !== 'none' ? ` • ${item.recurrence}` : ''}
+          </Text>
         </View>
         <View style={styles.rightRow}>
           <Text style={[styles.meta, darkMode && styles.metaDark]}>{dateLabel}</Text>
